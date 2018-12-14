@@ -1,0 +1,203 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>软硬件信息采集表</title> <%includeJSP("/static/include/inc.jsp",{}){}%>
+<style>
+html,body {
+	height: 100%;
+	padding: 0;
+	margin: 0;
+}
+
+td {
+	border: 1px solid #B5D6E6;
+	word-break: break-all;
+}
+
+td div {
+	height: 50%;
+	width: 100%;
+	vertical-align: middle;
+    display: inline-block;
+}
+td div p{
+    padding: 0;
+}
+
+td div:nth-child(odd) {
+   border-bottom:#B5D6E6 solid 1px;
+}
+</style>
+</head>
+<body>
+    <div>
+        <p style="font-size: 25px; text-align: center; font-weight: bold;">
+            <u style="font-size: 25px; text-align: center; font-weight: bold;">${PROJECT_NAME}</u>（项目名称）<u style="font-size: 25px; text-align: center; font-weight: bold;">${SECTIONS} </u>标段施工开标记录表（2）
+        </p>
+    </div>
+    <table class="sztable" width="100%" style="text-align: center;" cellpadding="0" cellspacing="0">
+        <thead>
+            <tr>
+                <td width="5%" rowspan="3">投标人代表号</td>
+                <td width="10%" rowspan="3">投标人名称</td>
+                <td width="25%" colspan="3">递交电子投标文件（开标现场递交电子投标文件的除外）或编制电子投标文件的计算机硬件信息</td>
+                <td width="50%" colspan="7">制作已标价工程量清单XML电子文档的软硬件信息</td>
+                <td width="10%" rowspan="3">备注</td>
+            </tr>
+            <tr>
+                <td width="5%" rowspan="2">记录时间</td>
+                <td width="20%" rowspan="2">计算机硬件信息（网卡MAC地址，CPU序列号，硬盘序列号）</td>
+                <td width="5%" rowspan="2">是否雷同</td>
+                <td width="15%" colspan="3">计价软件加密锁信息</td>
+                <td width="25%" colspan="3">计算机硬件信息</td>
+                <td width="5%" rowspan="2">是否存在篡改</td>
+            </tr>
+            <tr>
+                <td width="5%">记录时间</td>
+                <td width="5%">加密锁序列号</td>
+                <td width="5%">是否雷同</td>
+                <td width="5%">记录时间</td>
+                <td width="15%">网卡MAC地址（如有），CPU序列号，硬盘序列号</td>
+                <td width="5%">是否雷同</td>
+            </tr>
+        </thead>
+        <tbody>
+            <sz:forEach items="${BIDDERS}" var="vo,step">
+                <sz:if test="${vo.XML_JSON_LIST.~size==0}">
+                    <tr>
+                        <td>${vo.V_BIDDER_NO}</td>
+                        <td>${vo.V_BIDDER_NAME}</td>
+                        <td ><div>编制：${vo.A_MAC_INFO.RECORDTIME!}</div>
+                                <div>投递：${vo.B_MAC_INFO.RECORDTIME!}</div></td>
+                            <td ><div>
+                                    <p>MAC地址:${vo.A_MAC_INFO.MAC!}</p>
+                                    <p>CPU序列号:${vo.A_MAC_INFO.CPUID!}</p>
+                                    <p>硬盘序列号:${vo.A_MAC_INFO.DISKID!}</p>
+                                </div>
+                                <div>
+                                    <p>MAC地址:${vo.B_MAC_INFO.MAC!}</p>
+                                    <p>CPU序列号:${vo.B_MAC_INFO.CPUID!}</p>
+                                    <p>硬盘序列号:${vo.B_MAC_INFO.DISKID!}</p>
+                                </div></td>
+                            <td ><div>
+                                    <sz:if test="${vo.IS_A_MAC_SAME!}">
+                                        <span style="color: red;">是</span>
+                                    </sz:if>
+                                    <sz:if test="${!vo.IS_A_MAC_SAME!}">
+                                       否
+                                    </sz:if>
+                                </div>
+                                <div>
+                                    <sz:if test="${vo.IS_B_MAC_SAME!}">
+                                        <span style="color: red;">是</span>
+                                    </sz:if>
+                                    <sz:if test="${!vo.IS_B_MAC_SAME!}">
+                                       否
+                                    </sz:if>
+                                </div></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                </sz:if>
+                <sz:forEach items="${vo.XML_JSON_LIST}" var="v,step">
+                    <sz:if test="${step.index==0}">
+                        <tr>
+                            <td rowspan="${vo.COL_NUM}">${vo.V_BIDDER_NO}</td>
+                            <td rowspan="${vo.COL_NUM}">${vo.V_BIDDER_NAME}</td>
+                            <td rowspan="${vo.COL_NUM}"><div>编制：${vo.A_MAC_INFO.RECORDTIME!}</div>
+                                <div>投递：${vo.B_MAC_INFO.RECORDTIME!}</div></td>
+                            <td rowspan="${vo.COL_NUM}"><div>
+                                    <p>MAC地址:${vo.A_MAC_INFO.MAC!}</p>
+                                    <p>CPU序列号:${vo.A_MAC_INFO.CPUID!}</p>
+                                    <p>硬盘序列号:${vo.A_MAC_INFO.DISKID!}</p>
+                                </div>
+                                <div>
+                                    <p>MAC地址:${vo.B_MAC_INFO.MAC!}</p>
+                                    <p>CPU序列号:${vo.B_MAC_INFO.CPUID!}</p>
+                                    <p>硬盘序列号:${vo.B_MAC_INFO.DISKID!}</p>
+                                </div></td>
+                            <td rowspan="${vo.COL_NUM}"><div>
+                                    <sz:if test="${vo.IS_A_MAC_SAME!}">
+                                        <span style="color: red;">是</span>
+                                    </sz:if>
+                                    <sz:if test="${!vo.IS_A_MAC_SAME!}">
+                                       否
+                                    </sz:if>
+                                </div>
+                                <div>
+                                    <sz:if test="${vo.IS_B_MAC_SAME!}">
+                                        <span style="color: red;">是</span>
+                                    </sz:if>
+                                    <sz:if test="${!vo.IS_B_MAC_SAME!}">
+                                       否
+                                    </sz:if>
+                                </div></td>
+
+                            <td>${v.GHSJ!}</td>
+                            <td>${v.JMSXLH.JMSXLH!}</td>
+                            <sz:if test="${v.JMSXLH.IS_SAME!}">
+                                <td><span style="color: red;">是</span></td>
+                            </sz:if>
+                            <sz:if test="${!v.JMSXLH.IS_SAME!}">
+                                <td><span>否</td>
+                            </sz:if>
+
+                            <td>${v.GHSJ!}</td>
+                            <td style="text-align: left;">
+                                <p>MAC地址:${v.HARDINFO.WKDZ}</p>
+                                <p>CPU序列号:${v.HARDINFO.CPUXLH}</p>
+                                <p>硬盘序列号:${v.HARDINFO.YPXLH}</p>
+                            </td>
+                            <sz:if test="${v.HARDINFO.IS_SAME!}">
+                                <td><span style="color: red;">是</span></td>
+                            </sz:if>
+                            <sz:if test="${!v.HARDINFO.IS_SAME!}">
+                                <td><span>否</td>
+                            </sz:if>
+                            <sz:if test="${vo.ENCRYPT_FLAG!}">
+                                <td rowspan="${vo.COL_NUM}">否</td>
+                            </sz:if>
+                            <sz:if test="${!vo.ENCRYPT_FLAG!}">
+                                <td rowspan="${vo.COL_NUM}"><span style="color: red;">是</span></td>
+                            </sz:if>
+                            <td rowspan="${vo.COL_NUM}"></td>
+                        </tr>
+                    </sz:if>
+                    <sz:if test="${step.index!=0}">
+                        <tr>
+                            <td>${v.GHSJ!}</td>
+                            <td>${v.JMSXLH.JMSXLH!}</td>
+                            <sz:if test="${v.JMSXLH.IS_SAME!}">
+                                <td><span style="color: red;">是</span></td>
+                            </sz:if>
+                            <sz:if test="${!v.JMSXLH.IS_SAME!}">
+                                <td><span>否</td>
+                            </sz:if>
+                            <td>${v.GHSJ!}</td>
+                            <td style="text-align: left;">
+                                <p>MAC地址:${v.HARDINFO.WKDZ}</p>
+                                <p>CPU序列号:${v.HARDINFO.CPUXLH}</p>
+                                <p>硬盘序列号:${v.HARDINFO.YPXLH}</p>
+                            </td>
+                            <sz:if test="${v.HARDINFO.IS_SAME!}">
+                                <td><span style="color: red;">是</span></td>
+                            </sz:if>
+                            <sz:if test="${!v.HARDINFO.IS_SAME!}">
+                                <td><span>否</td>
+                            </sz:if>
+                        </tr>
+                    </sz:if>
+                </sz:forEach>
+            </sz:forEach>
+        </tbody>
+    </table>
+    <p style="text-align: center;">本招标项目发布控制价的XML格式文件或计价软件版成功文件（如有）的时间：_年_月_日（由招标代理负责填写，如有多次发布时间，以最迟的发布时间为准），发布之前记录的软硬件信息无需在开标时公布和比对</p>
+</body>
+</html>

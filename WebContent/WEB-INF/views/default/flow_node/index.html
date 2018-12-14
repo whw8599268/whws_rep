@@ -1,0 +1,411 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="UTF-8">
+<%includeJSP("/static/include/inc.jsp",{}){}%>
+</head>
+<body>
+    <!-- 工具栏 -->
+    <div id="flow-node-dg-toolbar" style="padding: 0px; height: auto">
+        <div>
+            <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-add'" title="新增顶层节点" onclick="doAdd('','${ID!}','flow-node-dg-id',0)">新增顶层节点</a> <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-edit'" title="修改" onclick="doEdit('${ID!}','flow-node-dg-id')">修改</a>
+        </div>
+    </div>
+    <table id="flow-node-dg-id" toolbar="#flow-node-dg-toolbar" class="easyui-treegrid" data-options="
+                fit:true,
+                singleSelect:true,
+                fitColumns:true,
+                onBeforeLoad:onBeforeList,
+                lines: true,
+                url:'${path}${adminPath}/fnode/tree/${ID!}',
+                method:'get',
+                idField: 'ID',
+                treeField: 'SEQUENCE_NUM'
+            ">
+        <thead>
+            <tr>
+                <th data-options="field:'ID',checkbox:true"></th>
+                <th field="SEQUENCE_NUM" align="left" width="100">序号</th>
+                <th field="V_NODE_NAME" align="left" width="200">节点名称</th>
+                <th field="V_NODE_ICON" align="left" width="150">节点图片</th>
+                <th field="V_TENDERER_PAGE_URL" align="left" width="200">招标人页面</th>
+                <th field="V_MOBILE_NODE_ICON" align="left" width="150">手机版节点图片</th>
+                <th field="V_MOBILE_TENDERER_PAGE_URL" align="left" width="200">手机版招标人页面</th>
+                <th field="N_TENDERER_IS_SHOW" align="left" width="200" formatter="GridFormatter.N_TENDERER_IS_SHOW">招标人是否显示</th>
+                <th field="V_BIDDER_PAGE_URL" align="left" width="200" >投标人页面</th>
+                <th field="N_BIDDER_IS_SHOW" align="left" width="200" formatter="GridFormatter.N_BIDDER_IS_SHOW">投标人是否显示</th>
+                <th field="V_MOBILE_BIDDER_PAGE_URL" align="left" width="200">手机版投标人页面</th>
+                <th field="N_IS_START_UP_NODE" align="left" width="200" formatter="GridFormatter.N_IS_START_UP_NODE">启动节点</th>
+                <th field="OPERATE" align="left" width="300" formatter="GridFormatter.OPERATE">操作</th>
+            </tr>
+        </thead>
+    </table>
+    <script type="text/javascript">
+					var GridFormatter = {
+						"OPERATE" : function(val, row, index) {
+							var tgid = 'flow-node-dg-id';
+							var html = '';
+							html += '&nbsp;&nbsp;<a class="easyui-linkbutton" href="javascript:void(0);" onclick="doAdd(\''
+									+ row.ID
+									+ '\',\''
+									+ row.V_FLOW_ID
+									+ '\',\'' + tgid + '\',1)">增加子节点</a>';
+							html += '&nbsp;&nbsp;<a class="easyui-linkbutton" href="javascript:void(0);" onclick="moveUp(\''
+									+ row.ID + '\',\'' + tgid + '\')">上移</a>';
+							html += '&nbsp;&nbsp;<a class="easyui-linkbutton" href="javascript:void(0);" onclick="moveDown(\''
+									+ row.ID + '\',\'' + tgid + '\')">下移</a>';
+							html += '&nbsp;&nbsp;<a class="easyui-linkbutton" href="javascript:void(0);" onclick="remove(\''
+									+ row.ID + '\',\'' + tgid + '\')">删除</a>';
+							return html;
+						},
+						"N_TENDERER_IS_SHOW" : function(val, row, index) {
+							if (false)
+								return val;
+							else if (val == "1")
+								return "显示";
+							else if (val == "0")
+								return "<font color='red'>不显示</font>";
+							else
+								return "未知[" + val + "]";
+							return val;
+						},
+						"N_BIDDER_IS_SHOW" : function(val, row, index) {
+							if (false)
+								return val;
+							else if (val == "1")
+								return "显示";
+							else if (val == "0")
+								return "<font color='red'>不显示</font>";
+							else
+								return "未知[" + val + "]";
+							return val;
+						},
+						"N_IS_START_UP_NODE" : function(val, row, index) {
+							if (false)
+								return val;
+							else if (val == "1")
+								return "是";
+							else if (val == "0")
+								return "<font color='red'>否</font>";
+							else
+								return "未知[" + val + "]";
+							return val;
+						}
+					};
+
+					/**上移**/
+					function moveUp(id, treegrid_id) {
+						var msg = "确认要调整条款位置吗?";
+						var url = '${path}${adminPath}/fnode/up/' + id;
+						parent.$.messager
+								.confirm(
+										"提示!",
+										msg,
+										function(res) {
+											if (res) {
+												parent.sy.progress.show();
+												$
+														.ajax({
+															url : url,
+															// 设置类型
+															//dataType : 'json',
+															// 设置请求方法
+															type : "POST",
+															// 成功回调
+															success : function(
+																	result) {
+																parent.sy.progress
+																		.hide();
+																$(
+																		'#'
+																				+ treegrid_id)
+																		.treegrid(
+																				'reload');
+																parent.sy
+																		.messagerShow({
+																			msg : "操作成功!",
+																			title : '提示'
+																		});
+															},
+															// 失败回调
+															error : function(
+																	XMLHttpRequest,
+																	textStatus,
+																	errorThrown) {
+																parent.sy.progress
+																		.hide();
+																var result = jQuery
+																		.parseJSON(XMLHttpRequest.responseText);
+																top.$.messager
+																		.alert(
+																				'操作失败',
+																				"操作失败["
+																						+ result.errorDesc
+																						+ "]");
+															}
+														});
+											}
+										});
+					}
+
+					/****下移***/
+					function moveDown(id, treegrid_id) {
+						var msg = "确认要调整条款位置吗?";
+						var url = '${path}${adminPath}/fnode/down/' + id;
+						parent.$.messager
+								.confirm(
+										"提示!",
+										msg,
+										function(res) {
+											if (res) {
+												parent.sy.progress.show();
+												$
+														.ajax({
+															url : url,
+															// 设置类型
+															//dataType : 'json',
+															// 设置请求方法
+															type : "POST",
+															// 成功回调
+															success : function(
+																	result) {
+																parent.sy.progress
+																		.hide();
+																$(
+																		'#'
+																				+ treegrid_id)
+																		.treegrid(
+																				'reload');
+																parent.sy
+																		.messagerShow({
+																			msg : "操作成功!",
+																			title : '提示'
+																		});
+															},
+															// 失败回调
+															error : function(
+																	XMLHttpRequest,
+																	textStatus,
+																	errorThrown) {
+																parent.sy.progress
+																		.hide();
+																var result = jQuery
+																		.parseJSON(XMLHttpRequest.responseText);
+																top.$.messager
+																		.alert(
+																				'操作失败',
+																				"操作失败["
+																						+ result.errorDesc
+																						+ "]");
+															}
+														});
+											}
+										});
+					}
+
+					/**删除**/
+					function remove(id, treegrid_id) {
+						var msg = "确认要删除选择的数据吗?";
+						var url = '${path}${adminPath}/fnode/remove/' + id;
+						parent.$.messager
+								.confirm(
+										"提示!",
+										msg,
+										function(res) {
+											if (res) {
+												parent.sy.progress.show();
+												$
+														.ajax({
+															url : url,
+															// 设置类型
+															//dataType : 'json',
+															// 设置请求方法
+															type : "POST",
+															// 成功回调
+															success : function(
+																	result) {
+																parent.sy.progress
+																		.hide();
+																$(
+																		'#'
+																				+ treegrid_id)
+																		.treegrid(
+																				'reload');
+																parent.sy
+																		.messagerShow({
+																			msg : "操作成功!",
+																			title : '提示'
+																		});
+															},
+															// 失败回调
+															error : function(
+																	XMLHttpRequest,
+																	textStatus,
+																	errorThrown) {
+																parent.sy.progress
+																		.hide();
+																var result = jQuery
+																		.parseJSON(XMLHttpRequest.responseText);
+																top.$.messager
+																		.alert(
+																				'操作失败',
+																				"操作失败["
+																						+ result.errorDesc
+																						+ "]");
+															}
+														});
+											}
+										});
+					}
+
+					/**添加评审条款**/
+					function doAdd(id, flowid, treegrid_id, t) {
+						var p = parent.sy
+								.dialog({
+									title : '&nbsp;添加',
+									iconCls : "application_osx_add",
+									href : '${path}${adminPath}/view/flow_node/add.node.html?flowid='
+											+ flowid
+											+ "&pid="
+											+ id
+											+ "&_t="
+											+ t,
+									width : 450,
+									height : 420,
+									buttons : [
+											{
+												text : '保存',
+												iconCls : "icon-save",
+												handler : function() {
+													var f = p.find('form');
+													if (f.form('validate')) {
+														//保存操作
+														var clause = f
+																.form2json({
+																	allowEmptySingleVal : false
+																});
+														//alert(JSON.stringify(func));
+														parent.sy.progress
+																.show();
+														// 发生Ajax请求
+														doAjax(clause,
+																treegrid_id, p,
+																"POST",
+																"${path}${adminPath}/fnode");
+													}
+												}
+											}, {
+												text : "取消",
+												iconCls : "icon-remove",
+												handler : function() {
+													p.dialog('close');
+												}
+											} ],
+									onLoad : function() {
+
+									}
+								});
+					}
+
+					/**修改评审条款**/
+					function doEdit(flowid, treegrid_id) {
+						var rows = $('#' + treegrid_id).treegrid(
+								'getSelections');
+						if (rows.length == 0) {
+							parent.$.messager.alert("提示", "请选择要修改的数据！");
+							return;
+						}
+						if (rows.length > 1) {
+							parent.$.messager.alert("提示", "只允许对单条数据进行编辑！");
+							return;
+						}
+						var row = rows[0];
+						var _t = 1;
+						if (row.N_DEPTH == 1) {
+							_t = 0;
+						}
+						var p = parent.sy
+								.dialog({
+									title : '&nbsp;修改',
+									iconCls : "application_osx_add",
+									href : '${path}${adminPath}/view/flow_node/edit.node.html?id='
+											+ flowid + "&_t=" + _t,
+									width : 450,
+									height : 420,
+									buttons : [
+											{
+												text : '保存',
+												iconCls : "icon-save",
+												handler : function() {
+													var f = p.find('form');
+													if (f.form('validate')) {
+														//保存操作
+														var clause = f
+																.form2json({
+																	allowEmptySingleVal : false
+																});
+														parent.sy.progress
+																.show();
+														doAjax(clause,
+																treegrid_id, p,
+																"POST",
+																"${path}${adminPath}/fnode/modify");
+													}
+												}
+											}, {
+												text : "取消",
+												iconCls : "icon-remove",
+												handler : function() {
+													p.dialog('close');
+												}
+											} ],
+									onLoad : function() {
+										var f = p.find('form');
+										f.form('reset');
+										f.form('load', row);
+									}
+								});
+					}
+
+					function doAjax(clause, treegrid_id, p, method, url) {
+						// 发生Ajax请求
+						$
+								.ajax({
+									url : url,
+									// 设置请求方法
+									type : method,
+									//dataType : 'json',
+									contentType : 'application/json;charset=UTF-8',
+									data : JSON.stringify(clause),
+									// 成功回调
+									success : function(result) {
+										parent.sy.progress.hide();
+										$('#' + treegrid_id).treegrid('reload');
+										parent.sy.messagerShow({
+											msg : "操作成功!",
+											title : '提示'
+										});
+										p.dialog('close');
+									},
+									// 失败回调
+									error : function(XMLHttpRequest,
+											textStatus, errorThrown) {
+										parent.sy.progress.hide();
+										var result = jQuery
+												.parseJSON(XMLHttpRequest.responseText);
+										top.$.messager.alert('操作失败', "操作失败["
+												+ result.errorDesc + "]");
+									}
+								});
+					}
+
+					function onBeforeList(row, param) {
+						// 设置size参数
+						param.size = param.rows;
+						// 去除IE get缓存
+						param._ = new Date().getTime();
+						return true;
+					}
+				</script>
+</body>
+</html>

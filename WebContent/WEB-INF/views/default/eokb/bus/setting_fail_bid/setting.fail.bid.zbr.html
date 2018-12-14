@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<%includeJSP("/static/include/inc.jsp",{}){}%>
+<title>招标人流标设置页面</title>
+</head>
+<script type="text/javascript">
+var code = '${SessionUtils.getTenderProjectTypeCode()}';
+
+	/**
+	 * 设置标段或标段组显示列表
+	 */
+	$(function() {
+		//parent.macAddressInfo();
+		$('#formGrid').datagrid({
+		    pagination:false,loadFilter:resultFilter,onBeforeLoad:onBeforeList,
+		    fitColumns:true,
+		    rownumbers:false,
+		    fit:true,
+		    url:'${path}${adminPath}/bus/sfbid',
+		    method:'get',
+		    columns:[[
+		        {field:'V_BID_SECTION_GROUP_CODE',title:'标段组编号',width:25,align:'center'}, 
+		        {field:'V_BID_SECTION_NAMES',title:'标段名称',width:45,halign:'center', align:'left'},
+		        {field:'V_BID_SECTION_IDS',title:'标段ID',width:45,align:'center',hidden:true},   
+		        {field:'N_BIDDER_COUNT',title:'解密成功数量',width:25,align:'center'},
+		        {field:'V_BID_OPEN_STATUS',title:'是否流标',width:25,align:'center',formatter:GridFormatter.V_BID_OPEN_STATUS}
+		    ]],
+		    onLoadSuccess:function(){
+		    	changeBidStatus();
+		    	if(numMsg!=''){
+					top.$.messager.alert('提示', numMsg+"投标人少于三家，根据《中华人民共和国招标投标法》，应当重新招标。");
+		    	}
+		    }   
+		});
+		var status = "${session.TENDER_PROJECT_INFO.N_IS_SECTION_GROUP}";
+		if (status == "0") {
+			$('#formGrid').datagrid('hideColumn', 'V_BID_SECTION_GROUP_CODE');
+		} else if (status == "1") {
+			$('#formGrid').datagrid('showColumn', 'V_BID_SECTION_GROUP_CODE');
+		}
+	});
+	
+	var numMsg='';
+	var isFirst = true;
+	var GridFormatter = {
+		"V_BID_OPEN_STATUS" : function(val, row, index) {
+			var _html = "";
+			<sz:if test="${TENDER_PROJECT_FLOW_NODE.N_STATUS!=3}">
+			//alert(val);
+			_html += "<input id='"+row.V_BID_SECTION_IDS+"' name='V_BID_SECTION_IDS' onchange='changeBidStatus();' type='checkbox' value='"+row.V_BID_SECTION_IDS+"' ";
+			if (val == '10-1') {
+				_html += ' checked="checked" ';
+			}
+			_html += " />流标";
+			
+			// 判断该标段投递数量小于三家，需要弹出提醒
+			if(row.N_VALID_BIDDER_COUNT<3){
+				if(isFirst){
+					numMsg += '标段：'+row.V_BID_SECTION_NAMES;
+					isFirst = false;
+				}else{
+					numMsg += '，'+row.V_BID_SECTION_NAMES;
+				}
+			}
+			</sz:if>
+			
+			<sz:if test="${TENDER_PROJECT_FLOW_NODE.N_STATUS==3}">
+			if (val.startsWith('10-')) {
+				_html = "流标";
+			}
+			else {
+				_html = "正常";
+			}
+			</sz:if>
+			return _html;
+		}
+	};
+
+	//判断是否全部流标，是隐藏下一步按钮
+	function changeBidStatus(){
+		//alert('change')	
+		var boxs = $("#bid-status-form").find("input[type=checkbox]");
+		var canNext = false;
+		for(var i=0;i<boxs.length;i++){
+			if(!$(boxs.eq(i)).is(":checked")){
+				canNext = true;
+			}
+		}
+		if(canNext){
+			$("#next-btn").show();
+			return;
+		}
+		$("#next-btn").hide();
+	}
+	
+	/**保存**/
+	function doSave() {
+		parent.$.messager.confirm("提示", "确认保存设置?", function(r) {
+			if (!r) {
+				return;
+			}
+			var param = $('#bid-status-form').form2json({
+				allowEmptySingleVal : false
+			});
+			//alert(JSON.stringify(param));
+			parent.sy.progress.show();
+			$.ajax({
+				url : '${path}${adminPath}/bus/sfbid',
+				// 设置请求方法
+				type : 'POST',
+				data : JSON.stringify(param),
+				//dataType : 'json',
+				contentType : 'application/json;charset=UTF-8',
+				// 成功回调
+				success : function(resutl) {
+					parent.sy.progress.hide();
+					$('#formGrid').datagrid('reload');
+					//刷新列表
+					top.$.messager.alert('提示', "操作成功!");
+				},
+				// 失败回调
+				error : function(XMLHttpRequest, textStatus, errorThrown) {
+					parent.sy.progress.hide();
+					var result = jQuery.parseJSON(XMLHttpRequest.responseText);
+					top.$.messager.alert('操作失败', "操作失败["
+							+ result.errorDesc + "]");
+				}
+			});
+		})
+	}
+	
+	/**结束当前节点**/
+	function finishCurrentFlow() {
+		parent.sy.progress.show();
+		$.ajax({
+			type : 'GET',
+			cache : false,
+			//data : data,
+			url : "${path}${adminPath}/bus/sing/create",//请求的action路径  
+			error : function(XMLHttpRequest, textStatus, errorThrown) {//请求失败处理函数  
+				var result = jQuery.parseJSON(XMLHttpRequest.responseText);
+				$.messager.alert('异步获取数据出现异常', "异步获取数据出现异常[" + result.errorDesc
+						+ "]");
+			},
+			success : function(rs) { //请求成功后处理函数。 
+				parent.sy.progress.hide();
+				// 第一次预审或者已点击过推送直接结束本环节
+				if(rs || code.indexOf("_v1_1")>0){
+					parent.finishCurrentFlowNode('${TENDER_PROJECT_FLOW_NODE.ID}',
+					'${TENDER_PROJECT_FLOW_NODE.V_NODE_NAME}');
+					return;
+				}
+				
+				parent.$.messager.confirm("提示", " 您尚未推送投标人信息，确认进入下一环节?", function(r) {
+					if (r) {
+						parent.finishCurrentFlowNode('${TENDER_PROJECT_FLOW_NODE.ID}',
+						'${TENDER_PROJECT_FLOW_NODE.V_NODE_NAME}');
+					}
+				});
+			}
+		});
+	}
+	
+	// 推送投标人信息到交易平台
+	function pushDate() {
+		parent.sy.progress.show();
+		$
+		.ajax({
+			url : "${path}${adminPath}/bus/push/bidders",
+			// 设置请求方法
+			type : "POST",
+			// dataType : 'json',
+			// contentType : 'application/json;charset=UTF-8',
+			// 成功回调
+			success : function(result) {
+				parent.sy.progress.hide();
+				$.messager.alert("操作成功","推送成功");
+			},
+			// 失败回调
+			error : function(XMLHttpRequest,
+					textStatus, errorThrown) {
+				parent.sy.progress.hide();
+				var result = jQuery
+						.parseJSON(XMLHttpRequest.responseText);
+				$.messager.alert('提示', result.errorDesc);
+			}
+		});
+	}
+	
+	/**导出投标人名单**/
+    function exportBidderList() {
+        window.open("${path}${adminPath}/bus/decrypt/export_bidders");
+    }
+	
+  	//最高限价查看
+  	var p
+	function controlPrice() {
+		p = parent.sy
+				.dialog({
+					title : '&nbsp;最高限价信息',
+					// iconCls: "icon-man",
+					href : '${path}${adminPath}/bus/controlprice/infosForGsgl',
+					width : 500,
+					height : 500,
+					closed : false,
+					cache : false,
+					modal : true,
+					buttons : [ {
+						text : "保存",
+						iconCls : "icon-ok",
+						handler : function() {
+							doSavePrice()
+							p.dialog('close');
+						}
+					}, {
+						text : "取消",
+						iconCls : "icon-remove",
+						handler : function() {
+							p.dialog('close');
+						}
+					} ]
+				});
+	}
+  	
+	/**保存**/
+	function doSavePrice() {
+		var sections = new Array();
+		p.find("#price-form").each(function() {
+			var param = $(this).form2json({
+				allowEmptySingleVal : false
+			});
+			sections.push(param);
+		});
+		
+		sy.progress.show();
+		// 发生Ajax请求
+		$.ajax({
+			url : '${path}${adminPath}/bus/controlprice/savePricesForGsgl',
+			// 设置请求方法
+			type : 'POST',
+			//dataType : 'json',
+			//contentType : 'application/json;charset=UTF-8',
+			data : {
+				"info" : JSON.stringify(sections)
+			},
+			// 成功回调
+			success : function(result) {
+				sy.progress.hide();
+			},
+			// 失败回调
+			error : function(XMLHttpRequest, textStatus, errorThrown) {
+				parent.sy.progress.hide();
+				var result = jQuery.parseJSON(XMLHttpRequest.responseText);
+				top.$.messager.alert('操作失败', "操作失败[" + result.errorDesc + "]");
+			}
+		});
+	}
+</script>
+<body>
+    <div class="easyui-panel" data-options="fit:true" style="width: 100%; height: 95%; border: 0;">
+        <sz:if test="${TENDER_PROJECT_FLOW_NODE.N_STATUS!=3}">
+            <div style="text-align: right;">
+                <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-save'" onclick="controlPrice();">确认最高限价</a> <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-save'" onclick="parent.macAddressInfo()">重复Mac地址查看</a> <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-save'" onclick="doSave();">保存数据</a> <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-ok'" onclick="pushDate();">推送投标人信息到交易平台</a> <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-ok'" onclick="exportBidderList();">导出投标人名单</a> <a href="#" id="next-btn" class="easyui-linkbutton" data-options="iconCls:'icon-ok'" onclick="finishCurrentFlow();">进入下一环节</a>
+            </div>
+        </sz:if>
+        <sz:if test="${TENDER_PROJECT_FLOW_NODE.N_STATUS==3}">
+            <div style="text-align: right;">
+                <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-ok'" onclick="pushDate();">推送投标人信息到交易平台</a><a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-ok'" onclick="exportBidderList();">导出投标人名单</a>
+            </div>
+        </sz:if>
+        <form id="bid-status-form" style="width: 100%; height: 95%">
+            <table id="formGrid"></table>
+        </form>
+    </div>
+</body>
+</html>

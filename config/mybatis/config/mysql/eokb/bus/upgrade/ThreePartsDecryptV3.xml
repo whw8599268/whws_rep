@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="3DecryptV3">
+
+    <!-- 获取未解析的投递数量 -->
+    <select id="getNotParseDeliveryCount" parameterType="record" resultType="int">
+        <![CDATA[
+            SELECT COUNT(T.ID)
+              FROM EKB_T_TBIMPORTBIDDING T
+              JOIN EKB_T_SECTION_INFO T1 ON (T1.V_TPID = T.V_TPID AND T.V_BID_SECTION_ID = T1.V_BID_SECTION_ID)
+             WHERE T.V_TPID = #{tpid}
+               AND T1.V_BID_OPEN_STATUS != '0'
+               AND T1.V_BID_OPEN_STATUS != '10-0'
+               AND T.ID NOT IN (SELECT V_TBID FROM EKB_T_BDDU_RECORD WHERE V_TPID = #{tpid})
+        ]]>
+    </select>
+
+    <!-- 获取要解密的投标人 -->
+    <select id="getBeToDecryptBidders" parameterType="string" resultType="record">
+        <![CDATA[
+            SELECT V_UNIFY_CODE, V_ORG_CODE, V_BIDDER_NAME
+              FROM EKB_T_BDDU_RECORD
+             WHERE V_TPID = #{_parameter}
+               AND (N_STATUS >= -20 AND N_STATUS <= 20)
+             GROUP BY V_ORG_CODE
+        ]]>
+    </select>
+    
+    <!-- 获取要解密的数量 -->
+    <select id="getBeToDecryptCount" parameterType="record" resultType="record">
+        <![CDATA[
+        SELECT (SELECT COUNT(1)
+                  FROM EKB_T_BDDU_RECORD
+                 WHERE V_TPID = #{tpid}
+                   AND (N_STATUS >= -20 AND N_STATUS <= 20)) AS N_BE_COUNT,
+               COUNT(1) AS N_TOTAL
+          FROM EKB_T_BDDU_RECORD
+         WHERE V_TPID = #{tpid}
+        ]]>
+    </select>
+
+    <!-- 获取投标人信用分 -->
+    <select id="getBidderCreditScore" parameterType="record" resultType="record">
+        <![CDATA[
+            SELECT *
+              FROM (SELECT CCS.V_COMPANY_NAME,
+                           CCS.V_ORG_CODE,
+                           CCS.V_TYPE,
+                           CCS.V_YEAR,
+                           CCS.V_QUARTER,
+                           CCS.N_HTLY,
+                           CCS.N_ZLAQWM,
+                           CCS.N_TCXW,
+                           CCS.N_RANKING,
+                           CCS.N_TOTAL_SCORE,
+                           0 AS N_O_KEY
+                      FROM EKB_T_COMPANY_CREDIT_SCORE_INFO CCS
+                     WHERE CCS.V_TYPE = #{type}
+                       AND (CCS.V_ORG_CODE = #{orgcode}]]>
+                         <if test="unifycode!=null and unifycode!=''">
+                            <![CDATA[OR CCS.V_UNIFY_CODE = #{unifycode}]]>
+                         </if>
+                       <![CDATA[)
+                       AND CCS.V_YEAR = #{YEAR}
+                       AND CCS.V_QUARTER = #{QUARTER_NAME}
+                    UNION
+                    SELECT "" AS V_COMPANY_NAME,
+                           "" AS V_ORG_CODE,
+                           ICS.V_TYPE,
+                           ICS.V_YEAR,
+                           ICS.V_QUARTER,
+                           0 AS N_HTLY,
+                           0 AS N_ZLAQWM,
+                           0 AS N_TCXW,
+                           0 AS N_RANKING,]]>
+                           <if test="type =='工程监理企业信用评价'">
+                                <![CDATA[if(ICS.N_TOTAL_SCORE>=60,ICS.N_TOTAL_SCORE,60) AS N_TOTAL_SCORE,]]>
+                           </if>
+                            <if test="type !='工程监理企业信用评价'">
+                                <![CDATA[60 AS N_TOTAL_SCORE,]]>
+                           </if>
+                           <![CDATA[ 100 AS N_O_KEY
+                      FROM EKB_T_INDUSTRY_AVG_CREDIT_SCORE_INFO ICS
+                     WHERE ICS.V_TYPE = #{type}
+                       AND ICS.V_YEAR = #{YEAR}
+                       AND ICS.V_QUARTER = #{QUARTER_NAME}) T
+             ORDER BY T.N_O_KEY ASC LIMIT 1
+        ]]>
+    </select>
+
+</mapper>  

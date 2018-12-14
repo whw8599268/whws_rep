@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <!-- ${catalina.home}：tomcat根目录 -->
+    <!-- 在正式上线的环境中应该吧root的日志输出调为OFF,并且将所有的logger节点的additivity设置为false -->
+    <!-- 控制台输出 -->
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <!-- 日志输出编码 -->
+        <Encoding>UTF-8</Encoding>
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <!--格式化输出：%-5p:左对齐显示5位宽日志级别,%m:日志信息,%d{yyyy-MM-dd HH:mm:ssS}:时间,%caller{1}:日志执行位置 -->
+            <pattern><![CDATA[aeolus.stdout: |%-5p| %m | %d{yyyy-MM-dd HH:mm:ssS} | %caller{1}]]></pattern>
+        </layout>
+    </appender>
+
+    <!-- 数据库输出 -->
+    <appender name="PLATFORM_LOG" class="ch.qos.logback.classic.db.DBAppender">
+        <connectionSource class="ch.qos.logback.core.db.DataSourceConnectionSource">
+            <dataSource class="com.alibaba.druid.pool.DruidDataSource">
+                <param name="driverClassName" value="com.mysql.jdbc.Driver" />
+                <param name="url" value="jdbc:mysql://127.0.0.1:3306/DB_EBID_EOKB_LOG?characterEncoding=utf-8" />
+                <param name="username" value="DB_EBID_EOKB_LOG" />
+                <param name="password" value="DB_EBID_EOKB_LOG" />
+				<!--配置初始化大小、最小、最大-->
+                <param name="initialSize" value="1" />
+                <param name="minIdle" value="1" />
+                <param name="maxActive" value="5" />
+                <!-- 配置获取连接等待超时的时间-->
+                <param name="maxWait" value="60000" />
+                <!-- 配置间隔多久才进行一次检测，检测需要关闭的空闲连接，单位是毫秒-->
+                <param name="timeBetweenEvictionRunsMillis" value="60000" />
+                <!--配置一个连接在池中最小生存的时间，单位是毫秒-->
+                <param name="minEvictableIdleTimeMillis" value="300000" />
+                <!--打开PSCache，并且指定每个连接上PSCache的大小-->
+                <param name="poolPreparedStatements" value="true" />
+                <param name="maxPoolPreparedStatementPerConnectionSize" value="20" />
+                <!--配置监控统计拦截的filters-->
+                <property name="filters" value="stat" />
+            </dataSource>
+        </connectionSource>
+    </appender>
+	
+	
+    <!-- 文件输入 -->
+    <appender name="PLATFORM_LOG2" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!-- 在日志文件超过 5MB 时进行归档，并且归档文件后缀只要是 .zip 或 .gz 就会自动压缩日志归档 -->
+        <file>${catalina.home}/logs/aeolus.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+            <fileNamePattern>${catalina.home}/logs/aeolus.%i.log.zip
+            </fileNamePattern>
+            <minIndex>1</minIndex>
+            <maxIndex>10</maxIndex>
+        </rollingPolicy>
+        <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+            <maxFileSize>5MB</maxFileSize>
+        </triggeringPolicy>
+        <encoder>
+            <!-- 格式化输出：%-5p:左对齐显示5位宽日志级别,%m:日志信息,%d{yyyy-MM-dd HH:mm:ssS}:时间,%F:java原文件名,%L:第几行 -->
+            <pattern><![CDATA[aeolus.log: |%-5p| %m | %d{yyyy-MM-dd HH:mm:ssS} | %F:%L %n]]></pattern>
+        </encoder>
+    </appender>
+
+    <!-- orm 日志文件输入 -->
+    <appender name="ORM_LOG" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!-- 可让每天产生一个日志文件，最多 10 个，自动回滚 -->
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${catalina.home}/logs/aeolus-orm-%d{yyyy-MM-dd}.log
+            </fileNamePattern>
+            <maxHistory>10</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <!--格式化输出：%-5p:左对齐显示5位宽日志级别,%m:日志信息,%d{yyyy-MM-dd HH:mm:ssS}:时间,%F:java原文件名,%L:第几行 -->
+            <pattern><![CDATA[aeolus-orm.log: |%-5p| %m | %d{yyyy-MM-dd HH:mm:ssS} | %F:%L %n]]></pattern>
+        </encoder>
+    </appender>
+
+    <!-- mybatis logger定义 -->
+    <logger name="java.sql.PreparedStatement" level="error" additivity="false">
+        <appender-ref ref="ORM_LOG" />
+    </logger>
+    <logger name="java.sql.Statement" level="error" additivity="false">
+        <appender-ref ref="ORM_LOG" />
+    </logger>
+    <logger name="java.sql.ResultSet" level="error" additivity="false">
+        <appender-ref ref="ORM_LOG" />
+    </logger>
+    <logger name="com.apache.ibatis" level="error" additivity="false">
+        <appender-ref ref="ORM_LOG" />
+    </logger>
+    <!-- OSCache -->
+    <logger name="com.opensymphony.oscache" level="error" additivity="false">
+        <appender-ref ref="ORM_LOG" />
+    </logger>
+    <!-- druid -->
+    <logger name="com.alibaba.druid" level="error" additivity="false">
+        <appender-ref ref="ORM_LOG" />
+    </logger>
+    <!-- 业务logger定义 -->
+    <logger name="com.sozone.aeolus" level="error" additivity="false">
+        <appender-ref ref="PLATFORM_LOG" />
+    </logger>
+    <logger name="com.sozone.eokb" level="error" additivity="false">
+        <appender-ref ref="PLATFORM_LOG" />
+    </logger>
+
+    <!-- root -->
+    <root level="OFF">
+        <appender-ref ref="STDOUT" />
+    </root>
+
+</configuration>

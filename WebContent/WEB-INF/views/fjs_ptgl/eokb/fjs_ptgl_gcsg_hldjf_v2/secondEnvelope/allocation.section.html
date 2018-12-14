@@ -1,0 +1,145 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style>
+html,body {
+	height: 100%;
+	padding: 0;
+	margin: 0;
+}
+
+td {
+	border: 1px solid #B5D6E6;
+}
+</style>
+<title>现场摇球分配标段结果录入</title> <%includeJSP("/static/include/inc.jsp",{}){}%>
+<link href="${path}/static/css/table.css" rel="stylesheet" />
+</head>
+<body>
+
+    <sz:if test="${TENDER_PROJECT_FLOW_NODE.N_STATUS!=3}">
+        <div style="text-align: right;">
+            <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-save'" onclick="doSave();">保存</a> <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-ok'" onclick="finishCurrentFlow();">进入下一环节</a>
+        </div>
+    </sz:if>
+    <form id="roll-bal-table-form" style="width: 100%;">
+        <div class="easyui-tabs" data-options="plain:true">
+            <sz:forEach items="${GROUP_LIST}" var="group,sta">
+                <div title="标段组：${group.V_BID_SECTION_GROUP_CODE}" style="padding: 10px;">
+                    <table class="sztable" width="100%" style="text-align: center;">
+                        <thead>
+                            <tr>
+                                <td width="20%">序号</td>
+                                <td width="40%">投标人名称</td>
+                                <td width="40%">标段</td>
+                            </tr>
+                        </thead>
+                        <sz:forEach items="${group.TENDER_LIST}" var="tender,stat">
+                            <tr>
+                                <input name="${tender.ID}.ID" value="${tender.ID}" hidden />
+                                <input name="${tender.ID}.CODE" value="${group.V_BID_SECTION_GROUP_CODE}" hidden />
+                                <td>${stat.index+1}</td>
+                                <td>${tender.V_BIDDER_NAME}</td>
+                                <sz:if test="${TENDER_PROJECT_FLOW_NODE.N_STATUS!=3}">
+                                    <td><select name="${tender.ID}.YAOHAO" style="width: 100px;">
+                                            <option value="">请选择</option>
+                                            <sz:forEach items="${group.SECTION_LIST}" var="section,step">
+                                                <sz:if test="${section.V_BID_SECTION_ID!=null && section.V_BID_SECTION_ID!=''}">
+                                                    <option value="${section.V_BID_SECTION_ID}"
+                                                        <sz:if test="${section.V_BID_SECTION_ID==tender.SECTION_ID}">selected="selected"</sz:if>
+                                                        >${section.V_BID_SECTION_NAME}
+                                                    </option>
+                                                </sz:if>
+                                            </sz:forEach>
+                                    </select></td>
+                                </sz:if>
+                                <sz:if test="${TENDER_PROJECT_FLOW_NODE.N_STATUS==3}">
+                                    <td><sz:forEach items="${group.SECTION_LIST}" var="section,step">
+                                            <sz:if test="${section.V_BID_SECTION_ID==tender.SECTION_ID}">
+                                            ${section.V_BID_SECTION_NAME}
+                                            </sz:if>
+                                        </sz:forEach></td>
+                                </sz:if>
+                            </tr>
+                        </sz:forEach>
+                    </table>
+                </div>
+            </sz:forEach>
+        </div>
+    </form>
+
+    <script type="text/javascript">
+					/**保存**/
+					function doSave() {
+						var groupsInfo = new Array();
+						$("form").each(function() {
+							var param = $(this).form2json({
+								allowEmptySingleVal : false
+							});
+							groupsInfo.push(param);
+						});
+						sy.progress.show();
+						// 发生Ajax请求
+						$
+								.ajax({
+									url : '${path}${adminPath}/fjs_ptgl_gcsg_hldjf_v2/secondenvelope/sai',
+									// 设置请求方法
+									type : 'POST',
+									async : false,
+									//dataType : 'json',
+									//contentType : 'application/json;charset=UTF-8',
+									data : {
+										"groupsInfo" : JSON
+												.stringify(groupsInfo)
+									},
+									// 成功回调
+									success : function(result) {
+										sy.progress.hide();
+										location.reload();
+									},
+									// 失败回调
+									error : function(XMLHttpRequest,
+											textStatus, errorThrown) {
+										parent.sy.progress.hide();
+										var result = jQuery
+												.parseJSON(XMLHttpRequest.responseText);
+										top.$.messager.alert('操作失败', "操作失败["
+												+ result.errorDesc + "]");
+									}
+								});
+					}
+
+					/**结束当前节点**/
+					function finishCurrentFlow() {
+						var validate = true;
+						$("form")
+								.each(
+										function() {
+											var param = $(this).form2json({
+												allowEmptySingleVal : false
+											});
+											for ( var vo in param) {
+												if (typeof (param["" + vo + ""].YAOHAO) == "undefined"
+														|| null == param[""
+																+ vo + ""].YAOHAO
+														|| "" == param["" + vo
+																+ ""].YAOHAO) {
+													top.$.messager.alert("提示",
+															"标段分配尚未完成")
+													validate = false;
+													return;
+												}
+											}
+										});
+						if (!validate) {
+							return;
+						}
+						doSave();
+						parent.finishCurrentFlowNodeNoInteractive(
+								'${TENDER_PROJECT_FLOW_NODE.ID}',
+								'${TENDER_PROJECT_FLOW_NODE.V_NODE_NAME}');
+					}
+				</script>
+</body>
+</html>

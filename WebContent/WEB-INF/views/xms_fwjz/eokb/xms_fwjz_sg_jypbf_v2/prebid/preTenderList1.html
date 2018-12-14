@@ -1,0 +1,22 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>入围投标人</title> <%includeJSP("/static/include/inc.jsp",{}){}%>
+<script type="text/javascript">
+	SZUtilsExtEasyUIListPage.datagrid.pagination();
+</script>
+</head>
+<body>
+    <!-- 表格 -->
+    <table id="formGrid" style="width: auto; height: auto" class="easyui-datagrid" title="" rownumbers="true" fitColumns="true" fit="true" pageList="[50,100,150,200]" pageSize="50" url="${path}${adminPath}/xms_fwjz_sg_jypbf_v1/prebid/getPreTenderList/${param.sid}/${param.type}" pagination="true" data-options="method:'get'">
+        <thead>
+            <tr>
+                <th field="V_BIDDER_NAME" align="left" width="230">投标人名称</th>
+                <th field="V_BIDDER_NO" align="left" width="230">投标人代表号</th>
+                <th field="N_PRICE" align="left" width="230">投标报价（元）</th>
+            </tr>
+        </thead>
+    </table>
+</body>
+</html>

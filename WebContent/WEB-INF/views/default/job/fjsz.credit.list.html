@@ -1,0 +1,221 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>信用分查看</title><%includeJSP("/static/include/inc.jsp",{}){}%>
+<script src="${path}${adminPath}/view/common/js/layer/layer.js" type="text/javascript"></script>
+<style type="text/css">
+.split_line {
+	margin: 5px 0px;
+	height: 8px;
+	width: 100%;
+	background-color: #3e637a;
+	height: 8px;
+}
+
+.title {
+	font-size: 18px;
+	font-weight: bold;
+	color: #FFE643;
+}
+
+td {
+	valign: "top";
+}
+</style>
+<script type="text/javascript">
+	SZUtilsExtEasyUIListPage.datagrid.pagination();
+
+	/**
+	 * 本地查询
+	 */
+	function doSearch(grid, search) {
+		// 使用Form2Json插件处理,同时过滤掉空数据
+		var searchParam = $('#' + search).form2json({
+			allowEmptySingleVal : false
+		});
+		$('#' + grid).datagrid('reload', searchParam);
+	}
+
+	/**
+	 * 清空
+	 */
+	function doClear(grid, search) {
+		$('#' + grid).form('reset');
+		doSearch(grid, search);
+	}
+
+	//打开同步对话框
+	function openSyncCreditataDialog() {
+		var title = "&nbsp;同步开标数据对话框";
+		var p = parent.sy
+				.dialog({
+					title : title,
+					iconCls : "application_osx_add",
+					href : '${path}${adminPath}/view/job/sync.credit.html',
+					maximizable : true,
+					width : 300,
+					height : 300,
+					buttons : [
+							{
+								text : '保存',
+								iconCls : "icon-save",
+								handler : function() {
+									var f = p.find('#sync-otpd-form');
+									if (f.form('validate')) {
+										//保存操作
+										var param = f.form2json({
+											allowEmptySingleVal : false
+										});
+										parent.sy.progress.show();
+										// 发生Ajax请求
+										$
+												.ajax({
+													url : '${path}${adminPath}/bus/syncfjszcredit/sync',
+													// 设置请求方法
+													type : 'POST',
+													//dataType : 'json',
+													contentType : 'application/json;charset=UTF-8',
+													data : JSON
+															.stringify(param),
+													// 成功回调
+													success : function(result) {
+														parent.sy.progress
+																.hide();
+														doSearch(
+																'credit-avg-formGrid',
+																'credit-avg-searchForm');
+														doSearch(
+																'bidder-credit-formGrid',
+																'bidder-credit-searchForm');
+														parent.sy
+																.messagerShow({
+																	msg : "操作成功!",
+																	title : '提示'
+																});
+														p.dialog('close');
+													},
+													// 失败回调
+													error : function(
+															XMLHttpRequest,
+															textStatus,
+															errorThrown) {
+														parent.sy.progress
+																.hide();
+														var result = jQuery
+																.parseJSON(XMLHttpRequest.responseText);
+														top.$.messager
+																.alert(
+																		'操作失败',
+																		"操作失败["
+																				+ result.errorDesc
+																				+ "]");
+													}
+												});
+									}
+									p.dialog('close');
+								}
+							}, {
+								text : "关闭",
+								iconCls : "icon-remove",
+								handler : function() {
+									p.dialog('close');
+								}
+							} ],
+					onLoad : function() {
+						// 获取当前年份和季度
+						$
+								.ajax({
+									url : '${path}${adminPath}/bus/syncfjszcredit/gyaq',
+									// 设置请求方法
+									type : 'get',
+									//dataType : 'json',
+									// 成功回调
+									success : function(result) {
+										p.find("#V_YEAR").combobox("select",
+												result.YEAR)
+										p.find("#V_QUARTER").combobox("select",
+												result.QUARTER)
+									},
+									// 失败回调
+									error : function(XMLHttpRequest,
+											textStatus, errorThrown) {
+										parent.sy.progress.hide();
+										var result = jQuery
+												.parseJSON(XMLHttpRequest.responseText);
+										top.$.messager.alert('操作失败', "操作失败["
+												+ result.errorDesc + "]");
+									}
+								});
+					}
+				});
+	}
+</script>
+</head>
+<body>
+    <div>
+        <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-edit'" title="同步数据" onclick="openSyncCreditataDialog()">同步数据</a>
+    </div>
+    <!--横线-->
+    <table width="98%" height="98%" align="center">
+        <tr>
+            <td class="title">投标人信用分</td>
+            <td class="title">行业平均分</td>
+        </tr>
+        <tr>
+            <td width="58%" height="70%">
+                <!-- 投标人信用分 -->
+                <table id="bidder-credit-formGrid" style="height: 500px;" class="easyui-datagrid" title="" toolbar="#bidder-credit-searchForm-toolbar" rownumbers="true" fitColumns="true" url="${path}${adminPath}/bus/syncfjszcredit" pageList="[15,25,50,100,200]" pageSize="15" pagination="true" nowrap="false" data-options="method:'get'">
+                    <thead>
+                        <tr>
+                            <th field="ID" align="center" hidden="true"></th>
+                            <th field="V_COMPANY_NAME" align="center" halign="center" width="400" data-options="">企业名称</th>
+                            <th field="V_ORG_CODE" align="center" halign="center" width="100" " data-options="">组织机构代码</th>
+                            <th field="V_YEAR" align="center" halign="center" width="100" " data-options="">年份</th>
+                            <th field="V_TYPE" align="center" halign="center" width="100" data-options="">分值类别</th>
+                            <th field="V_QUARTER" align="center" halign="center" width="100" data-options="">季度</th>
+                            <th field="N_RANKING" align="center" halign="center" width="100" data-options="">综合排名</th>
+                            <th field="N_TOTAL_SCORE" align="center" halign="center" width="100" data-options="">总分</th>
+                        </tr>
+                    </thead>
+                </table>
+            </td>
+            <td width="40%" valign="top">
+                <!-- 行业平均分表格 -->
+                <table id="credit-avg-formGrid" class="easyui-datagrid" title="" toolbar="#credit-avg-searchForm-toolbar" rownumbers="true" fitColumns="true" url="${path}${adminPath}/bus/syncfjszcredit?tableFlag=1" pageList="[15,25,50,100,200]" pageSize="15" pagination="true" nowrap="false" data-options="method:'get'">
+                    <thead>
+                        <tr>
+                            <th field="ID" align="center" hidden="true"></th>
+                            <th field="V_YEAR" align="center" halign="center" width="100" data-options="">年份</th>
+                            <th field="V_TYPE" align="center" halign="center" width="100" data-options="">分值类别</th>
+                            <th field="V_QUARTER" align="center" halign="center" width="100" data-options="">季度</th>
+                            <th field="N_HTLY" align="center" halign="center" width="100" data-options="">合同履约</th>
+                            <th field="N_ZLAQWM" align="center" halign="center" width="100" " data-options="">质量安全文明</th>
+                            <th field="N_TOTAL_SCORE" align="center" halign="center" width="100" " data-options="">总分</th>
+                            <th field="N_TCXW" align="center" halign="center" width="100" " data-options="">通常行为</th>
+                        </tr>
+                    </thead>
+                </table>
+            </td>
+        </tr>
+    </table>
+
+    <!-- 搜索工具栏 -->
+    <div id="credit-avg-searchForm-toolbar" style="padding: 5px; height: auto">
+        <div>
+            <form id="credit-avg-searchForm">
+                <label>年份</label> <input class="easyui-textbox" style="width: 100px" id="V_YEAR" name="V_YEAR" type="text"> <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-search'" onclick="doSearch('credit-avg-formGrid','credit-avg-searchForm')">搜索</a> <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-clear'" onclick="doClear('credit-avg-formGrid','credit-avg-searchForm')">清空搜索条件</a>
+            </form>
+        </div>
+    </div>
+
+    <!-- 搜索工具栏 -->
+    <div id="bidder-credit-searchForm-toolbar" style="padding: 5px; height: auto">
+        <div>
+            <form id="bidder-credit-searchForm">
+                <label>企业名称</label> <input class="easyui-textbox" style="width: 100px" id="V_COMPANY_NAME" name="V_COMPANY_NAME" type="text"> <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-search'" onclick="doSearch('bidder-credit-formGrid','bidder-credit-searchForm')">搜索</a> <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-clear'" onclick="doClear('bidder-credit-formGrid','bidder-credit-searchForm')">清空搜索条件</a>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

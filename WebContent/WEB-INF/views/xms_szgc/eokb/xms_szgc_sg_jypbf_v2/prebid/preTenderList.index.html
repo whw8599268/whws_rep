@@ -1,0 +1,91 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Insert title here</title><%includeJSP("/static/include/inc.jsp",{}){}%>
+<style>
+html,body {
+	height: 100%;
+	padding: 0;
+	margin: 0;
+}
+
+td {
+	border: 1px solid #B5D6E6;
+}
+</style>
+</head>
+<body style="height: 100%;">
+    <sz:if test="${TENDER_PROJECT_FLOW_NODE.N_STATUS!=3}">
+        <div style="text-align: right;">
+            <a id="data-save-button" href="#" class="easyui-linkbutton" data-options="iconCls:'icon-ok'" onclick="finishCurrentFlow();">进入下一个环节</a>
+        </div>
+    </sz:if>
+    <sz:forEach items="${SECTIONS}" var="section,stat">
+        <div class="easyui-tabs" data-options="plain:true,fit:true">
+            <div title="标段${section.METHOD}：${section.V_BID_SECTION_NAME!}" style="padding: 10px; height: 100%;">
+                <div class="easyui-tabs" data-options="headerWidth:200,fit:true,plain:true,onSelect:onSelectTab${stat.index}">
+                    <!-- 投标人数量不多于(含)20家 -->
+                    <sz:if test="${section.METHOD==1}">
+                        <strong style="font-size: 15px; margin-left: 30px">投标人数量不多于(含)20家</strong>
+                        <div title="入围投标人名单" style="padding: 10px; padding-bottom: 30px;">
+                            <iframe id="lessFifty-id" src="" frameborder="0" scrolling="yes" marginheight="0" marginwidth="0" hspeace="0" vspace="0" width="100%" height="100%"></iframe>
+                        </div>
+                    </sz:if>
+                    <!-- 投标人数量多于20家 -->
+                    <sz:if test="${section.METHOD==2}">
+                        <strong style="font-size: 15px; margin-left: 30px">投标人数量多于20家，抽取20家 </strong>
+                        <div title="抽取企业名单" style="padding: 10px; padding-bottom: 30px;">
+                            <iframe id="preTenderList2-id" src="" frameborder="0" scrolling="yes" marginheight="0" marginwidth="0" hspeace="0" vspace="0" width="100%" height="100%"></iframe>
+                        </div>
+                        <div title="抽取结果" style="padding: 10px; padding-bottom: 30px;">
+                            <iframe id="preTenderList2Result-id" src="" frameborder="0" scrolling="yes" marginheight="0" marginwidth="0" hspeace="0" vspace="0" width="100%" height="100%"></iframe>
+                        </div>
+                    </sz:if>
+                </div>
+            </div>
+        </div>
+        <script type="text/javascript">
+                                    function onSelectTab${stat.index}(title) {
+                                    	// 投标人数量不多于(含)20家
+                                    	if ("入围投标人名单" == title) {
+                                    		$("#lessFifty-id").attr(
+                                                    "src",
+                                                    "${path}${adminPath}/view/eokb/xms_szgc_sg_jypbf_v1/prebid/preTenderList1.html?type=1&sid=${section.V_BID_SECTION_ID}&rand=" + Math.random()
+                                                    		);
+                                        } 
+                                    	// 投标人数量多于20家
+                                    	else if ("抽取企业名单" == title) {
+                                        	$("#preTenderList2-id").attr(
+                                                    "src",
+                                                    "${path}${adminPath}/view/eokb/xms_szgc_sg_jypbf_v1/prebid/preTenderList2.html?total=20&type=0&status=${section.STATUS}&flowId=${TENDER_PROJECT_FLOW_NODE.ID}&sid=${section.V_BID_SECTION_ID}&rand=" + Math.random()
+                                                          );
+                                        } else if ("抽取结果" == title) {
+                                        	$("#preTenderList2Result-id").attr(
+                                                    "src",
+                                                    "${path}${adminPath}/view/eokb/xms_szgc_sg_jypbf_v1/prebid/preTenderList1.html?type=1&sid=${section.V_BID_SECTION_ID}&rand=" + Math.random()
+                                                            );
+                                        }
+                                    }
+                                    
+                                    /**结束当前节点**/
+                					function finishCurrentFlow() {
+                						
+                						if(${section.METHOD==2} && ${section.STATUS == '0'}){
+                							parent.$.messager.alert('提示', "尚未抽取！");
+                							return;
+                						}
+                						
+                						//生成给公证使用的入围名单doc
+            							parent.createDoc('fjsz',
+            								'xms_szgc_sg_jypbf_v1',
+            								'firstEnvelope', 'PRE_JY_GZ');
+                						
+                						parent.finishCurrentFlowNode(
+                								'${TENDER_PROJECT_FLOW_NODE.ID}',
+                								'${TENDER_PROJECT_FLOW_NODE.V_NODE_NAME}');
+                					}
+                                </script>
+    </sz:forEach>
+</body>
+</html>

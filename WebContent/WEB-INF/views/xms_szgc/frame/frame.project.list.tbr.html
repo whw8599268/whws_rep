@@ -1,0 +1,171 @@
+<!doctype html>
+<html>
+
+<head>
+<meta charset="UTF-8">
+<title>厦门市建设工程电子招投标交易平台开标辅助系统</title> <%includeJSP( "/static/include/inc.jsp",{}){}%>
+<link href="${path}${adminPath}/view/frame/css/frame.list.css" rel="stylesheet" type="text/css" />
+<script type="text/javascript" src="${path}${adminPath}/view/frame/js/logout.js"></script>
+<script type="text/javascript">
+    $(function() {
+        //投标人项目信息列表
+        $('#formGrid-tbr-info').datagrid({
+            pagination : false,
+            loadFilter : resultFilter,
+            onBeforeLoad : onBeforeList,
+            fitColumns : true,
+            rownumbers : true,
+            fit : true,
+            nowrap : false,
+            url : '${path}${adminPath}/bus/project/tbrlist',
+            method : 'get',
+            columns : [ [ {
+                field : 'ID',
+                hidden : 'true'
+            }, {
+                field : 'V_BIDOPEN_TIME',
+                title : '开标时间',
+                align : 'center',
+                halign : 'center',
+                width : 54
+            }, {
+                field : 'V_TENDER_PROJECT_NAME',
+                title : '招标项目名称',
+                align : 'left',
+                halign : 'center',
+                width : 120
+            }, {
+                field : 'V_INVITENO',
+                title : '招标项目编号',
+                align : 'left',
+                halign : 'center',
+                width : 120
+            }, {
+                field : 'V_SIGN_IN_TIME',
+                title : '签到时间',
+                align : 'center',
+                halign : 'center',
+                width : 54
+            }, {
+                field : 'V_SIGN_STATUS',
+                title : '操作',
+                align : 'center',
+                halign : 'center',
+                width : 35,
+                formatter : GridFormatter.OPERATION
+            } ] ]
+        });
+    })
+
+    function isreturn() {
+        window.location.href = "${path}${adminPath}/view/login/login.fjs.gsgl.html?";
+    }
+    SZUtilsExtEasyUIListPage.datagrid.pagination();
+    /**
+     * 查询
+     */
+    function doSearch() {
+        // 使用Form2Json插件处理,同时过滤掉空数据
+        var searchParam = $('#searchForm').form2json({
+            allowEmptySingleVal : false
+        });
+        $('#formGrid-tbr-info').datagrid('load', searchParam);
+    }
+    /**
+     * 清空
+     */
+    function doClear() {
+        $('#searchForm').form('reset');
+        $('#formGrid-tbr-info').datagrid('load', {});
+    }
+
+    var GridFormatter = {
+        "OPERATION" : function(value, row, index) {
+            var time = row.V_SIGN_IN_TIME;
+            var tpid = row.ID;
+            //返回链接
+            var res = '';
+            if (time != null) {
+                if (row.IS_FB) {
+                	res += "<span style='color:red;font-weight:bold;'>已封标</span>";
+    			} else {
+                    res = "<span style='cursor:pointer;text-decoration: underline;color:blue;' onclick='intoProject(\"" + tpid + "\")'>进入开标会</span>";
+    			}
+            } else {
+                res = "<span style='cursor:pointer;text-decoration: underline;color:blue;' onclick='bidderSignIn(\"" + index + "\")' >签到</span>";
+            }
+            return res;
+        }
+    };
+
+    function intoProject(tpid) {
+        $.ajax({
+            url : '${path}${adminPath}/bus/project/tbrgo/' + tpid,
+            // 设置请求方法
+            type : 'GET',
+            cache : false,
+            // dataType : 'json',
+            //contentType : 'application/json;charset=UTF-8',
+            //data : data,
+            // 成功回调
+            success : function(result) {
+                //跳转到投标人操作列表
+                forward(tpid);
+            },
+            // 失败回调
+            error : function(XMLHttpRequest, textStatus, errorThrown) {
+                var result = jQuery.parseJSON(XMLHttpRequest.responseText);
+                top.$.messager.alert('提示', result.errorDesc);
+            }
+        });
+    }
+    //请求跳转
+    function forward(tpid) {
+        //window.location.href = "${path}${adminPath}/view/frame/frame.kb.tbr.html?";
+        window.location.href = "${path}${adminPath}/room/join/" + tpid + "?_t=" + new Date().getTime();
+    }
+
+    //签到
+    function bidderSignIn(index) {
+        var data = $('#formGrid-tbr-info').datagrid("getRows")[index];
+        var tpid = data.ID;
+        $.ajax({
+            url : '${path}${adminPath}/bus/signin/tbr/' + tpid,
+            // 设置请求方法
+            type : 'GET',
+            cache : false,
+            // dataType : 'json',
+            //contentType : 'application/json;charset=UTF-8',
+            //data : data,
+            // 成功回调
+            success : function(result) {
+                //刷新列表
+                if (result.success) {
+                    //$('#formGrid-tbr-info').datagrid('load', {});
+                    top.$.messager.alert('提示', data.V_TENDER_PROJECT_NAME + "项目签到成功，请进入开标会!");
+                    location.reload();
+                } else {
+                    top.$.messager.alert('提示', "该项目已签到!");
+                }
+            },
+            // 失败回调
+            error : function(XMLHttpRequest, textStatus, errorThrown) {
+                var result = jQuery.parseJSON(XMLHttpRequest.responseText);
+                top.$.messager.alert('提示', "操作失败[" + result.errorDesc + "]");
+            }
+        });
+    }
+</script>
+</head>
+
+<body style="font-size: 16px;">
+    <div class="header">
+        <div class="logo"></div>
+        <div class="head-rg">
+            <% var user = authz.getCurrentUser();%> <span class="user-tbr">投标人：</span><span class="user-name" title=${user.V_NAME}>${user.V_NAME}</span> <span class="exit"><a style="color: #fff;" href="javascript:void(0)" onclick="logout()"><img src="images/exit.png" style="border: 0;" />安全退出</a></span>
+        </div>
+    </div>
+    <table id="formGrid-tbr-info" style="width: auto; height: auto"></table>
+    <div style="height: 20px; padding: 0px; position: absolute; bottom: 0; text-align: center; width: 100%">©福建首众-技术支持&emsp;&emsp;客服热线：400-999-6901&emsp;&emsp;QQ在线咨询：<a href="####" onclick="javascript:window.open('http://wpa.b.qq.com/cgi/wpa.php?ln=1&key=XzkzODE5MjY0OV80ODA3NjRfNDAwMTg4NjY0MF8yXw');">点击咨询</a></div>
+</body>
+</html>

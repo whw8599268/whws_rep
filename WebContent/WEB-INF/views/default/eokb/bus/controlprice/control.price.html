@@ -1,0 +1,49 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<%includeJSP("/static/include/inc.jsp",{}){}%>
+<link href="${path}/static/css/table.css" rel="stylesheet" />
+</head>
+<body>
+    <!-- 数据 -->
+    <form id="price-form">
+        <sz:forEach items="${SECTIONS}" var="section,stat">
+            <div style="text-align: center; border: 1px solid #B5D6E6; margin-bottom: 10px;">
+                <p style="text-align: center; font-weight: bold;">标段：${section.V_BID_SECTION_NAME}</p>
+                <p style="text-align: center;">
+                    控制价：<input name="${section.V_BID_SECTION_ID}.CONTROL_PRICE" class="easyui-numberbox" precision="2" value='${fmt.format("#####0.00",section.N_CONTROL_PRICE)}' />（元）
+                </p>
+                <p style="text-align: center;">
+                    <sz:if test="${SessionUtils.isPtGdyh()}">
+                                                                  进入评标基准价的下限：
+                    </sz:if>
+                    <sz:if test="${!SessionUtils.isPtGdyh()}">
+                    控制价下限（如果有）：
+                    </sz:if>
+                    <input name="${section.V_BID_SECTION_ID}.CONTROL_MIN_PRICE" class="easyui-numberbox" precision="2" value='${fmt.format("#####0.00",section.N_CONTROL_MIN_PRICE!)}' />（元）
+                </p>
+                <p style="text-align: center; color: red;">注：如控制价与招标文件中发布的控制价不同，请联系运维人员</p>
+            </div>
+            <sz:if test="${section.SHOW_K}">
+                <input type="hidden" id="${section.V_BID_SECTION_ID}.SHOW_K" value="${section.SHOW_K}"></input>
+                <div style="text-align: center; border: 1px solid #B5D6E6; margin-bottom: 10px;">
+                    <p>
+                        K值得取值范围：<input id="${section.V_BID_SECTION_ID}.MIN_K" precision="2" value="${section.MIN_K}" class="easyui-numberbox" data-options="required:true" />~<input id="${section.V_BID_SECTION_ID}.MAX_K" precision="2" value="${section.MAX_K}" class="easyui-numberbox" data-options="required:true" />
+                    </p>
+                    <p style="text-align: center; color: red;">注：请确认K值范围</p>
+                </div>
+            </sz:if>
+            <sz:if test="${section.SHOW_Q}">
+                <input type="hidden" id="${section.V_BID_SECTION_ID}.SHOW_Q" value="${section.SHOW_Q}"></input>
+                <div style="text-align: center; border: 1px solid #B5D6E6; margin-bottom: 10px;">
+                    <p>
+                        当合格投标人的投标报价≤评标基准价时Q的取值：<input id="${section.V_BID_SECTION_ID}.Q1" precision="2" value="${section.Q1}" class="easyui-numberbox" data-options="required:true" /> </br>当合格投标人的投标报价>评标基准价时Q的取值：<input id="${section.V_BID_SECTION_ID}.Q2" precision="2" value="${section.Q2}" class="easyui-numberbox" data-options="required:true" />
+                    </p>
+                    <p style="text-align: center; color: red;">注：请确认Q值信息</p>
+                </div>
+            </sz:if>
+        </sz:forEach>
+    </form>
+</body>
+</html>

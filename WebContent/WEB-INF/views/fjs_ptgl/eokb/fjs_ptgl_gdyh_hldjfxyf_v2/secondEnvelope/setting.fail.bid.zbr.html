@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<%includeJSP("/static/include/inc.jsp",{}){}%>
+<title>招标人流标设置页面</title>
+</head>
+<script type="text/javascript">
+	/**
+	 * 设置标段或标段组显示列表
+	 */
+	$(function() {
+		$('#formGrid').datagrid({
+		    pagination:false,loadFilter:resultFilter,onBeforeLoad:onBeforeList,
+		    fitColumns:true,
+		    rownumbers:false,
+		    fit:true,
+		    url:'${path}${adminPath}/fjs_ptgl_gdyh_hldjfxyf_v2/sfs',
+		    method:'get',
+		    columns:[[
+		        {field:'V_BID_SECTION_GROUP_CODE',title:'标段组编号',width:25,align:'center'}, 
+		        {field:'V_BID_SECTION_NAMES',title:'标段名称',width:45,halign:'center', align:'left'},
+		        {field:'V_BID_SECTION_IDS',title:'标段ID',width:45,align:'center',hidden:true},   
+		        {field:'N_BIDDER_COUNT',title:'第一信封评审通过的投标人数量',width:25,align:'center'},
+		        {field:'V_BID_OPEN_STATUS',title:'是否流标',width:25,align:'center',formatter:GridFormatter.V_BID_OPEN_STATUS}
+		    ]]   
+		});
+		var status = "${session.TENDER_PROJECT_INFO.N_IS_SECTION_GROUP}";
+		if (status == "0") {
+			$('#formGrid').datagrid('hideColumn', 'V_BID_SECTION_GROUP_CODE');
+		} else if (status == "1") {
+			$('#formGrid').datagrid('showColumn', 'V_BID_SECTION_GROUP_CODE');
+		}
+	});
+	
+	
+	var GridFormatter = {
+		"V_BID_OPEN_STATUS" : function(val, row, index) {
+			var _html = "";
+			<sz:if test="${TENDER_PROJECT_FLOW_NODE.N_STATUS!=3}">
+			//alert(val);
+			_html += "<input id='"+row.V_BID_SECTION_IDS+"' name='V_BID_SECTION_IDS' type='checkbox' value='"+row.V_BID_SECTION_IDS+"' ";
+			if (val == '10-2') {
+				_html += ' checked="checked" ';
+			}
+			_html += " />流标";
+			</sz:if>
+			
+			<sz:if test="${TENDER_PROJECT_FLOW_NODE.N_STATUS==3}">
+			if (val.startsWith('10-')) {
+				_html = "流标";
+			}
+			else {
+				_html = "正常";
+			}
+			</sz:if>
+			return _html;
+		}
+	};
+
+	
+	/**保存**/
+	function doSave() {
+		parent.$.messager.confirm("提示", "确认保存设置?", function(r) {
+			if (!r) {
+				return;
+			}
+			var param = $('#bid-status-form').form2json({
+				allowEmptySingleVal : false
+			});
+			//alert(JSON.stringify(param));
+			parent.sy.progress.show();
+			$.ajax({
+				url : '${path}${adminPath}/fjs_ptgl_gdyh_hldjfxyf_v2/sfs',
+				// 设置请求方法
+				type : 'POST',
+				data : JSON.stringify(param),
+				//dataType : 'json',
+				contentType : 'application/json;charset=UTF-8',
+				// 成功回调
+				success : function(resutl) {
+					parent.sy.progress.hide();
+					$('#formGrid').datagrid('reload');
+					//刷新列表
+					top.$.messager.alert('提示', "操作成功!");
+				},
+				// 失败回调
+				error : function(XMLHttpRequest, textStatus, errorThrown) {
+					parent.sy.progress.hide();
+					var result = jQuery.parseJSON(XMLHttpRequest.responseText);
+					top.$.messager.alert('操作失败', "操作失败[" + result.errorDesc + "]");
+				}
+			});
+		})
+	}
+	
+	/**结束当前节点**/
+	function finishCurrentFlow() {
+		parent.finishCurrentFlowNode('${TENDER_PROJECT_FLOW_NODE.ID}',
+				'${TENDER_PROJECT_FLOW_NODE.V_NODE_NAME}');
+	}
+	
+</script>
+<body>
+    <div class="easyui-panel" data-options="fit:true" style="width: 100%; height: 95%; border: 0;">
+        <sz:if test="${TENDER_PROJECT_FLOW_NODE.N_STATUS!=3}">
+            <div style="text-align: right;">
+                <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-save'" onclick="doSave();">保存数据</a> 
+                <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-ok'" onclick="finishCurrentFlow();">进入下一环节</a>
+            </div>
+        </sz:if>
+        <form id="bid-status-form" style="width: 100%; height: 95%">
+            <table id="formGrid"></table>
+        </form>
+    </div>
+</body>
+</html>

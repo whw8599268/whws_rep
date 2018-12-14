@@ -1,0 +1,42 @@
+<div>
+    <p style="font-size: 25px; text-align: center; font-weight: bold;">
+        <u style="font-size: 25px; text-align: center; font-weight: bold;">${PROJECT_NAME}</u>（项目名称）<u style="font-size: 25px; text-align: center; font-weight: bold;">${SECTIONS} </u>标段施工第一个信封（商务及技术文件）
+    </p>
+    <p style="font-size: 25px; text-align: center; font-weight: bold;">开标记录表</p>
+    <p style="font-size: 18px; text-align: center; font-weight: bold;">
+        </u>开标时间：<u style="font-size: 18px; text-align: center; font-weight: bold;"> ${TIME}</u>
+    </p>
+</div>
+<div class="easyui-tabs" data-options="plain:true">
+    <sz:forEach items="${SECTION_LIST}" var="section,stat">
+        <sz:if test="${!SessionUtils.isSectionGroup()}">
+            <caption>标段：${section.BID_SECTION_NAME}</caption>
+        </sz:if>
+        <table class="sztable" width="100%" style="text-align: center;">
+            <tr>
+                <td width="5%">序号</td>
+                <td width="20%">投标人</td>
+                <td width="10%">解密情况</td>
+                <td width="10%">投标保证金递交情况</td>
+                <td width="10%">工期</td>
+                <td width="15%">备注</td>
+                <td width="30%">投标人雷同性特征技术审查情况</td>
+            </tr>
+            <sz:forEach items="${section.TENDER_LIST}" var="vo,step">
+                <tr>
+                    <td>${step.index+1}</td>
+                    <td>${vo.V_BIDDER_NAME}</td>
+                    <td>成功</td>
+                    <td>${vo.bzjdjqk}</td>
+                    <td>${vo.gongqi}</td>
+                    <td>${vo.firstRemark!}</td>
+                    <td>第一信封：${vo.firstMac!}</br>第二信封：${vo.secondMac!}
+                    </td>
+                </tr>
+            </sz:forEach>
+        </table>
+    </sz:forEach>
+</div>
+<div style="font-size: 18px; text-align: center; font-weight: bold;">
+    <p>招标人代表：______记录人：_____ 监标人：____</p>
+</div>

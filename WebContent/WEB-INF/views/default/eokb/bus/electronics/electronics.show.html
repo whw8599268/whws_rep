@@ -1,0 +1,49 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title></title><%includeJSP("/static/include/inc.jsp",{}){}%>
+</head>
+<body>
+    <table class="sztable" width="100%" style="text-align: center;">
+        <thead>
+            <tr>
+                <td>序号</td>
+                <td>投标人编号</td>
+                <td>投标人名称</td>
+                <td>关联编号</td>
+                <td>分配标段</td>
+                <td>备注</td>
+            </tr>
+        </thead>
+        <sz:forEach items="${TENDER_LIST}" var="tender,stat">
+            <tr>
+                <td>第${stat.index+1}次</td>
+                <td>${tender.V_BIDDER_NO}</td>
+                <td>${tender.V_BIDDER_NAME}</td>
+                <td>${tender.V_CORRELATE_CODE!}</td>
+                <!-- 非关联企业 -->
+                <sz:if test="${tender.V_TYPE == '1'}">
+                    <td>${tender.V_BID_SECTION_NAME}</td>
+                    <td>该企业在${tender.V_BID_SECTION_NAME}中无关联企业，所以分配到${tender.V_BID_SECTION_NAME}</td>
+                </sz:if>
+                <!-- 如果标段没有已分配的企业列表信息可分配 -->
+                <sz:if test="${tender.V_TYPE == '2'}">
+                    <td>${tender.V_BID_SECTION_NAME}</td>
+                    <td>该企业在${tender.V_BID_SECTION_NAME}中无关联企业，所以分配到${tender.V_BID_SECTION_NAME}</td>
+                </sz:if>
+                <!-- 关联企业 -->
+                <sz:if test="${tender.V_TYPE == '3'}">
+                    <td>无</td>
+                    <td>该企业在${tender.V_BID_SECTION_NAME}中与${tender.V_BIDDER_NAME_RELATION}是关联企业，所以不分配到${tender.V_BID_SECTION_NAME}</td>
+                </sz:if>
+                <!-- 关联企业编号为空，可分配 -->
+                <sz:if test="${tender.V_TYPE == '4'}">
+                    <td>${tender.V_BID_SECTION_NAME}</td>
+                    <td>该企业在${tender.V_BID_SECTION_NAME}中无关联企业，所以分配到${tender.V_BID_SECTION_NAME}</td>
+                </sz:if>
+            </tr>
+        </sz:forEach>
+    </table>
+</body>
+</html>

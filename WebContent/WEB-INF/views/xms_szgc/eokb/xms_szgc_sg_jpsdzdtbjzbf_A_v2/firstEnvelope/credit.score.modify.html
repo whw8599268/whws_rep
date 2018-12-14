@@ -1,0 +1,19 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<%includeJSP("/static/include/inc.jsp",{}){}%>
+<link href="${path}/static/css/table.css" rel="stylesheet" />
+</head>
+<body>
+    <table width="100%" class="sztable">
+        <tr>
+            <td>企业名称:<span id="bidder-name">${V_BIDDER_NAME!}</span></td>
+        </tr>
+        <tr>
+            <td>评标信用得分:<input id="bidder-credit" class="easyui-textbox" value="${N_CREDITSCORE!}">
+            <input id="ID" value="${ID!}" hidden></td>
+        </tr>
+    </table>
+</body>
+</html>

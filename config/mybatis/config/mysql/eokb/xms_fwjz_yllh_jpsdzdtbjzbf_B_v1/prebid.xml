@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="xms_fwjz_yllh_jpsdzdtbjzbf_B_v1_prebid">
+    <!-- 查询有效标段的K值信息 -->
+    <select id="getKvalue" resultType="string" parameterType="record">
+        <![CDATA[
+            SELECT TD.V_JSON_OBJ
+              FROM EKB_T_TPFN_DATA_INFO TD
+              JOIN EKB_T_SECTION_INFO S ON (TD.V_BUS_ID = S.V_BID_SECTION_ID AND
+                                           S.V_TPID = #{tpid} AND
+                                           S.V_BID_OPEN_STATUS NOT LIKE '10%' AND
+                                           S.V_BID_EVALUATION_STATUS != '10')
+             WHERE TD.V_BUS_FLAG_TYPE = #{type}
+             ORDER BY S.V_BID_SECTION_NAME ASC
+        ]]>
+    </select>
+    
+    <!-- 查询基准价信息 -->
+    <select id="getBenchmark" resultType="string" parameterType="record">
+        <![CDATA[
+            SELECT TD.V_JSON_OBJ
+              FROM EKB_T_TPFN_DATA_INFO TD
+              JOIN EKB_T_SECTION_INFO S ON (TD.V_BUS_ID = S.V_BID_SECTION_ID AND
+                                           S.V_TPID = #{tpid} AND
+                                           S.V_BID_OPEN_STATUS NOT LIKE '10%' AND
+                                           S.V_BID_EVALUATION_STATUS != '10')
+             WHERE TD.V_BUS_FLAG_TYPE = #{type}
+             ORDER BY S.V_BID_SECTION_NAME ASC
+        ]]>
+    </select>
+    
+     <!-- 分标段查询有效标段的基准价信息 -->
+    <select id="getBenchmarkBySid" resultType="string" parameterType="record">
+        <![CDATA[
+            SELECT TD.V_JSON_OBJ
+              FROM EKB_T_TPFN_DATA_INFO TD
+              JOIN EKB_T_SECTION_INFO S ON (TD.V_BUS_ID = S.V_BID_SECTION_ID AND
+                                           S.V_TPID = #{tpid} AND
+                                           S.V_BID_OPEN_STATUS NOT LIKE '10%' AND
+                                           S.V_BID_EVALUATION_STATUS != '10')
+             WHERE TD.V_BUS_FLAG_TYPE = #{type}
+             AND   S.V_BID_SECTION_ID = #{sid}
+             ORDER BY S.V_BID_SECTION_NAME ASC
+        ]]>
+    </select>
+    
+     <!-- 分标段查询投标人 -->
+    <select id="getPreTenderList" resultType="record" parameterType="record">
+        <![CDATA[
+            SELECT T.*,D.V_JSON_OBJ V_JSON
+              FROM EKB_T_TENDER_LIST T
+              LEFT JOIN EKB_T_TPFN_DATA_INFO D ON (D.V_BUS_ID = T.V_BID_SECTION_ID AND
+                                           D.V_BUS_FLAG_TYPE = #{TYPE})
+             WHERE T.V_TPID = #{tpid}
+             AND   T.V_BID_SECTION_ID = #{sid}
+             AND   T.N_ENVELOPE_0 = 1
+        ]]>
+        <if test='status=="1"'>
+              AND   T.N_ENVELOPE_9 = #{status}
+        </if>
+        <if test='status=="-1"'>
+              AND   T.N_ENVELOPE_9 = #{status}
+        </if>
+        <if test='status=="99"'>
+              AND   T.N_ENVELOPE_9 != '-1'
+        </if>
+        <if test='status=="2"'>
+              AND   T.N_ENVELOPE_9 = #{status}
+        </if>
+        <if test='status=="0"'>
+              AND   T.N_ENVELOPE_9 IN ('0','2')
+        </if>
+        <if test='status=="88"'>
+              AND   T.N_ENVELOPE_9 = '2'
+        </if>
+        <if test="bidderNo!=null and bidderNo!=''">
+             AND V_BIDDER_NO = #{bidderNo}
+         </if>
+            ORDER BY T.N_CREDITSCORE DESC,T.V_BIDDER_NO
+    </select>
+    
+      <!-- 获取基准价之外和基准价之内的投标人名 -->
+    <select id="getBencharkList" resultType="string" parameterType="record">
+        <![CDATA[
+            SELECT T.*,D.V_JSON_OBJ V_JSON
+              FROM EKB_T_TENDER_LIST T
+              LEFT JOIN EKB_T_TPFN_DATA_INFO D ON (D.V_BUS_ID = T.V_BID_SECTION_ID AND
+                                           D.V_BUS_FLAG_TYPE = #{TYPE})
+             WHERE T.V_TPID = #{tpid}
+             AND   T.V_BID_SECTION_ID = #{sid}
+        ]]>
+        <if test='status=="-1"'>
+              AND   T.N_ENVELOPE_9 = #{status}
+        </if>
+        <if test='status=="99"'>
+              AND   T.N_ENVELOPE_9 != '-1'
+        </if>
+            ORDER BY T.N_CREDITSCORE DESC,T.V_BIDDER_NO 
+    </select>
+    
+    <!-- 分标段查询投标人前50名 -->
+    <select id="getPreTenderListLimit" resultType="record" parameterType="record">
+        <![CDATA[
+            SELECT C.*,D.V_JSON_OBJ V_JSON FROM EKB_T_TENDER_LIST C 
+            LEFT JOIN EKB_T_TPFN_DATA_INFO D ON D.V_BUS_ID = C.V_BID_SECTION_ID
+            WHERE N_CREDITSCORE>=
+            (SELECT N_CREDITSCORE FROM EKB_T_TENDER_LIST WHERE V_TPID=#{tpid} AND N_ENVELOPE_9 !='-1'
+            ORDER BY N_CREDITSCORE DESC LIMIT 49,1)
+            AND C.V_BID_SECTION_ID =#{sid}
+            AND C.V_TPID=#{tpid}
+            AND C.N_ENVELOPE_9 !='-1'
+            AND D.V_BUS_FLAG_TYPE = #{TYPE}]]>
+            <if test="bidderNo!=null and bidderNo!=''">
+             AND V_BIDDER_NO = #{bidderNo}
+            </if>
+            ORDER BY N_CREDITSCORE DESC,C.V_BIDDER_NO
+    </select>
+    
+    <!-- 分标段查询进入评审人员名单-->
+    <select id="getReviewTenderList" resultType="record" parameterType="record">
+        <![CDATA[
+            SELECT
+              D.*,C.N_EVALUATION_PRICE,
+              ABS(#{price}-D.N_PRICE) ABSOLUTE
+            FROM EKB_T_TENDER_LIST D
+            LEFT JOIN EKB_T_SECTION_INFO C
+            ON D.V_BID_SECTION_ID = C.V_BID_SECTION_ID
+            WHERE N_PRICE IN(SELECT
+                               B.N_PRICE
+                             FROM (SELECT DISTINCT
+                                     N_PRICE
+                                   FROM EKB_T_TENDER_LIST
+                                   WHERE V_TPID = #{tpid}
+                                   AND N_ENVELOPE_9 IN(1,2)
+                                   ORDER BY ABS(#{price} - N_PRICE)
+                                   LIMIT 5) B)
+            AND D.V_BID_SECTION_ID =#{sid}
+            AND C.V_TPID=#{tpid}
+            AND D.N_ENVELOPE_9 IN(1,2)
+            ORDER BY ABS(#{price} - D.N_PRICE) ,D.V_BIDDER_NO
+        ]]>
+    </select>
+</mapper>  

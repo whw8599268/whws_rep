@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="fjs_sygc_common">
+    <!-- 查询有效标段的评标基准价信息 -->
+    <select id="getBidStandardPriceMethodInfos" resultType="string" parameterType="record">
+        <![CDATA[
+            SELECT TD.V_JSON_OBJ
+              FROM EKB_T_TPFN_DATA_INFO TD
+              JOIN EKB_T_SECTION_INFO S ON (TD.V_BUS_ID = S.V_BID_SECTION_ID AND
+                                           S.V_TPID = #{tpid} AND
+                                           S.V_BID_OPEN_STATUS NOT LIKE '10%' AND
+                                           S.V_BID_EVALUATION_STATUS != '10')
+             WHERE TD.V_BUS_FLAG_TYPE = 'BSPM-TYPE'
+             ORDER BY S.V_BID_SECTION_GROUP_CODE ASC,
+                      S.V_BID_SECTION_NAME ASC
+        ]]>
+    </select>
+
+    <!-- 查询有效标段的最高权重信息 -->
+    <select id="getHighestWeightInfos" resultType="string" parameterType="record">
+        <![CDATA[
+            SELECT TD.V_JSON_OBJ
+              FROM EKB_T_TPFN_DATA_INFO TD
+              JOIN EKB_T_SECTION_INFO S ON (TD.V_BUS_ID = S.V_BID_SECTION_ID AND
+                                           S.V_TPID = #{tpid} AND
+                                           S.V_BID_OPEN_STATUS NOT LIKE '10%' AND
+                                           S.V_BID_EVALUATION_STATUS != '10')
+             WHERE TD.V_BUS_FLAG_TYPE = 'HW-TYPE'
+             ORDER BY S.V_BID_SECTION_GROUP_CODE ASC,
+                      S.V_BID_SECTION_NAME ASC
+        ]]>
+    </select>
+
+    <!-- 查询有效标段的下浮系数信息 -->
+    <select id="getLowerCoefficientInfos" resultType="string" parameterType="record">
+        <![CDATA[
+            SELECT TD.V_JSON_OBJ
+              FROM EKB_T_TPFN_DATA_INFO TD
+              JOIN EKB_T_SECTION_INFO S ON (TD.V_BUS_ID = S.V_BID_SECTION_ID AND
+                                           S.V_TPID = #{tpid} AND
+                                           S.V_BID_OPEN_STATUS NOT LIKE '10%' AND
+                                           S.V_BID_EVALUATION_STATUS != '10')
+             WHERE TD.V_BUS_FLAG_TYPE = 'LC-TYPE'
+             ORDER BY S.V_BID_SECTION_GROUP_CODE ASC,
+                      S.V_BID_SECTION_NAME ASC
+        ]]>
+    </select>
+
+    <!-- 查询有效标段的E值信息 -->
+    <select id="getEvalueInfos" resultType="string" parameterType="record">
+        <![CDATA[
+            SELECT TD.V_JSON_OBJ
+              FROM EKB_T_TPFN_DATA_INFO TD
+              JOIN EKB_T_SECTION_INFO S ON (TD.V_BUS_ID = S.V_BID_SECTION_ID AND
+                                           S.V_TPID = #{tpid} AND
+                                           S.V_BID_OPEN_STATUS NOT LIKE '10%' AND
+                                           S.V_BID_EVALUATION_STATUS != '10')
+             WHERE TD.V_BUS_FLAG_TYPE = 'EV-TYPE'
+             ORDER BY S.V_BID_SECTION_GROUP_CODE ASC,
+                      S.V_BID_SECTION_NAME ASC
+        ]]>
+    </select>
+
+    <!-- 修改第一信封开标结束，进入评审阶段 -->
+    <update id="modifyFirstEnd" parameterType="record">
+        <![CDATA[
+            UPDATE EKB_T_SECTION_INFO
+            SET V_BID_OPEN_STATUS = #{V_BID_OPEN_STATUS}
+             WHERE V_TPID = #{TPID} AND V_BID_OPEN_STATUS NOT LIKE '10%'
+        ]]>
+    </update>
+</mapper>  

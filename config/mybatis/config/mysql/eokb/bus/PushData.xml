@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="PushData">
+
+    <!-- 获取招标项目投标人信息  -->
+    <select id="getTenderProjectBidders" parameterType="string" resultType="record">
+        <![CDATA[
+            SELECT B.ID,
+                   TP.V_TENDER_PROJECT_ID AS TENDER_PROJECT_ID,
+                   B.V_BID_SECTION_ID AS BID_SECTION_ID,
+                   B.V_BIDDER_ORG_CODE AS BIDDER_ORG_CODE,
+                   B.V_BIDDER_NAME AS BIDDER_NAME,
+                   B.N_PRICE AS BIDDER_TOTAL,
+                   "1" AS IS_SUBMIT_BAIL,
+                   B.V_JSON_OBJ
+              FROM EKB_T_TENDER_LIST B
+              JOIN EKB_T_TENDER_PROJECT_INFO TP ON (B.V_TPID = TP.ID)
+             WHERE B.V_TPID = #{tpid}
+        ]]>
+    </select>
+    
+    <!-- 获取招标项目投标人信息  -->
+    <select id="getTenderProjectBiddersByGroup" parameterType="string" resultType="record">
+        <![CDATA[
+            SELECT B.ID,
+                   TP.V_TENDER_PROJECT_ID AS TENDER_PROJECT_ID,
+                   B.V_BID_SECTION_ID AS BID_SECTION_ID,
+                   B.V_BIDDER_ORG_CODE AS BIDDER_ORG_CODE,
+                   B.V_BIDDER_NAME AS BIDDER_NAME,
+                   B.N_PRICE AS BIDDER_TOTAL,
+                   "1" AS IS_SUBMIT_BAIL,
+                   B.V_JSON_OBJ
+              FROM EKB_T_DECRYPT_INFO B
+              JOIN EKB_T_TENDER_PROJECT_INFO TP ON (B.V_TPID = TP.ID)
+             WHERE B.V_TPID = #{tpid}
+        ]]>
+    </select>
+
+    
+</mapper>  

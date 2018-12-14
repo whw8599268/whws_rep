@@ -1,0 +1,224 @@
+<!doctype html>
+<html>
+
+<head>
+<meta charset="UTF-8">
+<%includeJSP( "/static/include/inc.jsp",{}){}%>
+<title>厦门市建设工程电子招投标交易平台开标辅助系统</title>
+<link href="${path}${adminPath}/view/frame/css/frame.list.css" rel="stylesheet" type="text/css" />
+<script type="text/javascript" src="${path}${adminPath}/view/frame/js/logout.js"></script>
+<script src="${path}${adminPath}/view/common/js/layer/layer.js" type="text/javascript"></script>
+<script type="text/javascript">
+	SZUtilsExtEasyUIListPage.datagrid.pagination();
+	$(function() {
+		$("#formGrid-div").height($(document).height() - 76 - 23);
+		//投标人项目信息列表
+		$('#formGrid-dl-info').datagrid({
+			pagination : true,
+			loadFilter : resultFilter,
+			onBeforeLoad : onBeforeList,
+			onLoadSuccess : initrender,
+			fitColumns : true,
+			rownumbers : true,
+			pageList : [ 15, 25, 50, 100, 200 ],
+			pageSize : 15,
+			fit : true,
+			nowrap : false,
+			url : '${path}${adminPath}/bus/project/dllist',
+			method : 'get',
+			columns : [ [ {
+				field : 'ID',
+				hidden : 'true'
+			}, {
+				field : 'V_BIDOPEN_TIME',
+				title : '开标时间',
+				width : 54,
+				align : 'center',
+				halign : 'center'
+			}, {
+				field : 'V_TENDER_PROJECT_NAME',
+				title : '招标项目名称',
+				width : 120,
+				align : 'left',
+				halign : 'center'
+			}, {
+				field : 'V_INVITENO',
+				title : '招标项目编号',
+				width : 120,
+				align : 'left',
+				halign : 'center'
+			}, {
+				field : 'CHECK',
+				title : '开标环境检测',
+				width : 35,
+				align : 'center',
+				formatter : GridFormatter.CHECK
+			}, {
+				field : 'OPTION',
+				title : '操作',
+				width : 35,
+				align : 'center',
+				formatter : GridFormatter.OPTION
+			} ] ]
+		});
+	})
+
+	// 重新渲染样式
+	function initrender() {
+		$.parser.parse($("#formGrid-dl-info").parent());
+	}
+
+	/**
+	 * 查询
+	 */
+	function doSearch() {
+		// 使用Form2Json插件处理,同时过滤掉空数据
+		var searchParam = $('#searchForm').form2json({
+			allowEmptySingleVal : false
+		});
+		$('#formGrid-dl-info').datagrid('load', searchParam);
+	}
+	/**
+	 * 清空
+	 */
+	function doClear() {
+		$('#searchForm').form('reset');
+		$('#formGrid-dl-info').datagrid('load', {});
+	}
+
+	var GridFormatter = {
+		"V_STATUS" : function(val, row, index) {
+			var status = row.V_STATUS;
+			var str = "";
+			if (status == '0') {
+				str = "<span>待开标</span>";
+			} else if (status == '1') {
+				str = "<span>开标中</span>";
+			} else if (status == '2') {
+				str = "<span>流标</span>";
+			} else if (status == '3') {
+				str = "<span>已结束</span>";
+			}
+			return str;
+		},
+		"CHECK" : function(val, row, index) {
+			var str = "";
+			str += '<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:\'icon-search\'" onclick="doCheck(\''
+					+ row.ID + '\')">检测</a>';
+			return str;
+		},
+		"OPTION" : function(val, row, index) {
+			var str = "";
+			if (row.IS_FB) {
+				str += "<span style='cursor:pointer;text-decoration: underline;color:blue;' onclick='doUnseal(\""
+						+ row.ID + "\")'>解封</span>";
+			} else {
+				str += "<span style='cursor:pointer;text-decoration: underline;color:blue;' onclick='intoProject(\""
+						+ row.ID  + "\")'>进入项目</span>";
+			}
+			return str;
+		}
+	};
+	
+	function doUnseal(tpid){
+		var p = parent.sy.dialog({
+			title : '&nbsp;解封',
+			// iconCls: "icon-man",
+			href : '${path}${adminPath}/view/eokb/bus/tppk/un.encapsulation.html?tpid='+tpid+"&_t="+new Date().getTime(),
+			width : 850,
+			height : 380,
+			buttons : [ {
+				text : "关闭",
+				iconCls : "icon-remove",
+				handler : function() {
+					p.dialog('close');
+				}
+			} ]
+		}); 
+	}
+
+	// 开标环境检测
+	function doCheck(id) {
+		layer.open({
+			type : 2,
+			title : '开标环境检测结果',
+			shadeClose : false,
+			shade : false,
+			maxmin : true, //开启最大化最小化按钮
+			area : [ '600px', '400px' ],
+			shade : 0.5,
+			content : '${path}${adminPath}/bus/bca/cbe/' + id
+		});
+	}
+
+	function intoProject(tpid) {
+		// 先设置菜单
+		var flag = true;
+		$.ajax({
+			url : '${path}${adminPath}/bus/project/setfun/' + tpid,
+			// 设置请求方法
+			type : 'GET',
+			cache : false,
+			async : false,
+			// dataType : 'json',
+			// contentType : 'application/json;charset=UTF-8',
+			// data : data,
+			// 成功回调
+			success : function(result) {
+			},
+			// 失败回调
+			error : function(XMLHttpRequest, textStatus, errorThrown) {
+				var result = jQuery.parseJSON(XMLHttpRequest.responseText);
+				top.$.messager.alert('提示', result.errorDesc);
+				flag =  false;
+			}
+		});
+		if(!flag){
+			return;
+		}
+		
+		$.ajax({
+			url : '${path}${adminPath}/bus/project/zbrgo/' + tpid,
+			// 设置请求方法
+			type : 'GET',
+			cache : false,
+			// dataType : 'json',
+			// contentType : 'application/json;charset=UTF-8',
+			// data : data,
+			// 成功回调
+			success : function(result) {
+				//跳转到代理操作列表
+				forward(tpid);
+			},
+			// 失败回调
+			error : function(XMLHttpRequest, textStatus, errorThrown) {
+				var result = jQuery.parseJSON(XMLHttpRequest.responseText);
+				top.$.messager.alert('提示', result.errorDesc);
+			}
+		});
+	}
+
+	//请求跳转
+	function forward(tpid) {
+		// window.open("${path}${adminPath}/view/frame/frame.kb.zbr.html");
+		window.location.href = "${path}${adminPath}/room/join/" + tpid + "?_t="
+				+ new Date().getTime();
+	}
+</script>
+</head>
+<body style="font-size: 16px;">
+    <div class="header">
+        <div class="logo"></div>
+        <div class="head-rg">
+            <% var user = authz.getCurrentUser();%> <span class="user">招标人/招标代理：</span><span class="user-name" title=${user.V_NAME}>${user.V_NAME}</span> <span class="exit"><a style="color: #fff;" href="javascript:void(0)" onclick="logout()"><img src="images/exit.png" style="border: 0;" />安全退出</a></span>
+        </div>
+    </div>
+    <div id="formGrid-div" style="width: 100%;">
+        <table id="formGrid-dl-info" style="width: auto; height: auto">
+        </table>
+    </div>
+    <div style="height: 20px; padding: 0px; position: absolute; bottom: 0; text-align: center; width: 100%">
+        ©福建首众-技术支持&emsp;&emsp;客服热线：400-999-6901&emsp;&emsp;QQ在线咨询：<a href="####" onclick="javascript:window.open('http://wpa.b.qq.com/cgi/wpa.php?ln=1&key=XzkzODE5MjY0OV80ODA3NjRfNDAwMTg4NjY0MF8yXw');">点击咨询</a>
+    </div>
+</body>
+</html>

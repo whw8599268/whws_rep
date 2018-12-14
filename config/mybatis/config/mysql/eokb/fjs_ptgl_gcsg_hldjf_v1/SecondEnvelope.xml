@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="fjs_ptgl_gcsg_hldjf_v1_secondenvelope">
+    <!-- 查询第二信封投标人与确认信息（标段id） -->
+    <select id="getSecBidderInfo" parameterType="record" resultType="record">
+        <![CDATA[
+            SELECT B.*, C.V_STATUS, C.V_REMARK
+              FROM EKB_T_TENDER_LIST B
+              LEFT JOIN EKB_T_CHECK_DATA C
+                ON (B.ID = C.V_BUSID AND C.V_BUSNAME = #{modelType})
+             WHERE B.V_TPID = #{tpid}
+               AND B.V_BID_SECTION_ID = #{sid}
+               AND B.N_ENVELOPE_1=1
+             ORDER BY B.N_SORT_FILE_BID
+        ]]>
+    </select>
+    
+    <!-- 导出投标报价 -->
+    <select id="getExcelBidderInfo" parameterType="record" resultType="record">
+        <![CDATA[
+            SELECT B.*, C.V_BID_SECTION_NAME
+              FROM EKB_T_TENDER_LIST B
+              LEFT JOIN EKB_T_SECTION_INFO C
+                ON (B.V_BID_SECTION_ID = C.V_BID_SECTION_ID AND C.V_BID_OPEN_STATUS NOT LIKE '10%' AND V_BID_OPEN_STATUS !='0')
+             WHERE B.V_TPID = #{tpid}
+               AND B.N_ENVELOPE_1=1
+             ORDER BY C.V_BID_SECTION_NAME,B.V_BIDDER_NO
+        ]]>
+    </select>
+    
+    <!-- 查询第二信封解密表有效标段的投标人(获取球号环节分标段查询) -->
+    <select id="getDecryptResult" parameterType="record" resultType="record">
+        <![CDATA[
+            SELECT *
+            FROM EKB_T_DECRYPT_INFO a
+              LEFT JOIN EKB_T_SECTION_INFO b
+                ON a.V_TPID = b.V_TPID
+                  AND a.V_BID_SECTION_GROUP_CODE = b.V_BID_SECTION_GROUP_CODE
+                  AND a.V_BID_SECTION_ID = b.V_BID_SECTION_ID
+            WHERE a.N_ENVELOPE_1 = 1
+                AND b.V_BID_OPEN_STATUS NOT LIKE '10%'
+                AND a.V_TPID = #{tpid}
+                AND a.V_BID_SECTION_ID = #{V_BID_SECTION_ID}
+            ORDER BY CAST(a.V_BIDDER_NO AS UNSIGNED INT) 
+        ]]>
+    </select>
+    
+    <!-- 查询第二信封解密表有效标段的投标人 -->
+    <select id="getDecryptValid" parameterType="record" resultType="record">
+        <![CDATA[
+            SELECT *
+            FROM EKB_T_DECRYPT_INFO a
+              LEFT JOIN EKB_T_SECTION_INFO b
+                ON a.V_TPID = b.V_TPID
+                  AND a.V_BID_SECTION_GROUP_CODE = b.V_BID_SECTION_GROUP_CODE
+                  AND a.V_BID_SECTION_ID = b.V_BID_SECTION_ID
+            WHERE a.N_ENVELOPE_1 = 1
+                AND b.V_BID_OPEN_STATUS NOT LIKE '10%'
+                AND a.V_TPID = #{tpid}
+            ORDER BY CAST(a.V_BIDDER_NO AS UNSIGNED INT) 
+        ]]>
+    </select>
+    
+    <!-- 是否分配过 -->
+    <select id="getsecbidderalreadyallocation" parameterType="record" resultType="record">
+        <![CDATA[
+            SELECT
+              V_BIDDER_NAME,
+              COUNT(1) AS NUM
+            FROM ekb_t_tender_list
+            WHERE V_BIDDER_NAME IN(SELECT
+                                     V_BIDDER_NAME
+                                   FROM ekb_t_tender_list
+                                   WHERE V_BID_SECTION_GROUP_CODE = (SELECT
+                                                                       V_BID_SECTION_GROUP_CODE
+                                                                     FROM ekb_t_section_info
+                                                                     WHERE V_TPID = #{tpid}
+                                                                     ORDER BY V_BID_SECTION_GROUP_CODE
+                                                                     LIMIT 1)
+                                       AND N_ENVELOPE_1 = 1
+                                   GROUP BY V_BIDDER_NAME)
+                AND V_BID_SECTION_GROUP_CODE = (SELECT
+                                                  V_BID_SECTION_GROUP_CODE
+                                                FROM ekb_t_section_info
+                                                WHERE V_TPID = #{tpid}
+                                                ORDER BY V_BID_SECTION_GROUP_CODE
+                                                LIMIT 1)
+                AND N_ENVELOPE_1 = 1
+                AND V_TPID = #{tpid}
+            GROUP BY V_BIDDER_NAME
+        ]]>
+    </select>
+</mapper>  

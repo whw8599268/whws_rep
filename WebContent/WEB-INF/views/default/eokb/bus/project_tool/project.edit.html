@@ -1,0 +1,44 @@
+<html>
+<head></head>
+<body>
+    <form id="inputForm" method="post" class="formstyle">
+        <!-- START DYFORM LAYOUT -->
+        <input type="hidden" id="ID" name="ID" autocomplete="off">
+        <input type="hidden" id="V_BEM_INFO_JSON" name="V_BEM_INFO_JSON" autocomplete="off">
+        <input type="hidden" id="V_TENDER_PROJECT_ID" name="V_TENDER_PROJECT_ID" autocomplete="off">
+        <table align="left" width="100%" class="sztable" border="0" cellspacing="0" cellpadding="0">
+            <tbody>
+                <tr>
+                    <td width="30%" class="sztabletext" title="开招标项目名称">招标项目名称：</td>
+                    <td data-label="招标项目名称" width="70%"><input type="text" class="easyui-validatebox" id="V_TENDER_PROJECT_NAME" name="V_TENDER_PROJECT_NAME" readonly style="width: 200px;" title="" autocomplete="off"></td>
+                </tr>
+                <tr>
+                    <td width="30%" class="sztabletext" title="开标时间">开标时间：</td>
+                    <td data-label="开标时间" width="70%"><input type="text" class="easyui-validatebox" id="V_BIDOPEN_TIME" name="V_BIDOPEN_TIME" data-options="validType:'length[1,100]'" style="width: 200px;" title="" autocomplete="off"></td>
+                </tr>
+                <tr>
+                    <td width="30%" class="sztabletext" title="招标流程编号">招标流程编号：</td>
+                    <td data-label="招标流程编号" width="70%"><input type="text" class="easyui-validatebox" id="V_BEM_CODE" name="V_BEM_CODE" data-options="validType:'length[1,100]'" style="width: 200px;" title="" autocomplete="off"></td>
+                </tr>
+                <tr>
+                    <td width="30%" class="sztabletext" title="招标人名称">招标人名称：</td>
+                    <td data-label="招标人名称" width="70%"><input type="text" class="easyui-validatebox" id="V_TENDERER_NAME" name="V_TENDERER_NAME" readonly style="width: 200px;" title="" autocomplete="off"></td>
+                </tr>
+                <tr>
+                    <td width="30%" class="sztabletext" title="招标人组织机构代码">招标人组织机构代码：</td>
+                    <td data-label="招标人组织机构代码" width="70%"><input type="text" class="easyui-validatebox" id="V_TENDERER_CODE" name="V_TENDERER_CODE" data-options="validType:'length[1,300]'" style="width: 200px;" title="" autocomplete="off"></td>
+                </tr>
+                <tr>
+                    <td width="30%" class="sztabletext" title="招标代理名称">招标代理名称：</td>
+                    <td data-label="招标代理名称" width="70%"><input type="text" class="easyui-validatebox" id="V_TENDER_AGENCY_NAME" name="V_TENDER_AGENCY_NAME" readonly style="width: 200px;" title="" autocomplete="off"></td>
+                </tr>
+                <tr>
+                    <td width="30%" class="sztabletext" title="招标代理组织机构代码">招标代理组织机构代码：</td>
+                    <td data-label="招标代理组织机构代码" width="70%"><input type="text" class="easyui-validatebox" id="V_TENDER_AGENCY_CODE" name="V_TENDER_AGENCY_CODE" data-options="validType:'length[1,300]'" style="width: 200px;" title="" autocomplete="off"></td>
+                </tr>
+            </tbody>
+        </table>
+        <!-- END DYFORM LAYOUT -->
+    </form>
+</body>
+</html>

@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<!-- 避免IE使用兼容模式 -->
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta http-equiv="pragma" content="no-cache">
+<meta http-equiv="cache-control" content="no-cache">
+<meta http-equiv="expires" content="0">
+<%includeJSP("/static/include/inc.jsp",{}){}%>
+<script src="${path}/static/res/jquery-easyui/datagrid-groupview.js" type="text/javascript"></script>
+<script src="${path}${adminPath}/view/im/js/CountDown.js" type="text/javascript"></script>
+<script src="${path}${adminPath}/view/common/js/layer/layer.js" type="text/javascript"></script>
+<script src="${path}${adminPath}/view/eokb/bus/decrypt/js/sozone.mca.min.js" type="text/javascript"></script>
+<title>三层解密页面</title>
+<script type="text/javascript">
+	$(function() {
+		getDecryptTip();
+	});
+
+	/**初始化解密结果表**/
+	function initDecryptResultGrid() {
+		$('#decrypt-grid-box').show();
+		//根据标段 非标的组 设置显示列
+		var isGroup = "${session.TENDER_PROJECT_INFO.N_IS_SECTION_GROUP}";
+		//解密提示信息表
+		$('#decrypt-tip-table').datagrid({
+			title : '投标人解密情况汇总表',
+			pagination : false,
+			loadFilter : resultFilter,
+			onBeforeLoad : onBeforeList,
+			fitColumns : true,
+			rownumbers : false,
+			url : "${path}${adminPath}/bus/decrypt/summary",
+			method : 'get',
+			columns : [ [ {
+				field : 'V_BID_SECTION_GROUP_CODE',
+				title : '标段组编号',
+				width : 45,
+				align : 'center'
+			}, {
+				field : 'V_BID_SECTION_NAME',
+				title : '标段名称',
+				width : 45,
+				halign : 'center',
+				align : 'left'
+			}, {
+				field : 'N_BIDDER_NUMBER',
+				title : '投标人总家数',
+				width : 25,
+				align : 'center'
+			}, {
+				field : 'N_DECRYPT_SUCCESS_NUMBER',
+				title : '解密成功家数',
+				width : 25,
+				align : 'center'
+			} ] ]
+		});
+		if (isGroup == "0") {
+			$('#decrypt-tip-table').datagrid('hideColumn',
+					'V_BID_SECTION_GROUP_CODE');
+		} else if (isGroup == "1") {
+			$('#decrypt-tip-table').datagrid('showColumn',
+					'V_BID_SECTION_GROUP_CODE');
+		}
+		//投标人解密情况列表
+		$('#decrypt-result-grid').datagrid({
+			loadFilter : resultFilter,
+			onBeforeLoad : onBeforeList,
+			pagination : true,
+			pageList : [ 50, 100, 150, 200 ],
+			pageSize : 50,
+			fitColumns : true,
+			rownumbers : true,
+			title : '投标人解密情况详情表',
+			nowrap : false,
+			url : '${path}${adminPath}/bus/thpdecrypt/bidders',
+			method : 'get',
+			columns : [ [ {
+				field : 'V_BID_SECTION_GROUP_CODE',
+				title : '标段组编号',
+				width : 20,
+				align : 'left',
+				halign : 'center'
+			}, {
+				field : 'V_BID_SECTION_NAME',
+				title : '标段名称',
+				width : 30,
+				align : 'left',
+				halign : 'center'
+			}, {
+				field : 'V_ORG_CODE',
+				title : '投标人组织机构号',
+				width : 30,
+				align : 'left',
+				halign : 'center'
+			}, {
+				field : 'V_BIDDER_NAME',
+				title : '投标人名称',
+				width : 80,
+				align : 'left',
+				halign : 'center'
+			}, {
+				field : 'V_TIPSNAME',
+				title : '投标文件类型',
+				width : 50,
+				align : 'center'
+			}, {
+				field : 'N_DECRYPT_STATUS',
+				title : '解密状态',
+				width : 30,
+				align : 'center',
+				formatter : GridFormatter.N_DECRYPT_STATUS
+			} ] ]
+		});
+		if (isGroup == "0") {
+			$('#decrypt-result-grid').datagrid('hideColumn',
+					'V_BID_SECTION_GROUP_CODE');
+		} else if (isGroup == "1") {
+			$('#decrypt-result-grid').datagrid('showColumn',
+					'V_BID_SECTION_GROUP_CODE');
+		}
+	}
+
+	/**解密提示信息**/
+	function getDecryptTip() {
+		var url = "${path}${adminPath}/bus/thpdecrypt/tpdstatus/${TENDER_PROJECT_FLOW_NODE.ID}";
+		//发生Ajax请求
+		$.ajax({
+			cache : false,
+			url : url,
+			//设置请求方法
+			type : 'GET',
+			dataType : 'json',
+			//成功回调
+			success : function(result) {
+				var infos = result.result;
+				//如果已经有部分已经解密了
+				if (result.success && null != infos
+						&& typeof (infos) != "undefined") {
+					$('#decrypt-button-box').show();
+					var tip;
+					var who = "招标人/招标代理";
+					var text = "";
+					for ( var i = 0; i < infos.length; i++) {
+						tip = infos[i];
+						//alert(JSON.stringify(tip));
+						//按钮隐藏掉
+						$("#decrypt-button-" + tip.DECIPHER).hide();
+						if (tip.TYPE == 0) {
+							who = "招标人/招标代理";
+						} else if (tip.TYPE == 1) {
+							who = "交易中心";
+						} else if (tip.TYPE == 2) {
+							who = "公证";
+						}
+						var date = new Date(tip.DECRYPTION_TIME);
+						text += "<div class='tip'>" + who + "&nbsp;,&nbsp;已于["
+								+ date.format("yyyy-MM-dd hh:mm:ss")
+								+ "]完成解密!</div>";
+					}
+					$("#decrypt-tip").html(text);
+					//如果都解密了
+					if (3 == infos.length) {
+						doFinal();
+					}
+					return;
+				}
+				//尚未加载
+				if (!parsed) {
+					doParse();
+					return;
+				}
+				//已经加载过
+				$('#decrypt-button-box').show();
+			},
+			//失败回调
+			error : function(XMLHttpRequest, textStatus, errorThrown) {
+				parent.sy.progress.hide();
+				try {
+					var result = jQuery.parseJSON(XMLHttpRequest.responseText);
+					$.messager.alert("操作失败!", result.errorDesc);
+				} catch (e) {
+					$.messager.alert("操作失败!", "操作失败!");
+				}
+			}
+		});
+	}
+
+	/**加载文件**/
+	function doParse() {
+		//alert("加载文件");
+		layer.msg('投标文件加载中,请勿刷新页面!', {
+			icon : 16,
+			shade : 0.3,
+			time : false
+		});
+		var url = "${path}${adminPath}/bus/thpdecrypt/parse?_t="
+				+ new Date().getTime();
+		$(
+				"<iframe id=\"parse-bidder-doc-iframe\" src=\""+url+"\" frameborder=\"0\" style=\"border: 0; width: 0px; height: 0px;\"></iframe>")
+				.prependTo('body');
+		parsed = true;
+	}
+
+	var GridFormatter = {
+		"V_BID_OPEN_STATUS" : function(val, row, index) {
+			if (false) {
+				return val;
+			} else if (val == "0") {
+				return "<span style='color:#DC143C;font-weight: bold;'>未启动</span>";
+			} else if (val == "10") {
+				return "<span style='color:#DC143C;font-weight: bold;'>已流标</span>";
+			} else {
+				return "<span style='color:#3CB371;font-weight: bold;'>已启动</span>";
+			}
+			return val;
+		},
+		"N_DECRYPT_STATUS" : function(val, row, index) {
+			if (val == -1) {
+				return "<span>未解密</span>";
+			} else if (val == 1) {
+				return "<span style='color:green;font-weight: bold;'>解密成功</span>";
+			} else if (val == 0) {
+				return "<span style='color:red;font-weight: bold;'>解密失败</span>";
+			}
+		}
+	};
+
+	/**解密**/
+	function doDecrypt(type) {
+		//读取介质证书
+		mca.getCertInfo(function(cert) {
+			//路径
+			var _url = "${path}${adminPath}/bus/thpdecrypt/verify/" + type;
+			var opts = new Object;
+			opts.text = "开始解密,请稍后.....";
+			parent.sy.progress.show(opts);
+			$.ajax({
+				url : _url,
+				type : 'POST',
+				//cache : false,
+				//async : false,
+				data : {
+					"CERT_DATA" : cert.KeyCert,
+					"CERT_SERIAL" : cert.KeyCertSerial
+				},
+				// 成功回调
+				success : function(data) {
+					if (data.success) {
+						doThreePartsDecrypt(cert, data.result, type);
+						return;
+					}
+					parent.sy.progress.hide();
+					$.messager.alert("操作失败!", "操作失败!");
+				},
+				// 失败回调
+				error : function(XMLHttpRequest, textStatus, errorThrown) {
+					parent.sy.progress.hide();
+					try {
+						var result = jQuery
+								.parseJSON(XMLHttpRequest.responseText);
+						$.messager.alert("操作失败!", result.errorDesc);
+					} catch (e) {
+						$.messager.alert("操作失败!", "操作失败!");
+					}
+				}
+			});
+		});
+	}
+
+	/**三方各自解密**/
+	function doThreePartsDecrypt(cert, type, _decrpt_type) {
+		//alert("验证证书有效性");
+		var who = "招标人/招标代理";
+		if (type == 0) {
+			who = "招标人/招标代理";
+		} else if (type == 1) {
+			who = "交易中心";
+		} else if (type == 2) {
+			who = "公证";
+		}
+		var url = "${path}${adminPath}/bus/thpdecrypt/dothdecrypt/${TENDER_PROJECT_FLOW_NODE.ID}/"
+				+ _decrpt_type;
+		//发生Ajax请求
+		$.ajax({
+			cache : false,
+			url : url,
+			//设置请求方法
+			type : 'POST',
+			//dataType : 'json',
+			data : {
+				"CERT_DATA" : cert.KeyCert,
+				"CERT_SERIAL" : cert.KeyCertSerial,
+				"TYPE" : type
+			},
+			//成功回调
+			success : function(result) {
+				parent.sy.messagerShow({
+					msg : who + "解密成功!",
+					title : '提示'
+				});
+				var text = "<div class='tip'>" + who + "解密成功</div>";
+				$("#decrypt-tip").append(text);
+				//按钮隐藏掉
+				$("#decrypt-button-" + _decrpt_type).hide();
+				valdateCanDoFinal();
+			},
+			//失败回调
+			error : function(XMLHttpRequest, textStatus, errorThrown) {
+				parent.sy.progress.hide();
+				try {
+					var result = jQuery.parseJSON(XMLHttpRequest.responseText);
+					$.messager.alert("操作失败!", result.errorDesc);
+				} catch (e) {
+					$.messager.alert("操作失败!", "操作失败!");
+				}
+			}
+		});
+	}
+
+	/**验证是否可以执行最终合并解密**/
+	function valdateCanDoFinal() {
+		//alert("验证是否可以进行合并解密");
+		var url = "${path}${adminPath}/bus/thpdecrypt/tpdstatus/${TENDER_PROJECT_FLOW_NODE.ID}";
+		//发生Ajax请求
+		$.ajax({
+			cache : false,
+			url : url,
+			//设置请求方法
+			type : 'GET',
+			dataType : 'json',
+			//成功回调
+			success : function(result) {
+				var infos = result.result;
+				if (result.success && null != infos
+						&& typeof (infos) != "undefined") {
+					//如果都解密了
+					if (3 == infos.length) {
+						doFinal();
+					}
+				}
+				parent.sy.progress.hide();
+			},
+			//失败回调
+			error : function(XMLHttpRequest, textStatus, errorThrown) {
+				parent.sy.progress.hide();
+				try {
+					var result = jQuery.parseJSON(XMLHttpRequest.responseText);
+					$.messager.alert("操作失败!", result.errorDesc);
+				} catch (e) {
+					$.messager.alert("操作失败!", "操作失败!");
+				}
+			}
+		});
+	}
+
+	/**结束当前节点**/
+	function finishCurrentFlowNode() {
+		parent.finishCurrentFlowNodeNoInteractive(
+				'${TENDER_PROJECT_FLOW_NODE.ID}',
+				'${TENDER_PROJECT_FLOW_NODE.V_NODE_NAME}');
+	}
+
+	/**合并**/
+	function doFinal() {
+		//alert(decryptTipIndex);
+		if (!decrypted) {
+			var url = "${path}${adminPath}/bus/thpdecrypt/dofinal";
+			$(
+					"<iframe id=\"decrypt-result-iframe\" src=\""+url+"\" frameborder=\"0\" style=\"border: 0; width: 0px; height: 0px;\"></iframe>")
+					.prependTo('body');
+			decrypted = true;
+			layer.msg('开始合并解密,请勿刷新页面!', {
+				icon : 16,
+				shade : 0.3,
+				time : false
+			});
+		}
+	}
+
+	var parsed = false;
+	//加载提示
+	var parseTipIndex;
+	/**
+	 *加载进度处理
+	 **/
+	function disposeParseProgress(data) {
+		//flag 0开始,200结束,1正常进行,-1错误
+		if (data.FLAG == 1) {
+			$('#parse-bidder-doc-parogressbar').progressbar({
+				//设置进度条值
+				value : data.VALUE * 100,
+				// 设置显示的文字
+				text : data.TEXT
+			});
+			//$('#parse-bidder-doc-parogressbar').progressbar('setValue', data.VALUE * 100);
+			return;
+		}
+		if (data.FLAG == -1) {
+			layer.msg(data.MSG, {
+				time : 5000, //5s后自动关闭
+			});
+			return;
+		}
+		//被占用
+		if (data.FLAG == -99) {
+			//关闭提示层
+			layer.closeAll();
+			layer.msg(data.MSG, {
+				icon : 16,
+				shade : 0.3,
+				time : false
+			});
+			return;
+		}
+		//开始
+		if (data.FLAG == 0) {
+			//alert(status);
+			$('#parse-bidder-doc-parogressbar-box').show();
+			return;
+		}
+		if (data.FLAG == 200) {
+			parsed = true;
+			//关闭提示层
+			layer.closeAll();
+			//alert("结束");
+			$('#parse-bidder-doc-parogressbar-box').show();
+			$('#parse-bidder-doc-tip').html("投标文件加载完成!");
+			$('#parse-bidder-doc-parogressbar').progressbar('setValue', 100);
+			getDecryptTip();
+			return;
+		}
+	}
+
+	var decrypted = false;
+	/**
+	 *解密进度处理
+	 **/
+	function disposeDecryptProgress(data) {
+		//flag 0开始,200结束,1正常进行,-1错误
+		if (data.FLAG == 1) {
+			$('#decrypt-parogressbar').progressbar({
+				//设置进度条值
+				value : data.VALUE * 100,
+				// 设置显示的文字
+				text : data.TEXT
+			});
+			//$('#parse-bidder-doc-parogressbar').progressbar('setValue', data.VALUE * 100);
+			return;
+		}
+		if (data.FLAG == -1) {
+			layer.msg(data.MSG, {
+				time : 5000, //5s后自动关闭
+			});
+			return;
+		}
+		//被占用
+		if (data.FLAG == -99) {
+			//关闭提示层
+			layer.closeAll();
+			layer.msg(data.MSG, {
+				icon : 16,
+				shade : 0.3,
+				time : false
+			});
+			return;
+		}
+		//开始
+		if (data.FLAG == 0) {
+			//alert(status);
+			$('#decrypt-parogressbar-box').show();
+			return;
+		}
+		if (data.FLAG == 200) {
+			decrypted = true;
+			//关闭提示层
+			layer.closeAll();
+			//alert("结束");
+			$('#next-flow-node-button').show();
+			$('#decrypt-parogressbar-box').show();
+			$('#decrypt-parogressbar-tip').html("投标文件解密完成!");
+			$('#decrypt-parogressbar').progressbar('setValue', 100);
+			getDecryptTip();
+			//刷新列表
+			initDecryptResultGrid();
+			parent.sy.messagerShow({
+				msg : "合并解密完成!",
+				title : '提示'
+			});
+			return;
+		}
+	}
+</script>
+<style type="text/css">
+.split_line {
+	margin: 5px 0px;
+	height: 8px;
+	width: 100%;
+	background-color: #3e637a;
+	height: 8px;
+}
+
+.decrypt-button-img {
+	height: 50px;
+	cursor: pointer;
+	border: 0;
+	cursor: pointer;
+}
+
+.decrypt-button {
+	float: left;
+	margin: 0px 10px;
+	cursor: pointer;
+}
+
+.tip {
+	color: red;
+	font-size: 18px;
+	font-weight: bold;
+}
+</style>
+</head>
+<body oncontextmenu=self.event.returnValue=false onselectstart="return false">
+    <sz:if test="${TENDER_PROJECT_FLOW_NODE.N_STATUS!=3}">
+        <div id="next-flow-node-button" style="text-align: right; display: none;">
+            <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-ok'" onclick="finishCurrentFlowNode();">进入下一环节</a>
+        </div>
+    </sz:if>
+    <!-- 解密消息提示 -->
+    <div align="center" style="color: red; font-size: 30px; font-weight: bold; margin: 5px 0px;">
+        <div id="decrypt-tip"></div>
+    </div>
+    <!-- 加载进度 -->
+    <div id="parse-bidder-doc-parogressbar-box" style="height: 30px; width: 100%; display: none; margin: 5px 0px; text-align: center;">
+        <div style="margin: 0 auto; width: 800px;">
+            <div id="parse-bidder-doc-tip" style="color: red; font-size: 18px; font-weight: bold; float: left;">投标文件加载中请稍后，进度：</div>
+            <div id="parse-bidder-doc-parogressbar" class="easyui-progressbar" style="width: 400px; float: left;"></div>
+        </div>
+    </div>
+    <!-- 解密按钮组 -->
+    <div id="decrypt-button-box" style="display: none; width: 100%; text-align: center;">
+        <div style="margin: 0 auto; width: 600px;">
+            <div id="decrypt-button-0" class="decrypt-button">
+                <img class="decrypt-button-img" src="${path}${adminPath}/view/eokb/bus/decrypt/images/zbr-zbdl.png" onclick="doDecrypt('0');" />
+            </div>
+            <!-- 如果是两次解密 -->
+            <sz:if test="${SessionUtils.isTowLayerDecrypt()}">
+                <div id="decrypt-button-3" class="decrypt-button">
+                    <img class="decrypt-button-img" src="${path}${adminPath}/view/eokb/bus/decrypt/images/gz_jyzx.png" onclick="doDecrypt('3');" />
+                </div>
+            </sz:if>
+            <!-- 如果不是两层解密 -->
+            <sz:if test="${!SessionUtils.isTowLayerDecrypt()}">
+                <div id="decrypt-button-2" class="decrypt-button">
+                    <img class="decrypt-button-img" src="${path}${adminPath}/view/eokb/bus/decrypt/images/gz.png" onclick="doDecrypt('2');" />
+                </div>
+            </sz:if>
+            <div id="decrypt-button-1" class="decrypt-button">
+                <img class="decrypt-button-img" src="${path}${adminPath}/view/eokb/bus/decrypt/images/jyzx.png" onclick="doDecrypt('1');" />
+            </div>
+        </div>
+    </div>
+    <!-- 解密进度 -->
+    <div id="decrypt-parogressbar-box" style="height: 30px; width: 100%; display: none; margin: 5px 0px; text-align: center;">
+        <div style="margin: 0 auto; width: 800px;">
+            <div id="decrypt-parogressbar-tip" style="color: red; font-size: 18px; font-weight: bold; float: left;">投标文件解密中请稍后，进度：</div>
+            <div id="decrypt-parogressbar" class="easyui-progressbar" style="width: 400px; float: left;"></div>
+        </div>
+    </div>
+
+    <div id="decrypt-grid-box" style="height: 30px; width: 100%; display: none; margin: 5px 0px; text-align: center;">
+        <div style="margin: 0 auto; width: 800px;">
+            <!--数据表格-->
+            <table id="decrypt-tip-table"></table>
+            <!--横线-->
+            <div class="split_line"></div>
+            <table id="decrypt-result-grid"></table>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<!-- 启用360浏览器的极速模式(webkit) -->
+<meta name="renderer" content="webkit">
+<!-- 避免IE使用兼容模式 -->
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<title>跳转页</title> <%includeJSP("/static/include/inc.jsp",{}){}%>
+</head>
+<body>
+
+    <script type="text/javascript">
+					var user_type = "${param.user_type}";
+					$(function() {
+						if (0 == user_type) {
+							//招标人
+							location.href = "${path}${adminPath}/view/frame/frame.project.list.zbr.html";
+							return;
+						}
+						if (1 == user_type) {
+							//投标人
+							location.href = "${path}${adminPath}/view/frame/frame.project.list.tbr.html";
+							return;
+						}
+						var p = parent.sy
+								.dialog({
+									title : '&nbsp;请选择角色',
+									content : "<a href='${path}${adminPath}/view/frame/frame.project.list.zbr.html' class='easyui-linkbutton'>招标人/招标代理</a>&nbsp;&nbsp;&nbsp;&nbsp;<a href='${path}${adminPath}/view/frame/frame.project.list.tbr.html' class='easyui-linkbutton'>投标人</a>",
+									width : 180,
+									height : 80,
+									closable : false
+								});
+					});
+				</script>
+</body>
+</html>

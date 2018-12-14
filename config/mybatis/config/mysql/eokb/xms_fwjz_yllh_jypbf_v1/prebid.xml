@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="xms_fwjz_yllh_jypbf_v1_prebid">
+    <!-- 分标段查询入围投标人名单-->
+    <select id="getPreTenderListResult" resultType="string" parameterType="record">
+        <![CDATA[
+            SELECT 
+              C.*,D.V_JSON_OBJ V_JSON,ABS(#{price}-C.N_PRICE) ABSOLUTE
+            FROM EKB_T_TENDER_LIST C
+            LEFT JOIN EKB_T_TPFN_DATA_INFO D
+            ON D.V_BUS_ID = C.V_BID_SECTION_ID
+            WHERE C.N_ENVELOPE_9 IN(1,2)
+            AND C.V_BID_SECTION_ID =#{sid}
+            AND D.V_BUS_FLAG_TYPE = #{type}
+            AND C.V_TPID=#{tpid}
+            ORDER BY ABS(#{price} - C.N_PRICE),C.V_BIDDER_NO
+        ]]>
+    </select>
+    
+    <!-- 分标段查询进入评审人员名单-->
+    <select id="getReviewTenderList" resultType="string" parameterType="record">
+        <![CDATA[
+            SELECT
+              D.*,C.N_EVALUATION_PRICE,
+              ABS(#{price}-D.N_PRICE) ABSOLUTE
+            FROM EKB_T_TENDER_LIST D
+            LEFT JOIN EKB_T_SECTION_INFO C
+            ON D.V_BID_SECTION_ID = C.V_BID_SECTION_ID
+            WHERE N_PRICE IN(SELECT
+                               B.N_PRICE
+                             FROM (SELECT DISTINCT
+                                     N_PRICE
+                                   FROM EKB_T_TENDER_LIST
+                                   WHERE V_TPID = #{tpid}
+                                   AND N_ENVELOPE_9 IN(1,2)
+                                   ORDER BY ABS(#{price} - N_PRICE)
+                                   LIMIT 5) B)
+            AND D.V_BID_SECTION_ID =#{sid}
+            AND C.V_TPID=#{tpid}
+            AND D.N_ENVELOPE_9 IN(1,2)
+            ORDER BY ABS(#{price} - D.N_PRICE),D.V_BIDDER_NO
+        ]]>
+    </select>
+</mapper>  

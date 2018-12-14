@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="fjs_ptgl_gcsg_hldjf_v1_secondenvelopeSetFailBid">
+
+    <!-- 获取标段组情况下第一信封评标情况列表 -->
+    <select id="getSectionReviewInfo_Group" parameterType="record" resultType="record">
+        <![CDATA[
+            SELECT SG.*, IFNULL(SC.N_BIDDER_COUNT, 0) AS N_BIDDER_COUNT
+              FROM (SELECT T.V_BID_SECTION_GROUP_CODE,
+                           V_BID_OPEN_STATUS,
+                           GROUP_CONCAT(T.V_BID_SECTION_ID) V_BID_SECTION_IDS,
+                           GROUP_CONCAT(T.V_BID_SECTION_NAME ORDER BY
+                                        T.V_BID_SECTION_NAME) V_BID_SECTION_NAMES
+                      FROM EKB_T_SECTION_INFO T
+                     WHERE T.V_TPID = #{tpid}
+                       AND T.V_BID_OPEN_STATUS != '0'
+                       AND T.V_BID_OPEN_STATUS != '10-0'
+                       AND T.V_BID_OPEN_STATUS != '10-1'
+                     GROUP BY T.V_BID_SECTION_GROUP_CODE) SG
+              LEFT JOIN (SELECT V_BID_SECTION_GROUP_CODE, COUNT(1) AS N_BIDDER_COUNT
+                           FROM EKB_T_DECRYPT_INFO
+                          WHERE V_TPID = #{tpid}
+                            AND N_ENVELOPE_1 = 1
+                          GROUP BY V_BID_SECTION_GROUP_CODE) SC ON (SG.V_BID_SECTION_GROUP_CODE = SC.V_BID_SECTION_GROUP_CODE)
+             ORDER BY V_BID_SECTION_GROUP_CODE ASC
+        ]]>
+    </select>
+
+    <!-- 获取非标段组情况下第一信封评标情况列表 -->
+    <select id="getSectionReviewInfo" parameterType="record" resultType="record">
+        <![CDATA[
+            SELECT V_BID_SECTION_GROUP_CODE,
+                   V_BID_OPEN_STATUS,
+                   S.V_BID_SECTION_ID AS V_BID_SECTION_IDS,
+                   V_BID_SECTION_NAME AS V_BID_SECTION_NAMES,
+                   IFNULL(SC.N_BIDDER_COUNT,0) AS N_BIDDER_COUNT
+              FROM EKB_T_SECTION_INFO S
+              LEFT JOIN (SELECT V_BID_SECTION_ID, COUNT(1) AS N_BIDDER_COUNT
+                           FROM EKB_T_TENDER_LIST
+                          WHERE V_TPID = #{tpid}
+                            AND N_ENVELOPE_1 = 1
+                          GROUP BY V_BID_SECTION_ID) SC ON (S.V_BID_SECTION_ID = SC.V_BID_SECTION_ID)
+             WHERE S.V_TPID = #{tpid} 
+               AND S.V_BID_OPEN_STATUS != '0'
+               AND S.V_BID_OPEN_STATUS != '10-0'
+               AND S.V_BID_OPEN_STATUS != '10-1'
+             ORDER BY V_BID_SECTION_CODE ASC
+        ]]>
+    </select>
+
+</mapper>  

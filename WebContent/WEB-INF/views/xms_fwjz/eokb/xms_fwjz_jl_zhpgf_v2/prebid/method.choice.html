@@ -1,0 +1,131 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>抽取K值结果</title> <%includeJSP("/static/include/inc.jsp",{}){}%>
+<link href="${path}/static/css/table.css" rel="stylesheet" />
+<style type="text/css">
+div .method {
+	font-size: 18px;
+	color: #ff7300;
+	font-weight: bold;
+	text-align: center;
+}
+</style>
+</head>
+<body>
+    <sz:if test="${TENDER_PROJECT_FLOW_NODE.N_STATUS!=3}">
+        <div style="text-align: right;">
+            <sz:if test="${METHOD==99}">
+                <a id="data-save-button" href="#" class="easyui-linkbutton" data-options="iconCls:'icon-save'" onclick="doSave();">保存</a>
+            </sz:if>
+            <a id="data-save-button" href="#" class="easyui-linkbutton" data-options="iconCls:'icon-ok'" onclick="finishCurrentFlow();">进入下一个环节</a>
+        </div>
+    </sz:if>
+    <div class="easyui-tabs" data-options="plain:true">
+        <div title="标段：${V_BID_SECTION_NAME!}" style="padding: 10px;">
+            <div class="method">
+                <sz:if test="${METHOD==99}">
+                    请选择抽取入围投标人方法：<input id="method-choice" class="easyui-combobox" data-options="valueField:'method',textField:'memo',width:'330px'" />
+                </sz:if>
+                <sz:if test="${METHOD==0}">
+                    网络出现故障，请稍后再试
+                </sz:if>
+                <sz:if test="${METHOD==1}">
+                    投标人数量不多于10家，全部入围
+                </sz:if>
+                <sz:if test="${METHOD==2}">
+                    监理服务费在人民币50万元以上（含50万元）至300万元以下且投标人数量多于10家，需要摇球确定入围投标人
+                </sz:if>
+                <sz:if test="${METHOD==3}">
+                    监理服务费在人民币300万元以上（含300万元）且投标人数量多于10家，需要摇球确定入围投标人
+                </sz:if>
+            </div>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+					$(function() {
+						$("#method-choice").combobox({
+							data : [ {
+								method : '2',
+								memo : '监理服务费在人民币50万元以上（含50万元）至300万元以下'
+							}, {
+								method : '3',
+								memo : '监理服务费在人民币300万元以上（含300万元）'
+							} ],
+							loadFilter : DataFilter,
+						})
+					});
+
+					function DataFilter(data) {
+						var obj = new Object();
+						obj.memo = "请选择抽取方法";
+						obj.method = "";
+						data.splice(0, 0, obj);
+						return data;
+					}
+
+					/**结束当前节点**/
+					function finishCurrentFlow() {
+						<sz:if test="${METHOD==99}">
+							parent.layer.alert('请选择抽取入围投标人方法')
+							return
+						</sz:if>
+						
+						parent.finishCurrentFlowNodeNoInteractive(
+								'${TENDER_PROJECT_FLOW_NODE.ID}',
+								'${TENDER_PROJECT_FLOW_NODE.V_NODE_NAME}');
+					}
+					
+					/**保存抽取方法**/
+					function doSave(){
+						var memo = $('#method-choice').combobox('getText');
+						var method = $('#method-choice').combobox('getValue')
+						
+						//验证是否已选择方法
+						if(typeof(method)=='undefined'||method==null||method==''){
+							parent.layer.alert('请选择抽取入围投标人方法')
+							return;
+						}
+						parent.layer.confirm('当前选择的方法是：'+memo, {
+							  btn: ['确认','取消'] //按钮
+							}, function(index){
+								parent.layer.close(index);
+								passValidate(method);
+							}, function(){
+							});
+					}
+					
+					//验证通过
+					function passValidate(method){
+						parent.sy.progress.show();
+						$.ajax({
+							url : '${path}${adminPath}/xms_fwjz_jl_zhpgf_v2/prebid/cm/'+method,
+							// 设置请求方法
+							type : 'GET',
+							cache : false,
+							//dataType : 'json',
+							// 成功回调
+							success : function(result) {
+								parent.sy.progress.hide();
+								parent.sy.messagerShow({
+									msg : "操作成功!",
+									title : '提示'
+								});
+								location.reload()
+							},
+							// 失败回调
+							error : function(XMLHttpRequest, textStatus, errorThrown) {
+								parent.sy.progress.hide();
+								var result = jQuery
+										.parseJSON(XMLHttpRequest.responseText);
+								top.$.messager.alert('操作失败', "操作失败[" + result.errorDesc
+										+ "]");
+							}
+						})
+					}
+				</script>
+</body>
+</html>

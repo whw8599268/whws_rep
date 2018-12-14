@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="Video">
+    <!-- 获取重复项目信息 -->
+    <select id="getProjectInfo" parameterType="string" resultType="record">
+        <![CDATA[
+            SELECT
+              A.*,
+               GROUP_CONCAT(B.V_BID_SECTION_ID SEPARATOR ',') AS SECTION_IDS
+            FROM EKB_T_TENDER_PROJECT_INFO A
+              LEFT JOIN EKB_T_SECTION_INFO B
+                ON A.ID = B.V_TPID
+            WHERE V_TPID = #{tpid}
+        ]]>
+    </select>
+</mapper>  

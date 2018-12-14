@@ -1,0 +1,36 @@
+<html>
+<head></head>
+<body>
+    <form id="inputForm" method="post" class="formstyle">
+        <!-- START DYFORM LAYOUT -->
+        <table align="left" width="100%" class="sztable" border="0" cellspacing="0" cellpadding="0">
+            <tbody>
+                <tr class="form_tr">
+                    <td width="30%" class="sztabletext" title="流程编号">流程编号：</td>
+                    <td data-label="流程编号" width="70%"><input type="text" class="easyui-textbox" id="V_FLOW_CODE" name="V_FLOW_CODE" data-options="required:true,validType:'length[1,100]'" style="width: 200px;" title="" autocomplete="off"></td>
+                </tr>
+                <tr class="form_tr">
+                    <td width="30%" class="sztabletext" title="流程名称">流程名称：</td>
+                    <td data-label="流程名称" width="70%"><input type="text" class="easyui-textbox" id="V_FLOW_NAME" name="V_FLOW_NAME" data-options="validType:'length[1,300]'" style="width: 200px;" title="" autocomplete="off"></td>
+                </tr>
+                <tr class="form_tr">
+                    <td width="30%" class="sztabletext" title="评标办法编号">评标办法编号</td>
+                    <td data-label="评标办法编号" width="70%"><input type="text" class="easyui-textbox" id="V_BEM_CODE" name="V_BEM_CODE" data-options="required:true,validType:'length[1,100]'" style="width: 200px;" title="" autocomplete="off"></td>
+                </tr>
+                <tr class="form_tr">
+                    <td width="30%" class="sztabletext" title="是否有标段组">是否有标段组</td>
+                    <td data-label="是否有标段组" width="70%"><select id="N_IS_SECTION_GROUP" name="N_IS_SECTION_GROUP" title="">
+                            <option value="1" selected="selected">是</option>
+                            <option value="0">否</option>
+                    </select></td>
+                </tr>
+                <tr class="form_tr">
+                    <td width="30%" class="sztabletext" title="版本号">版本号：</td>
+                    <td data-label="版本号" width="70%"><input type="text" class="easyui-textbox" id="V_VERSION" name="V_VERSION" data-options="validType:'length[1,50]'" style="width: 200px;" title="" autocomplete="off"></td>
+                </tr>
+            </tbody>
+        </table>
+        <!-- END DYFORM LAYOUT -->
+    </form>
+</body>
+</html>

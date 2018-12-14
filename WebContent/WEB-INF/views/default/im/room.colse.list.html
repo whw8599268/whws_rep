@@ -1,0 +1,76 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title></title> <%includeJSP("/static/include/inc.jsp",{}){}%>
+<script type="text/javascript">
+        //初始化
+        $(function(){
+        });
+        
+        function doClose(tpID){
+			var msg = "确认要关闭该会议室吗?";
+			var url = '${path}${adminPath}/im/closeRoom/'+tpID;
+			parent.$.messager.confirm("提示!", msg, function(res) {
+				if (res) {
+					parent.sy.progress.show();
+					$.ajax({
+						url : url,
+						// 设置类型
+						//dataType : 'json',
+						// 设置请求方法
+						type : "POST",
+						// 成功回调
+						success : function(result) {
+							parent.sy.progress.hide();
+							$('#formGrid').datagrid('reload');
+							parent.sy.messagerShow({msg : "操作成功!",title : '提示'});
+						},
+						// 失败回调
+						error : function(XMLHttpRequest,textStatus,errorThrown) {
+							parent.sy.progress.hide();
+							var result = jQuery.parseJSON(XMLHttpRequest.responseText);
+							top.$.messager.alert('操作失败',"操作失败[" + result.errorDesc + "]");
+						}
+					});
+				}
+			});
+        }
+        
+        var GridFormatter = {
+        	"OP":function(value,row,index){
+        		var tpID = row.V_TPID;
+        		if(!tpID){
+        			return '';
+        		}
+        		return '<a href="javascript:void(0)" title="关闭" onclick="doClose(\''+tpID+'\')">关闭</a>';
+			}
+        };
+        
+        /**
+		 * 加载信息
+		 * 
+		 * @param param
+		 * @returns {Boolean}
+		 */
+		function onBeforeList(param) {
+			// 去除IE get缓存
+			param._=new Date().getTime();
+			return true;
+		}
+    </script>
+</head>
+<body>
+    <!-- 表格 -->
+    <table id="formGrid" style="width: auto; height: auto" class="easyui-datagrid" title="" rownumbers="true" fitColumns="true" fit="true" url="${path}${adminPath}/im/roomList" data-options="onBeforeLoad:onBeforeList,method:'get'">
+        <thead>
+            <tr>
+                <th field="V_TPID" align="left" width="100">招标项目ID</th>
+                <th field="V_TENDERER_ID" align="left" width="100">招标人ID</th>
+                <th field="V_TENDERER_NAME" align="left" width="200">招标人名称</th>
+                <th field="OP" align="left" width="50"  data-options="formatter:GridFormatter.OP">操作</th>
+            </tr>
+        </thead>
+    </table>
+</body>
+</html>

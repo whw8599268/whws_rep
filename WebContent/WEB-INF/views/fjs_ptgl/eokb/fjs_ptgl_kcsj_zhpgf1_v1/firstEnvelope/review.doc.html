@@ -1,0 +1,41 @@
+
+<div class="easyui-tabs" data-options="plain:true">
+    <sz:forEach items="${SECTION_LIST}" var="section,stat">
+        <caption>标段：${section.BID_SECTION_NAME}</caption>
+        <table class="sztable" width="100%" style="text-align: center;">
+            <thead>
+                <tr>
+                    <td width="5%">序号</td>
+                    <td width="30%">投标人名称</td>
+                    <td width="10%">第一信封评审结果</td>
+                    <td width="10%">商务文件得分</td>
+                    <td width="30%">不通过原因</td>
+                </tr>
+            </thead>
+            <sz:forEach items="${section.TENDER_LIST}" var="vo,step">
+
+                <tr>
+                    <td>${step.index+1}</td>
+                    <td>${vo.V_BIDNAME}</td>
+                    <sz:if test="${vo.V_STATUS == '1'}">
+                        <td>通过</td>
+                        <td>${vo.N_SCORE_1}</td>
+                        <td></td>
+                    </sz:if>
+                    <sz:if test="${vo.V_STATUS != '1'}">
+                        <sz:if test="${vo.V_RESULT != null}">
+                            <td>不通过</td>
+                            <td>${vo.N_SCORE_1}</td>
+                            <td>${vo.V_RESULT}</td>
+                        </sz:if>
+                        <sz:if test="${vo.V_RESULT == null}">
+                            <td>不通过</td>
+                            <td>${vo.N_SCORE_1}</td>
+                            <td></td>
+                        </sz:if>
+                    </sz:if>
+                </tr>
+            </sz:forEach>
+        </table>
+    </sz:forEach>
+</div>

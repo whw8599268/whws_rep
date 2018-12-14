@@ -1,0 +1,79 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style>
+td {
+	border: 1px solid #B5D6E6;
+	word-break: break-all;
+}
+</style>
+<title>第一数字信封评审结果</title> <%includeJSP("/static/include/inc.jsp",{}){}%>
+<script type="text/javascript">
+	$(function() {
+
+	})
+
+	/**结束当前节点**/
+	function finishCurrentFlowNodeNoInteractive() {
+		parent.finishCurrentFlowNodeNoInteractive(
+				'${TENDER_PROJECT_FLOW_NODE.ID}',
+				'${TENDER_PROJECT_FLOW_NODE.V_NODE_NAME}');
+		//生成doc文件
+		parent.createDoc('ptgl', 'fjs_ptgl_sgjl_hldjfxyf_v2', 'firstEnvelope',
+				'DYXF_review');
+	}
+</script>
+<link href="${path}/static/css/table.css" rel="stylesheet" />
+</head>
+<body>
+    <sz:if test="${PSOVER=='0'}">
+        <div style="font-size: 25px; text-align: center; color: red;">第一数字信封评审中，请稍候！</div>
+    </sz:if>
+    <!-- 数据 -->
+    <sz:if test="${PSOVER=='1'}">
+        <sz:if test="${TENDER_PROJECT_FLOW_NODE.N_STATUS!=3}">
+            <div style="text-align: right;">
+                <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-ok'" onclick="finishCurrentFlowNodeNoInteractive();">进入下一环节</a>
+            </div>
+        </sz:if>
+        <div class="easyui-tabs" data-options="plain:true">
+            <sz:forEach items="${SECTION_LIST}" var="section,stat">
+                <div title="标段：${section.BID_SECTION_NAME}" style="padding: 10px;">
+                    <table class="sztable" width="100%" style="text-align: center;">
+                        <thead>
+                            <tr>
+                                <td width="5%">序号</td>
+                                <td width="30%">投标人名称</td>
+                                <td width="10%">评审结果</td>
+                                <td width="40%">不通过原因</td>
+                            </tr>
+                        </thead>
+                        <sz:forEach items="${section.TENDER_LIST}" var="vo,step">
+
+                            <tr>
+                                <td>${step.index+1}</td>
+                                <td>${vo.V_BIDNAME}</td>
+                                <sz:if test="${vo.V_STATUS == '1'}">
+                                    <td>通过</td>
+                                    <td></td>
+                                </sz:if>
+                                <sz:if test="${vo.V_STATUS != '1'}">
+                                    <sz:if test="${vo.V_RESULT != null}">
+                                        <td>不通过</td>
+                                        <td>${vo.V_RESULT}</td>
+                                    </sz:if>
+                                    <sz:if test="${vo.V_RESULT == null}">
+                                        <td>不通过</td>
+                                        <td></td>
+                                    </sz:if>
+                                </sz:if>
+                            </tr>
+                        </sz:forEach>
+                    </table>
+                </div>
+            </sz:forEach>
+        </div>
+    </sz:if>
+</body>
+</html>

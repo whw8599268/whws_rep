@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>现场摇号确定最高限价权重系数μ</title> <%includeJSP("/static/include/inc.jsp",{}){}%>
+<link href="${path}/static/css/table.css" rel="stylesheet" />
+<style>
+html,body {
+	height: 100%;
+	padding: 0;
+	margin: 0;
+}
+
+td {
+	border: 1px solid #B5D6E6;
+}
+</style>
+</head>
+<body>
+    <div class="easyui-tabs" data-options="plain:true">
+        <sz:forEach items="${TENDER_PROJECT_HW_LIST}" var="hw,stat">
+            <div title="标段：${hw.SECTION_INFO.V_BID_SECTION_NAME}" style="padding: 10px;">
+                <p style="width:20%; margin-left: 10%; font-size: 18px; color: #ff7300; font-weight: bold;">最高限价（元）：${fmt.format("###,##0.00",hw.SECTION_INFO.N_CONTROL_PRICE)}</p>
+                <sz:if test="${hw.METHOD == 2}">
+                    <form id="${hw.SECTION_INFO.V_BID_SECTION_ID}-METHOD-FORM">
+                        <input type="hidden" id="${hw.SECTION_INFO.V_BID_SECTION_ID}-V_BID_SECTION_ID" name="V_BID_SECTION_ID" value="${hw.SECTION_INFO.V_BID_SECTION_ID}"> <input type="hidden" id="${hw.SECTION_INFO.V_BID_SECTION_ID}-V_BID_SECTION_NAME" name="V_BID_SECTION_NAME" value="${hw.SECTION_INFO.V_BID_SECTION_NAME}">
+                        <div>
+                            <div style="width: 30%; float: left; margin-left: 10%;">
+                                <table class="sztable" width="100%" style="text-align: center;">
+                                    <thead>
+                                        <tr>
+                                            <td width="33%">最高限价权重系数μ</td>
+                                            <td width="33%">数值（%）</td>
+                                            <td width="33%">球号</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <sz:forEach items="${hw.WEIGHT_INFO.LIST_VALUS}" var="lv,step">
+                                            <tr>
+                                                <td>μ${step.index+1}</td>
+                                                <td><span id="${hw.SECTION_INFO.V_BID_SECTION_ID}-${step.index}-text">${lv.VALUE}</span></td>
+                                                <td>${lv.NO}</td>
+                                            </tr>
+                                        </sz:forEach>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div style="width: 30%; float: left; margin-left: 5%;">
+                                <div style="font-size: 18px; color: #ff7300; font-weight: bold;">投标家数： ${hw.BIDDER_NUM}</div>
+                                <div style="font-size: 18px; color: #ff7300; font-weight: bold;">
+                                    计算基准价方法：
+                                    <sz:if test="${hw.METHOD == 1}">方法一</sz:if>
+                                    <sz:if test="${hw.METHOD == 2}">方法二</sz:if>
+                                </div>
+                                <sz:if test="${hw.METHOD == 2}">
+                                    <div style="font-size: 18px; color: #ff7300; font-weight: bold;">抽取球号：${hw.YAOHAO_NO}</div>
+                                    <div style="font-size: 18px; color: #ff7300; font-weight: bold;">
+                                        代表系数：<span id="${hw.SECTION_INFO.V_BID_SECTION_ID}-METHOD_TIP" style="font-size: 18px; color: #ff7300; font-weight: bold;">${hw.WEIGHT_VALUE}</span>%
+                                    </div>
+                                </sz:if>
+                                <sz:if test="${hw.METHOD == 1}">
+                                    <input type="hidden" id="${hw.SECTION_INFO.V_BID_SECTION_ID}-YAOHAO_RESULT_VALUE" name="YAOHAO_RESULT" value="-1">
+                                </sz:if>
+                            </div>
+                        </div>
+                    </form>
+                </sz:if>
+                <sz:if test="${hw.METHOD == 1}">
+                    <div style="font-size: 18px; color: #ff7300; font-weight: bold;margin-left: 10%;">注：因当前标段所抽取的计算基准价的方法为方法一，方法一计算规则为“除按规定被宣布废标的投标报价外，所有参与评标基准价计算的投标价的算术平均值，若参与评标基准价计算的投标人超过5家，则剔除最高、最低标后，进行算术平均。再将该算术平均值A按抽取的下浮系数K下浮后作为评标基准价B。”所以此标段不进行最高限价权重系数μ的抽取。</div>
+                </sz:if>
+            </div>
+        </sz:forEach>
+    </div>
+</body>
+</html>

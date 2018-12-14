@@ -1,0 +1,177 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Insert title here</title><%includeJSP("/static/include/inc.jsp",{}){}%>
+<style>
+html,body {
+	height: 100%;
+	padding: 0;
+	margin: 0;
+}
+
+td {
+	border: 1px solid #B5D6E6;
+}
+</style>
+</head>
+<body>
+    <sz:if test="${TENDER_PROJECT_FLOW_NODE.N_STATUS!=3}">
+        <div>
+            <a style="float: right;" id="data-save-button" href="#" class="easyui-linkbutton" data-options="iconCls:'icon-ok'" onclick="finishCurrentFlow();">进入下一个环节</a>
+        </div>
+    </sz:if>
+    <sz:forEach items="${BKINFOS}" var="bkinfo,stat">
+        <div class="easyui-tabs" data-options="plain:true,fit:true" style="height:100%">
+            <div title="标段：${bkinfo.V_BID_SECTION_NAME!}" style="padding: 10px;height:100%">
+                <div class="easyui-tabs" sytle="100%" data-options="headerWidth:200,fit:true,plain:true,onSelect:onSelectTab${stat.index}">
+                    <div title="计算评标基准价取值范围及评标基准价" style="padding: 10px;">
+                        <iframe id="evaluationPrice-id" src="" frameborder="0" scrolling="auto" marginheight="0" marginwidth="0" hspeace="0" vspace="0" width="100%" height="100%"></iframe>
+                    </div>
+                    <div title="投标报价在评标基准价取值范围内的投标人名单" style="padding: 10px;">
+                        <iframe id="preTenderListYes-id" src="" frameborder="0" scrolling="auto" marginheight="0" marginwidth="0" hspeace="0" vspace="0" width="100%" height="100%"></iframe>
+                    </div>
+                    <div title="投标报价在评标基准价取值范围外的投标人名单" style="padding: 10px;">
+                        <iframe id="preTenderListNo-id" src="" frameborder="0" scrolling="auto" marginheight="0" marginwidth="0" hspeace="0" vspace="0" width="100%" height="100%"></iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script type="text/javascript">
+                                    function onSelectTab${stat.index}(title) {
+                                    	if ("投标报价在评标基准价取值范围内的投标人名单" == title) {
+                                    		$("#preTenderListYes-id").attr(
+                                                    "src",
+                                                    "${path}${adminPath}/view/eokb/xms_fwjz_sg_jpsdzdtbjzbf_A_v1/prebid/preTenderListYes.html?sid=${bkinfo.V_BID_SECTION_ID}&rand=" + Math.random());
+                                        } else if ("投标报价在评标基准价取值范围外的投标人名单" == title) {
+                                        	$("#preTenderListNo-id").attr(
+                                                    "src",
+                                                    "${path}${adminPath}/view/eokb/xms_fwjz_sg_jpsdzdtbjzbf_A_v1/prebid/preTenderListNo.html?sid=${bkinfo.V_BID_SECTION_ID}&rand=" + Math.random()
+                                                          );
+                                        } else if ("计算评标基准价取值范围及评标基准价" == title) {
+                                        	$("#evaluationPrice-id").attr(
+                                                    "src",
+                                                    "${path}${adminPath}/xms_fwjz_sg_jpsdzdtbjzbf_A_v1/prebid/benchmark/flow/${TENDER_PROJECT_FLOW_NODE.ID}/${bkinfo.V_BID_SECTION_ID}?rand=" + Math.random()
+                                                            );
+                                        }
+                                    }
+                                    
+                                    
+                					/**结束当前节点**/
+                					function finishCurrentFlow() {
+                    					
+                						//由于施工经评审AB有可能超过500家需要进行筛选摇号，先判断家数，如果小于500家直接下一步，如果大于500家且未筛选，则进行
+                						$.ajax({
+                							url : '${path}${adminPath}/bus/sa/ja',
+                							// 设置请求方法
+                							type : 'get',
+                							//dataType : 'json',
+                							contentType : 'application/json;charset=UTF-8',
+                							// 成功回调
+                							success : function(result) {
+                								if(result){
+                									parent.$.messager.confirm(
+			        										"提示",
+			        										"确认基准价计算无误进入入围投标人抽取环节？",
+			        										function(r) {
+			        											if (r) {
+                        									parent.layer.open({
+                        										title :'提示'
+                    											,area: ['500px', '500px']
+                    											,content: '<span style="font-size:20px;">投标报价在评标基准价计算取值范围内的投标人超过450家，需要根据《关于调整房屋建筑和市政基础设施工程施工电子招投标入围投标人随机抽取方式的通知》中的数学模型算法筛选450家投标人进入后续开、评标流程，请问是否采用数学模型算法筛选450家投标人并进入下一环节？</span>'
+                        										,btn: ['采用数学模型算法', '不采用数学模型算法']
+                        										,yes: function(index, layero){
+                        											parent.layer.close(index);
+                        											doSieve();
+                        										}
+                        										,btn2: function(index, layero){
+                        											parent.layer.open({
+                        												title :'提示'
+                            											,area: ['500px', '500px']
+                            											,content: '<span style="font-size:20px;">若不采用数学模型算法，请点击【确定】按钮进入下一环节。若无法确定是否采用数学模型算法进行筛选450家投标人，请先点击【取消】按钮并与交易中心工作人员联系。</span>'
+                        												,btn: ['确定', '取消']
+                        												,yes: function(index1, layero1){
+                        													parent.layer.close(index1);
+                        													parent.layer.open({
+                        														title :'提示'
+                    	            											,area: ['500px', '500px']
+                    	            											,content: '<span style="font-size:20px;">若不采用数学模型算法筛选450家投标人，进入下一环节后，将无法返回修改。请问是否继续进入下一环节？</span>'
+                        														,btn: ['进入下一个环节', '取消']
+                        														,yes: function(index2, layero1){
+                        															parent.layer.close(index2);
+                        					                            						parent.finishCurrentFlowNodeNoInteractive(
+                        					                            								'${TENDER_PROJECT_FLOW_NODE.ID}',
+                        					                            								'${TENDER_PROJECT_FLOW_NODE.V_NODE_NAME}');
+                        					    									
+                        															
+                        														}
+                        														,btn2: function(index2, layero2){
+                        															parent.layer.close(index2);
+                        														}
+                        													})
+                        												}
+                        												,btn2: function(index2, layero2){
+                        													parent.layer.close(index2);
+                        												}
+                        											})
+                        										}
+                        									});
+	        											}
+			    									});
+                								}else{
+                									parent.$.messager.confirm(
+                    										"提示",
+                    										"确认基准价计算无误进入入围投标人抽取环节？",
+                    										function(r) {
+                    											if (r) {
+                                        						parent.finishCurrentFlowNodeNoInteractive(
+                                        								'${TENDER_PROJECT_FLOW_NODE.ID}',
+                                        								'${TENDER_PROJECT_FLOW_NODE.V_NODE_NAME}');
+                										}
+                									});
+                								}
+                							},
+                							// 失败回调
+                							error : function(XMLHttpRequest,
+                									textStatus, errorThrown) {
+                								parent.sy.progress.hide();
+                								var result = jQuery
+                										.parseJSON(XMLHttpRequest.responseText);
+                								top.$.messager.alert('操作失败', "操作失败["
+                										+ result.errorDesc + "]");
+                							}
+                						});
+                					}
+                					
+                					// 筛选
+                					function doSieve(){
+                						parent.sy.progress.show();
+                						$.ajax({
+                							url : '${path}${adminPath}/bus/sa/ds',
+                							// 设置请求方法
+                							type : 'get',
+                							//dataType : 'json',
+                							contentType : 'application/json;charset=UTF-8',
+                							// 成功回调
+                							success : function(result) {
+                								parent.sy.progress.hide();
+                								//生成doc文件
+                								parent.finishCurrentFlowNodeNoInteractive(
+                        								'${TENDER_PROJECT_FLOW_NODE.ID}',
+                        								'${TENDER_PROJECT_FLOW_NODE.V_NODE_NAME}');
+                							},
+                							// 失败回调
+                							error : function(XMLHttpRequest,
+                									textStatus, errorThrown) {
+                								parent.sy.progress.hide();
+                								var result = jQuery
+                										.parseJSON(XMLHttpRequest.responseText);
+                								top.$.messager.alert('操作失败', "操作失败["
+                										+ result.errorDesc + "]");
+                							}
+                						});
+                					}
+                                </script>
+    </sz:forEach>
+</body>
+</html>

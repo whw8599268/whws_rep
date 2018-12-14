@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>开标记录表</title> <%includeJSP("/static/include/inc.jsp",{}){}%>
+<link href="${path}/static/css/table.css" rel="stylesheet" />
+<style>
+html,body {
+	height: 100%;
+	padding: 0;
+	margin: 0;
+}
+
+td {
+	border: 1px solid #B5D6E6;
+}
+</style>
+<script type="text/javascript">
+	var code = 'xms_fwjz_sj_jmtpf_v1_2';
+	/**保存**/
+	function doSave() {
+		parent.$.messager.confirm("提示", "保存后将无法修改，确认信息无误?", function(r) {
+			if (r) {
+				var sections = new Array();
+				$("form").each(function() {
+					var param = $(this).form2json({
+						allowEmptySingleVal : false
+					});
+					sections.push(param);
+				});
+				sy.progress.show();
+				// 发生Ajax请求
+				$.ajax({
+					url : '${path}${adminPath}/' + code
+							+ '/firstenvelope/saveBidders',
+					// 设置请求方法
+					type : 'POST',
+					async : false,
+					//dataType : 'json',
+					//contentType : 'application/json;charset=UTF-8',
+					data : {
+						"bidders" : JSON.stringify(sections)
+					},
+					// 成功回调
+					success : function(result) {
+						sy.progress.hide();
+						location.reload();
+					},
+					// 失败回调
+					error : function(XMLHttpRequest, textStatus, errorThrown) {
+						parent.sy.progress.hide();
+						var result = jQuery
+								.parseJSON(XMLHttpRequest.responseText);
+						top.$.messager.alert('操作失败', "操作失败[" + result.errorDesc
+								+ "]");
+					}
+				});
+			}
+		});
+	}
+</script>
+</head>
+<body>
+    <sz:if test="${REMARKFLAG && !SessionUtils.isBidder()}">
+        <div style="text-align: center;">
+            <a id="data-save-button" href="#" class="easyui-linkbutton" style="width: 90px; height: 40px" data-options="iconCls:'icon-save'" onclick="doSave();">保存</a>
+        </div>
+    </sz:if>
+    <div>
+        <p style="font-size: 25px; text-align: center; font-weight: bold;">
+            <u style="font-size: 25px; text-align: center; font-weight: bold;">${PROJECT_NAME}</u>（项目名称）<u style="font-size: 25px; text-align: center; font-weight: bold;">${SECTIONS} </u>标段</br>（商务文件、技术文件）开标记录表
+        </p>
+        <p style="font-size: 18px; text-align: center;">
+            </u>开标时间：<u style="font-size: 18px; text-align: center; font-weight: bold;"> ${TIME}</u>
+        </p>
+    </div>
+    <div class="easyui-tabs" data-options="plain:true">
+        <sz:forEach items="${SECTION_LIST}" var="section,stat">
+            <form>
+                <table class="sztable" width="100%" style="text-align: center;">
+                    <thead>
+                        <tr>
+                            <td width="5%">序号</td>
+                            <td width="10%">投标人名称</td>
+                            <td width="5%">组织机构代码</td>
+                            <td width="5%">社会统一信用代码</td>
+                            <td width="10%">拟担任设计项目负责人姓名</td>
+                            <td width="10%">拟担任设计项目负责人执业资格（职称）证书级别</td>
+                            <td width="10%">拟担任设计项目负责人执业资格（职称）证书编号</td>
+                            <td width="10%">设计费投标报价（元）</td>
+                            <td width="10%">勘察费投标报价</td>
+                            <td width="5%">设计周期</td>
+                            <td width="5%">投标保证金（元）</td>
+                            <td width="5%">投标保证金递交情况</td>
+                            <td width="5%">联系方式</td>
+                            <td width="5%">备注</td>
+                        </tr>
+                    </thead>
+                    <sz:forEach items="${section.TENDER_LIST}" var="vo,step">
+                        <tr>
+                            <td>${step.index+1}</td>
+                            <td>${vo.tbrmc}</td>
+                            <td>${vo.bidder_org_code}</td>
+                            <td>${vo.bidder_unify_code}</td>
+                            <td>${vo.tbPeName}</td>
+                            <td>${vo.zsjb}</td>
+                            <td>${vo.zsbh}</td>
+                            <td>${vo.tbbj}</td>
+                            <td>${vo.kc_tbbj}</td>
+                            <td>${vo.gongqi}</td>
+                            <td>${vo.bzjje}</td>
+                            <td>${vo.bzjdjqk}</td>
+                            <td>${vo.bidder_phone!}</td>
+                            <td><sz:if test="${REMARKFLAG && !SessionUtils.isBidder()}">
+                                    <input name="${vo.ID}" value="${vo.firstRemark==null?' ':vo.firstRemark}" />
+                                </sz:if> <sz:if test="${!REMARKFLAG}">
+                            ${vo.firstRemark!}
+                            </sz:if></td>
+                        </tr>
+                    </sz:forEach>
+                </table>
+                <div style="margin-top: 20px;"></div>
+            </form>
+        </sz:forEach>
+    </div>
+    <div style="font-size: 18px; text-align: center; font-weight: bold; height: 100px; line-height: 100px;">
+        <p>
+            招标人电子盖章（或签字）：<span style="margin-left: 20em;">招标代理机构电子盖章（或签字）：</span><span style="margin-left: 20em;">公证处电子盖章（或签字）：</span>
+        </p>
+    </div>
+</body>
+</html>

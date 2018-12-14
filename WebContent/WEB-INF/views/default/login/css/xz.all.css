@@ -1,0 +1,102 @@
+body {
+	background-color: #eef2f6;
+	width: 100%;
+	margin: 0px;
+	padding: 0px;
+}
+.bg {
+	height: 649px;
+	width: 1081px;
+	margin-right: auto;
+	margin-left: auto;
+	background-image: url(${path}/authorize/view/login/images/xz_bg.png);
+}
+.main {
+	width: 1000px;
+	margin-right: auto;
+	margin-left: auto;
+}
+.top {
+	float: left;
+	margin-top: 100px;
+	width: 1000px;
+	text-align: center;
+}
+.bt1 {
+	font-family: "微软雅黑";
+	font-size: 36px;
+	line-height: 47px;
+	color: #3d3939;
+	width: 240px;
+}
+.bt2 {
+	font-family: "微软雅黑";
+	font-size: 36px;
+	line-height: 47px;
+	color: #d99e06;
+	width: 240px;
+}
+.middle {
+	float: left;
+	width: 1000px;
+	margin-top: 80px;
+}
+.qxz {
+	font-family: "微软雅黑";
+	font-size: 18px;
+	line-height: 30px;
+	color: #333333;
+	float: left;
+	height: 30px;
+	width: 1000px;
+	margin-bottom: 20px;
+}
+.qxz img {
+	margin: 5px;
+	float: left;
+	height: 24px;
+	width: 24px;
+}
+.sq-gr {
+	font-family: "微软雅黑";
+	font-size: 18px;
+	line-height: 73px;
+	color: #FFF;
+	background-image: url(${path}/authorize/view/login/images/xz_sq_07.png);
+	text-align: center;
+	float: left;
+	height: 73px;
+	width: 272px;
+	margin-left: 40px;
+}
+.xt-mc {
+	float: left;
+	width: 1000px;
+}
+.xt {
+	font-family: "微软雅黑";
+	font-size: 20px;
+	line-height: 107px;
+	color: #FFF;
+	background-image: url(${path}/authorize/view/login/images/xz_xt_01.png);
+	text-align: center;
+	float: left;
+	height: 107px;
+	width: 161px;
+	margin-right: 44px;
+	font-weight: normal;
+	cursor: pointer;
+}
+.xt1 {
+	font-family: "微软雅黑";
+	font-size: 20px;
+	line-height: 107px;
+	color: #FFF;
+	background-image: url(${path}/authorize/view/login/images/xz_xt_01.png);
+	text-align: center;
+	float: left;
+	height: 107px;
+	width: 161px;
+	font-weight: normal;
+	cursor: pointer;
+}

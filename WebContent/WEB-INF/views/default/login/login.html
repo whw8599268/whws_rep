@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<!-- 启用360浏览器的极速模式(webkit) -->
+<meta name="renderer" content="webkit" />
+<!-- 避免IE使用兼容模式 -->
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<title>电子招投标-开标辅助系统-登录页</title>
+<script src="${path}/static/res/jquery/jquery.min.js" type="text/javascript"></script>
+<script src="${path}${adminPath}/view/login/js/layer/layer.js" type="text/javascript"></script>
+<link href="${path}${adminPath}/view/login/css/login.css" rel="stylesheet" />
+<!--[if lte IE 9 ]>
+<script type="text/javascript">
+location.href = "${path}/unsupport.jsp";
+</script>
+<![endif]-->
+<script type="text/javascript">
+	function openErrorDialog() {
+		layer.open({
+			type : 2,
+			shade : 0.3,
+			title : false, // 不显示标题
+			area : [ '900px', '550px' ], // 宽高
+			content : [ 'http://ra.okap.com/login_error.jsp', 'yes' ], //iframe的url，no代表不显示滚动条
+		});
+	}
+	//如果调用证书错误时要做的事情,iframe跨域解决办法
+	window.onmessage = function(e) {
+		//if (e.data == "openErrorDialog") {
+		openErrorDialog();
+		//}
+	}
+
+	//显示隐藏客户
+	function doCustomerEvent() {
+		$("#contact-customer-service-content").toggle();
+	}
+
+	//APP下载显示隐藏
+	function doAppContentEvent() {
+		$("#app-download-content").toggle();
+	}
+
+	//打开驱动下载页
+	function openDownloadDriverPage() {
+		window.open("http://ra.okap.com/jsp/ra/login/loginBlzn.jsp");
+	}
+
+	//初始化
+	$(function() {
+		$("body")
+				.click(
+						function(e) {
+							if (!$(e.target).closest(
+									"#contact-customer-service-button").length
+									&& !$(e.target)
+											.closest(
+													"#contact-customer-service-content").length) {
+								$("#contact-customer-service-content").hide();
+							}
+							if (!$(e.target).closest("#app-download-button").length
+									&& !$(e.target).closest(
+											"#app-download-content").length) {
+								$("#app-download-content").hide();
+							}
+						}).end().keydown(function(e) {
+					$("#contact-customer-service-content").hide();
+					$("#app-download-content").hide();
+				});
+	});
+
+	function setTheme(theme) {
+		var postUrl = "${path}/authorize/setTheme?theme=" + theme;
+		$.post(postUrl, {}, function(result) {
+			//alert(resData);
+			window.location.reload();
+		}, "text");
+	}
+
+	function setCurrentRoleName(type) {
+		if (0 == type) {
+			//招标人
+			$("#role-name-div").text("当前角色：招标人/招标代理");
+			return;
+		}
+		if (1 == type) {
+			//投标人
+			$("#role-name-div").text("当前角色：投标人");
+			return;
+		}
+	}
+
+	function returnSelectRolePage() {
+		$("#role-name-div").text("请选择角色");
+		$("#login-box").attr("src",
+				"${path}${adminPath}/view/login/role-switch.html");
+	}
+</script>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">${SessionUtils.getThemeName(request)}开标辅助系统</div>
+    </div>
+
+    <div class="main">
+        <div class="main-bg">
+            <div class="user-mod">
+                <div class="user-ck">
+                    <div id="role-name-div" class="dq-js">请选择角色</div>
+                    <div class="return" onclick="returnSelectRolePage()">
+                        <span class="ter-wz">返回选择</span> <span><img src="${path}${adminPath}/view/login/images/return.png" width="21" height="18" /></span>
+                    </div>
+                </div>
+                <iframe id="login-box" src="${path}${adminPath}/view/login/role-switch.html" width="380" height="380" frameborder="none" scrolling="no" style="border: none; visibility: visible;"></iframe>
+            </div>
+        </div>
+
+        <div class="right-bg">
+            <div class="right">
+                <div class="rg-icon1" id="contact-customer-service-button" onclick="doCustomerEvent();"></div>
+                <div class="rg-icon2" id="app-download-button" onclick="doAppContentEvent();"></div>
+                <div class="rg-icon3" id="driver-download-button" onclick="openDownloadDriverPage();"></div>
+            </div>
+
+            <div id="contact-customer-service-content" class="right-zk" style="display: none;">
+                <div class="qq">
+                    <div class="zk-lift">
+                        <img src="${path}${adminPath}/view/login/images/qq.png" width="28" height="28" />
+                    </div>
+                    <div class="zk-right">
+                        <span class="rg-h">QQ客服：4001886640</span> <span class="rg-h1">工作时间：8：30-12：00 </span> <span class="rg-h2">14 :00-18 : 00 </span> <span class="lx-qq" onclick="window.open('http://wpa.qq.com/msgrd?v=3&uin=4001886640&site=qq&menu=yes','_brank');"><img src="${path}${adminPath}/view/login/images/right_17.png" width="100" height="28" /></span>
+                    </div>
+                </div>
+                <div class="telephone">
+                    <div class="zk-lift">
+                        <img src="${path}${adminPath}/view/login/images/telephone.png" width="28" height="28" />
+                    </div>
+                    <div class="zk-right">
+                        <span class="rg-h">电话客服：400-999-6901</span> <span class="rg-h1">工作时间：8：30-12：00 </span> <span class="rg-h2">14 :00-18 : 00 </span>
+
+                    </div>
+                </div>
+            </div>
+
+            <div id="app-download-content" class="right-app" style="display: none;">
+                <img alt="云盾下载在二维码" src="${path}${adminPath}/view/login/images/app.png" width="150" height="150">
+            </div>
+        </div>
+    </div>
+
+
+    <div class="footer">
+        <div class="foot-k">
+            <div class="system">
+                <span class="xt">系统入口：</span> <span class="xt-wz" onclick="setTheme('/fjs_gsgl');">高速公路</span> <span class="xt-wz" onclick="setTheme('/fjs_ptgl');">普通公路</span> <span class="xt-wz" onclick="setTheme('/fjs_sygc');">水运工程</span> <span class="xt-wz" onclick="setTheme('/xms_fwjz');">房屋建筑</span> <span class="xt-wz" onclick="setTheme('/xms_szgc');">市政工程</span>
+            </div>
+            <div class="about-sz">
+                ©福建首众-技术支持 客服热线：400-999-6901&nbsp;&nbsp;&nbsp;&nbsp;<a onclick="window.location.href='${path}/okey.jsp'" style="cursor: pointer;">登录不了点这里</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

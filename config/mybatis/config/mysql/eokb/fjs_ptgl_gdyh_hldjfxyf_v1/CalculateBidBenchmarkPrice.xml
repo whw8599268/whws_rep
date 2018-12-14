@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="fjs_ptgl_gdyh_hldjfxyf_v1_CalculateBidBenchmarkPrice">
+
+    <!-- 查询有效标段的下浮系数抽取信息 -->
+    <select id="getLCInfos" resultType="string" parameterType="record">
+        <![CDATA[
+            SELECT TD.V_JSON_OBJ
+              FROM EKB_T_TPFN_DATA_INFO TD
+              JOIN EKB_T_SECTION_INFO S ON (TD.V_BUS_ID = S.V_BID_SECTION_ID AND
+                                           S.V_TPID = #{tpid} AND
+                                           S.V_BID_OPEN_STATUS NOT LIKE '10%' AND
+                                           S.V_BID_EVALUATION_STATUS != '10')
+             WHERE TD.V_BUS_FLAG_TYPE = #{flag}
+             ORDER BY S.V_BID_SECTION_GROUP_CODE ASC,
+                      S.V_BID_SECTION_NAME ASC
+        ]]>
+    </select>
+
+
+    <!-- 查询计算结果信息 -->
+    <select id="getCBSPInfos" resultType="string" parameterType="record">
+        <![CDATA[
+            SELECT TD.V_JSON_OBJ
+              FROM EKB_T_TPFN_DATA_INFO TD
+              JOIN EKB_T_SECTION_INFO S ON (TD.V_BUS_ID = S.V_BID_SECTION_ID AND
+                                           S.V_TPID = #{tpid} AND
+                                           S.V_BID_OPEN_STATUS NOT LIKE '10%' AND
+                                           S.V_BID_EVALUATION_STATUS != '10')
+             WHERE TD.V_BUS_FLAG_TYPE = 'CBSP-TYPE'
+             ORDER BY S.V_BID_SECTION_GROUP_CODE ASC,
+                      S.V_BID_SECTION_NAME ASC
+        ]]>
+    </select>
+
+    <!-- 查询投标人确认情况 -->
+    <select id="getfirBidderInfo" resultType="record" parameterType="record">
+        <![CDATA[
+            SELECT B.*, C.V_STATUS, C.V_REMARK
+              FROM EKB_T_TENDER_LIST B
+              LEFT JOIN EKB_T_CHECK_DATA C
+                ON (B.ID = C.V_BUSID AND C.V_BUSNAME = #{modelType})
+             WHERE B.V_TPID = #{tpid}
+             AND B.N_ENVELOPE_1=1
+             AND B.V_BID_SECTION_ID=#{sid}
+             ORDER BY V_BIDDER_NO
+        ]]>
+    </select>
+</mapper>  

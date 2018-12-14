@@ -1,0 +1,7 @@
+fjs_gsgl_kcjl_sjsc_zhpgf1_v1 福建省_高速公路_勘察监理_综合评估法1_v1
+fjs_gsgl_kcsj_zhpgf1_v1 福建省_高速公路_勘察设计_综合评估法_v1
+fjs_gsgl_ljsg_hldjf_v1 福建省_高速公路_路基施工_合理低价法_v1
+
+fjs_ptgl_gcsg_gdsjcqzbr_v1 福建省_普通公路_工程施工_固定价随机抽取中标人(简易招标办法)_v1
+fjs_ptgl_gcsg_hldjf_v1 福建省_普通公路_工程施工_合理低价法_v1
+fjs_ptgl_gcsg_hldjfxyf_v1 福建省_普通公路_工程施工_合理低价法+信用分_v1

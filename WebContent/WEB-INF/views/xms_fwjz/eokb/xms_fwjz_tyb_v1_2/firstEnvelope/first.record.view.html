@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>开标记录表</title> <%includeJSP("/static/include/inc.jsp",{}){}%>
+<link href="${path}/static/css/table.css" rel="stylesheet" />
+<style>
+html,body {
+	height: 100%;
+	padding: 0;
+	margin: 0;
+}
+
+td {
+	border: 1px solid #B5D6E6;
+}
+</style>
+<script type="text/javascript">
+	/**保存**/
+	function doSave() {
+		parent.$.messager
+				.confirm(
+						"提示",
+						"保存后将无法修改，确认信息无误?",
+						function(r) {
+							if (r) {
+								var sections = new Array();
+								$("form").each(function() {
+									var param = $(this).form2json({
+										allowEmptySingleVal : false
+									});
+									sections.push(param);
+								});
+								sy.progress.show();
+								// 发生Ajax请求
+								$
+										.ajax({
+											url : '${path}${adminPath}/xms_fwjz_tyb_v1_2/firstenvelope/saveBidders',
+											// 设置请求方法
+											type : 'POST',
+											async : false,
+											//dataType : 'json',
+											//contentType : 'application/json;charset=UTF-8',
+											data : {
+												"bidders" : JSON
+														.stringify(sections)
+											},
+											// 成功回调
+											success : function(result) {
+												sy.progress.hide();
+												location.reload();
+											},
+											// 失败回调
+											error : function(XMLHttpRequest,
+													textStatus, errorThrown) {
+												parent.sy.progress.hide();
+												var result = jQuery
+														.parseJSON(XMLHttpRequest.responseText);
+												top.$.messager
+														.alert(
+																'操作失败',
+																"操作失败["
+																		+ result.errorDesc
+																		+ "]");
+											}
+										});
+							}
+						});
+	}
+</script>
+</head>
+<body>
+    <sz:if test="${REMARKFLAG && !SessionUtils.isBidder()}">
+        <div style="text-align: center;">
+            <a id="data-save-button" href="#" class="easyui-linkbutton" style="width: 90px; height: 40px" data-options="iconCls:'icon-save'" onclick="doSave();">保存</a>
+        </div>
+    </sz:if>
+    <div>
+        <p style="font-size: 25px; text-align: center; font-weight: bold;">
+            <u style="font-size: 25px; text-align: center; font-weight: bold;">${PROJECT_NAME}</u>（项目名称）开标记录表
+        </p>
+        <p style="font-size: 18px; text-align: center;">
+            开标时间：<u style="font-size: 18px; text-align: center; font-weight: bold;"> ${TIME}</u>
+        </p>
+    </div>
+    <div class="easyui-tabs" data-options="plain:true">
+        <sz:forEach items="${SECTION_LIST}" var="section,stat">
+            <form>
+                <table class="sztable" width="100%" style="text-align: center;">
+                    <thead>
+                        <tr>
+                            <sz:forEach items="${section.TABLETITLE}" var="title,sta">
+                                <td>${title}</td>
+                            </sz:forEach>
+                            <td>备注</td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <sz:forEach items="${section.TENDER_LIST}" var="tender,sta">
+                            <tr>
+                                <sz:forEach items="${tender.TABLECONTENT}" var="content,st">
+                                    <td>${content}</td>
+                                </sz:forEach>
+                                <td><sz:if test="${REMARKFLAG && !SessionUtils.isBidder()}">
+                                        <input name="${tender.ID}" value="${tender.firstRemark==null?' ':tender.firstRemark}" />
+                                    </sz:if> <sz:if test="${!REMARKFLAG}">
+                            ${tender.firstRemark!}
+                            </sz:if></td>
+                            </tr>
+                        </sz:forEach>
+                    </tbody>
+                </table>
+                <div style="margin-top: 20px;"></div>
+            </form>
+        </sz:forEach>
+    </div>
+    <div style="font-size: 18px; text-align: center; font-weight: bold; height: 100px; line-height: 100px;">
+        <p>
+            招标人电子盖章（或签字）：<span style="margin-left: 20em;">招标代理机构电子盖章（或签字）：</span><span style="margin-left: 20em;">公证处电子盖章（或签字）：</span>
+        </p>
+    </div>
+</body>
+</html>

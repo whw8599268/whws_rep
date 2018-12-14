@@ -1,0 +1,229 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>现场摇球分配标段结果录入</title> <%includeJSP("/static/include/inc.jsp",{}){}%>
+<link href="${path}/static/css/table.css" rel="stylesheet" />
+<script src="${path}${adminPath}/view/im/js/CountDown.js" type="text/javascript"></script>
+<script src="${path}${adminPath}/view/metting_room/js/handlebars-v4.0.10.js" type="text/javascript"></script>
+<script id="tip-template" type="text/x-handlebars-template">
+<div class="xtgg_div">
+	<p class="xtgg_p">推送时间：#{date}</p>
+    <p class="xtgg_p">[${TENDER_PROJECT_FLOW_NODE.V_NODE_NAME}]进入数据确认环节!</p>
+    <p class="xtgg_p">请各投标人进入[${TENDER_PROJECT_FLOW_NODE.V_NODE_NAME}]环节!</p>
+    <p class="xtgg_p"><a style="color:#fff;" href="javascript:void(0);" onclick="openContentPage('${path}${adminPath}/tpflow/node/${TENDER_PROJECT_FLOW_NODE.ID}','${TENDER_PROJECT_FLOW_NODE.V_NODE_NAME}')">点击进入</a></p>
+</div>
+</script>
+<style>
+html,body {
+	height: 100%;
+	padding: 0;
+	margin: 0;
+}
+
+td {
+	border: 1px solid #B5D6E6;
+}
+</style>
+<script type="text/javascript">
+	$(function() {
+		getConfirmStatus();
+	});
+
+	//确认时间
+	function showTime(_time) {
+		$("#con-time-zbr").css("display", "block");
+		$("#time-zbr").html(_time);
+	}
+
+	//获取确认状态值
+	function getConfirmStatus() {
+		$.ajax({
+			async : true,
+			cache : false,
+			type : 'get',
+			dataType : "json",
+			//data : data,
+			url : "${path}${adminPath}/bus/modelCheck/status/DYXF_electronics",//请求的action路径  
+			error : function(XMLHttpRequest, textStatus, errorThrown) {//请求失败处理函数  
+				var result = jQuery.parseJSON(XMLHttpRequest.responseText);
+				$.messager.alert('异步获取数据出现异常', "异步获取数据出现异常[" + result.errorDesc
+						+ "]");
+			},
+			success : function(rs) { //请求成功后处理函数。 
+				//没确人过
+				if (!rs.success) {
+					return;
+				}
+				var result = rs.result;
+				//未确认
+				if (rs.success && result.V_STATUS == '0') {
+					return;
+				}
+				$("#first-envelope-data-confirm-button").hide();
+				var endTime = result.N_CONFIRM_TIME;
+				var beginTime = result.NOW_TIME;
+				var _date = new Date(endTime);
+				showTime(_date.format('hh:mm:ss'));
+				countDown(beginTime, endTime);
+			}
+		});
+	}
+
+	/**获取模板中的Html内容**/
+	function getTemplateHtml(tempid) {
+		// 用jquery获取模板
+		var source = $("#" + tempid).html();
+		// 预编译模板
+		var template = Handlebars.compile(source);
+		return template(new Object());
+	}
+
+	//定时器触发更新
+	function countDown(begin, end) {
+		var startDate = new Date(begin);
+		var endDate = new Date(end);
+		//开始时间小于结束时间
+		if (startDate < endDate) {
+			//var en
+			//endDate.setDate(endDate.getDate()+1);
+			CountDown.openTimeCountByStartAndEndDate({
+				Ele : document.getElementById('count_down'),
+				StartDate : startDate,
+				EndDate : endDate,
+				Sign : 'flypie',
+				Divider : ':',
+				EndFunc : function() {
+					endConfirm();
+					location.reload();
+				}
+			});
+		}
+	}
+
+	//数据确认
+	function dataConfirm() {
+		$.ajax({
+			url : "${path}${adminPath}/bus/modelCheck/updateStatus",
+			// 设置请求方法
+			type : "POST",
+			cache : false,
+			data : {
+				type : "DYXF_electronics"
+			},
+			// dataType : 'json',
+			// contentType : 'application/json;charset=UTF-8',
+			// 成功回调
+			success : function(result) {
+				parent.addNotice("#{date}：第二数字信封解密情况一览表的数据确认环节已开始", '1');
+				// 用jquery获取模板
+				var html = getTemplateHtml("tip-template");
+				parent.sendFlowCommandToBidder(html);
+				location.reload();
+			},
+			// 失败回调
+			error : function(XMLHttpRequest, textStatus, errorThrown) {
+				var result = jQuery.parseJSON(XMLHttpRequest.responseText);
+				$.messager.alert('操作失败', "操作失败[" + result.errorDesc + "]");
+			}
+		});
+	}
+
+	/**结束当前节点**/
+	function finishCurrentFlow() {
+		//if(!${alreadyLaunched}){
+		//	$.messager.alert('操作提示', "请您先发起确认后再点击进入下一环节");
+		//	return;
+		//}
+		
+		endConfirm();
+		
+		//刷新投标人页面
+		parent.sendFlowFlushPage();
+		parent.finishCurrentFlowNode('${TENDER_PROJECT_FLOW_NODE.ID}',
+				'${TENDER_PROJECT_FLOW_NODE.V_NODE_NAME}');
+		//生成doc文件
+		parent.createDoc('ptgl','fjs_ptgl_gdyh_hldjfxyf_v1', 'secondEnvelope',
+				'DEXF_ROLLRS');
+	}
+
+	//结束确认
+	function endConfirm() {
+		$.ajax({
+			url : "${path}${adminPath}/bus/modelCheck/end",
+			// 设置请求方法
+			type : "POST",
+			cache : false,
+			async : false,
+			data : {
+				type : "DYXF_electronics"
+			},
+			// dataType : 'json',
+			// contentType : 'application/json;charset=UTF-8',
+			// 成功回调
+			success : function(result) {
+			},
+			// 失败回调
+			error : function(XMLHttpRequest, textStatus, errorThrown) {
+				var result = jQuery.parseJSON(XMLHttpRequest.responseText);
+				$.messager.alert('操作失败', "操作失败[" + result.errorDesc + "]");
+			}
+		});
+	}
+</script>
+</head>
+<body>
+    <span id="count_down" style="display: none;"></span>
+    <sz:if test="${TENDER_PROJECT_FLOW_NODE.N_STATUS!=3}">
+        <div style="text-align: right;">
+            <!-- <a id="first-envelope-data-confirm-button" href="#" class="easyui-linkbutton" data-options="iconCls:'icon-save'" onclick="dataConfirm()">发起确认</a> --> <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-ok'" onclick="finishCurrentFlow();">进入下一环节</a>
+        </div>
+        <!-- <div style="font-size: 25px; text-align: center; color: red; display: none;" id="con-time-zbr">
+            投标人会在<span style="font-size: 25px; text-align: center; color: red;" id="time-zbr"></span>时间点前完成信息确认。请点击<a onclick="location.reload();" style="color: blue; text-decoration: underline; cursor: pointer; font-size: 25px">刷新</a><span style="font-size: 25px; text-align: center; color: red;">查看确认情况</span>
+        </div>-->
+    </sz:if>
+    <!-- 数据 -->
+    <div class="easyui-tabs" data-options="plain:true">
+        <sz:forEach items="${SECTION_LIST}" var="group,stat">
+            <div title="标段组：${group.BID_SECTION_GROUP_CODE}" style="padding: 10px;">
+                <sz:forEach items="${group.TENDER_LIST}" var="section,stat">
+                    <div class="easyui-panel" title="标段：${section.V_BID_SECTION_NAME}" style="padding: 10px;">
+                        <table class="sztable" width="100%" id="roll-bal-table" style="text-align: center;">
+                            <thead>
+                                <tr>
+                                    <td width="10%">序号</td>
+                                    <td width="20%">球号</td>
+                                    <td width="35%">投标人名称</td>
+                                    <!-- <td width="35%">投标人确认情况</td>-->
+                                </tr>
+                            </thead>
+                            <sz:forEach items="${section.BIDDERS}" var="vo,step">
+                                <tr>
+                                    <td>${step.index+1}</td>
+                                    <td>${vo.V_BIDDER_NO}</td>
+                                    <td>${vo.V_BIDDER_NAME}</td>
+                                    <!-- 已发起确认
+                                    <sz:if test="${section.ALREADY_LAUNCHED}">
+                                        <!-- 如果为空
+                                        <sz:if test="${vo.V_STATUS == null}">
+                                            <td></td>
+                                        </sz:if>
+                                        <sz:if test="${vo.V_STATUS != null}">
+                                            <td>${vo.V_REMARK!}</td>
+                                        </sz:if>
+                                    </sz:if>
+                                    <!-- 未发起确认
+                                    <sz:if test="${!section.ALREADY_LAUNCHED}">
+                                        <td></td>
+                                    </sz:if>-->
+                                </tr>
+                            </sz:forEach>
+                        </table>
+                    </div>
+                    <div style="width: 100%; height: 10px;"></div>
+                </sz:forEach>
+            </div>
+        </sz:forEach>
+    </div>
+</body>
+</html>

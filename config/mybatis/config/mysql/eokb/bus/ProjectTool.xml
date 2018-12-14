@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="pt">
+    <!-- 获取项目信息 -->
+    <select id="getProjectInfo" parameterType="string" resultType="record">
+        <![CDATA[
+            SELECT P.*,TBP.DELIVER_NUM
+            FROM EKB_T_TENDER_PROJECT_INFO P
+            LEFT JOIN(SELECT COUNT(1) AS DELIVER_NUM,TB.V_TPID FROM EKB_T_TBIMPORTBIDDING TB GROUP BY TB.V_TPID ) TBP
+            ON P.ID=TBP.V_TPID
+        ]]>
+        <where>
+            <if test="V_TENDER_PROJECT_NAME!=null and V_TENDER_PROJECT_NAME!=''">
+                AND P.V_TENDER_PROJECT_NAME LIKE CONCAT('%',#{V_TENDER_PROJECT_NAME},'%')
+            </if>
+            <if test="V_BIDOPEN_TIME!=null and V_BIDOPEN_TIME!=''">
+                AND P.V_BIDOPEN_TIME LIKE CONCAT('%',#{V_BIDOPEN_TIME},'%')
+            </if>
+        </where>
+        <![CDATA[
+                ORDER BY V_BIDOPEN_TIME DESC
+         ]]>
+    </select>
+</mapper>  

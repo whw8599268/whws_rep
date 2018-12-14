@@ -1,0 +1,353 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>投标人代表号生成规则</title> <%includeJSP("/static/include/inc.jsp",{}){}%>
+<link href="${path}/static/css/table.css" rel="stylesheet" />
+</head>
+<body>
+    <sz:if test="${TENDER_PROJECT_FLOW_NODE.N_STATUS!=3}">
+        <div style="text-align: right;">
+            <a id="data-staging-save-button" href="#" class="easyui-linkbutton" data-options="iconCls:'icon-save'" onclick="doStagingSave();">暂存</a> <a id="data-save-button" href="#" class="easyui-linkbutton" data-options="iconCls:'icon-save'" onclick="doSave();">保存抽取结果</a>
+        </div>
+    </sz:if>
+   
+    <form>
+        <div>
+            <div style="width: 40%; float:left; margin-left: 10%;">
+                <div style="font-size: 20px; font-weight: bold;">分配球号</div>
+                <table class="sztable" width="100%" style="text-align: center;">
+                    <thead>
+                        <tr>
+                            <td>序号</td>
+                            <td>投标人代表号产生规则</td>
+                            <td>代表球号</td>
+                        </tr>
+                    </thead>
+                    <sz:forEach items="${RULE_INFO.RULE_LIST}" var="rule,sta">
+                        <tr>
+                            <td>${sta.index+1}</td>
+                            <td><span id="rule-${sta.index}-text">${rule.RULE}</span></td>
+                            <sz:if test="${TENDER_PROJECT_FLOW_NODE.N_STATUS!=3}">
+                                <td><input type="hidden" name="${sta.index}" value=""><input id="rule-${sta.index}" type="text" style="text-align: center; width: 70px;" name="${sta.index}" value="${rule.NO}" class="easyui-validatebox" onchange="modifyYaoHaoSelectValue();" data-options="required:true,validType:['intOrFloat']" /></td>
+                            </sz:if>
+                            <sz:if test="${TENDER_PROJECT_FLOW_NODE.N_STATUS==3}">
+                                <td>${rule.NO}</td>
+                            </sz:if>
+                        </tr>
+                    </sz:forEach>
+                </table>
+            </div>
+            <div style="width: 40%; float: left; margin-left: 5%;">
+                <div style="font-size: 20px; font-weight: bold;">摇球结果</div>
+                <table class="sztable" width="100%" style="text-align: center;">
+                    <thead>
+                        <tr>
+                            <td>序号</td>
+                            <td>代表球号</td>
+                            <td>投标人代表号产生规则</td>
+                        </tr>
+                    </thead>
+
+                    <tr>
+                        <td>1</td>
+                        <sz:if test="${TENDER_PROJECT_FLOW_NODE.N_STATUS!=3}">
+                            <td><select id="YAOHAO_RESULT" name="YAOHAO_RESULT" style="width: 100px;" onchange="showSelectKvalueTipInfo()">
+                                    <option value="">请选择</option>
+                                    <sz:forEach items="${RULE_INFO.RULE_LIST}" var="lv,step">
+                                        <sz:if test="${lv.NO!=null && lv.NO!=''}">
+                                            <option value="${lv.NO}"
+                                                <sz:if test="${lv.NO==RULE_INFO.RESULT_BALL}">selected="selected"</sz:if>
+                                                >${lv.NO}
+                                            </option>
+                                        </sz:if>
+                                    </sz:forEach>
+                            </select> <input type="hidden" id="YAOHAO_RESULT_VALUE" name="RULE" value="${RULE_INFO.RULE}"></td>
+                        </sz:if>
+                        <sz:if test="${TENDER_PROJECT_FLOW_NODE.N_STATUS==3}">
+                            <td>${RULE_INFO.RESULT_BALL}</td>
+                        </sz:if>
+                        <td><span id="RULE_TIP">${RULE_INFO.RULE!}</span></td>
+                    </tr>
+                </table>
+            </div>
+            <div style="clear:both"></div>
+        </div>
+        
+    </form>
+ <div style="margin-left:10%;margin-top:5%;">
+       <strong> 关于投标人代表号产生规则</strong></br> 
+        （一）在系统中预先设置按照下列两种方式生成投标人代表号：</br>
+         &nbsp;&nbsp;&nbsp;1、按照投标人递交投标文件的正顺序； </br>
+         &nbsp;&nbsp;&nbsp;2、按照投标人递交投标文件的逆顺序；</br>
+          （二）在开标时由招标人通过以下程序来确定采用何种方式产生投标人代表号： </br>
+          &nbsp;&nbsp;&nbsp;1、 向抽取机中任意放入30个不重复号码的号码球；</br>
+           &nbsp;&nbsp;&nbsp;2、 进行公开随机抽取，抽出2个号码球；</br>
+            &nbsp;&nbsp;&nbsp;3、对号码球根据号码大小进行排序，最小的号码球代表按照上述第1种方式确定，次小的号码球代表按照上述第2种方式确定；</br>
+             &nbsp;&nbsp;&nbsp;4、将抽出的2个号码球放入抽取机； </br>
+             &nbsp;&nbsp;&nbsp;5、进行公开随机抽取，抽出1个号码球；</br>
+              &nbsp;&nbsp;&nbsp;6、根据抽取结果，在系统上确定投标人代表号。
+</div>
+
+    <script type="text/javascript">
+					$.extend(
+    					$.fn.validatebox.defaults.rules,
+    					{
+    						intOrFloat : {// 验证整数或小数
+    							validator : function(value) {
+    								return /^\d+(\.\d+)?$/i
+    										.test(value);
+    							},
+    							message : '请输入数字，并确保格式正确'
+    						},
+    						maxTo : {
+    							validator : function(value, param) {
+    								return parseFloat(value) <= parseFloat(param[0]);
+    							},
+    							message : '数值不能大于{0}'
+    						}
+    					}
+					);
+					//初始化
+					$(function() {
+					});
+					/**修改标段摇号下拉框值**/
+					function modifyYaoHaoSelectValue() {
+						var html = '<option value="">请选择</option>';
+						var id = "#rule-";
+						var value;
+						for ( var i = 0; i < 3; i++) {
+							var idt = id + i;
+							value = $(idt).val();
+							if (typeof (value) != "undefined" && null != value
+									&& "" != value) {
+								html += '<option value="'+value+'">' + value
+										+ '</option>';
+							}
+						}
+						$("#YAOHAO_RESULT").html(html);
+					}
+
+					/**显示所选方法提示**/
+					function showSelectKvalueTipInfo() {
+						var rs = $("#YAOHAO_RESULT").val();
+						var html = '';
+						var id = "#rule-";
+						var value;
+						for ( var i = 0; i < 3; i++) {
+							var idt = id + i;
+							value = $(idt).val();
+							if (rs == value) {
+								html = $(idt + "-text").html();
+								$("#YAOHAO_RESULT_VALUE").val(
+										$(idt + "-text").html());
+								break;
+							}
+						}
+						$("#RULE_TIP").html(html);
+					}
+
+					// 判断是否有重复球号
+					function arrRepeat(param) {
+						//获取json长度 
+						var jslength = 0;
+						for ( var js2 in param) {
+							jslength++;
+						}
+						//将对应数字放入数组 
+						var arr = new Array();
+						for ( var h = 0; h < jslength; h++) {
+							if (param["" + h + ""]) {
+								arr.push(param["" + h + ""])
+							}
+						}
+
+						arr.sort();
+						for ( var i = 0; i < arr.length; i++) {
+							if (arr[i] == arr[i + 1]) {
+								return arr[i];
+							}
+						}
+						return 'true';
+					}
+
+					/**暂存**/
+					function doStagingSave() {
+						var validate = true;
+						var sections = new Array();
+						$("form").each(function() {
+							if(!$(this).form('validate')){
+								validate = false;
+								return;
+							}
+							var param = $(this).form2json({
+								allowEmptySingleVal : false
+							});
+							//判断数组是否有重复  出现重复会提示重复数组，不重复返回true
+							var flag = arrRepeat(param);
+							if (flag != 'true') {
+								top.$.messager.alert("提示", "有重复球号" + flag);
+								validate = false;
+								return;
+							}
+							sections.push(param);
+						});
+
+						if (!validate) {
+							return;
+						}
+						var obj = new Object();
+						obj.BID_NO_RULE = sections;
+						
+						var index = parent.layer.msg('执行操作中，请稍候!', {
+							icon : 16,
+							shade : 0.3,
+							time : false
+						});
+						
+						// 发生Ajax请求
+						$
+								.ajax({
+									url : '${path}${adminPath}/bidnorule/modify/${TENDER_PROJECT_FLOW_NODE.ID}',
+									// 设置请求方法
+									type : 'POST',
+									//dataType : 'json',
+									contentType : 'application/json;charset=UTF-8',
+									data : JSON.stringify(obj),
+									// 成功回调
+									success : function(result) {
+										parent.layer.close(index);
+										parent.sy.messagerShow({
+											msg : "操作成功!",
+											title : '提示'
+										});
+									},
+									// 失败回调
+									error : function(XMLHttpRequest,
+											textStatus, errorThrown) {
+										parent.layer.close(index);
+										var result = jQuery
+												.parseJSON(XMLHttpRequest.responseText);
+										top.$.messager.alert('操作失败', "操作失败["
+												+ result.errorDesc + "]");
+									}
+								});
+					}
+
+					/**保存**/
+					function doSave() {
+						parent.$.messager
+								.confirm(
+										"提示",
+										"确认球号无误进入下一步？",
+										function(r) {
+											if (r) {
+												
+												var index = parent.layer.msg('执行操作中，请稍候!', {
+													icon : 16,
+													shade : 0.3,
+													time : false
+												});
+												
+												var sections = new Array();
+												var validate = true;
+												$("form")
+														.each(
+																function() {
+																	var param = $(
+																			this)
+																			.form2json(
+																					{
+																						allowEmptySingleVal : false
+																					});
+																	//判断数组是否有重复  出现重复会提示重复数组，不重复返回true
+																	var flag = arrRepeat(param);
+																	if (flag != 'true') {
+																		top.$.messager
+																				.alert(
+																						"提示",
+																						"有重复球号"
+																								+ flag);
+																		validate = false;
+																		return;
+																	}
+
+																	if (!$(this)
+																			.form(
+																					'validate')) {
+																		top.$.messager
+																				.alert(
+																						"提示",
+																						"尚未录入所有球号");
+																		validate = false;
+																		return;
+																	}
+																	if (typeof (param.YAOHAO_RESULT) == "undefined"
+																			|| null == param.YAOHAO_RESULT
+																			|| "" == param.YAOHAO_RESULT) {
+																		top.$.messager
+																				.alert(
+																						"提示",
+																						"尚未录入所有球号");
+																		validate = false;
+																		return;
+																	}
+																	sections
+																			.push(param);
+																});
+												if (!validate) {
+													return;
+												}
+												//alert(JSON.stringify(sections));
+												var obj = new Object();
+												obj.BID_NO_RULE = sections;
+												// 发生Ajax请求
+												$
+														.ajax({
+															url : '${path}${adminPath}/bidnorule/modify/${TENDER_PROJECT_FLOW_NODE.ID}',
+															// 设置请求方法
+															type : 'POST',
+															//dataType : 'json',
+															contentType : 'application/json;charset=UTF-8',
+															data : JSON
+																	.stringify(obj),
+															// 成功回调
+															success : function(
+																	result) {
+																parent.layer.close(index);
+																parent
+																		.finishCurrentFlowNode(
+																				'${TENDER_PROJECT_FLOW_NODE.ID}',
+																				'${TENDER_PROJECT_FLOW_NODE.V_NODE_NAME}');
+															},
+															// 失败回调
+															error : function(
+																	XMLHttpRequest,
+																	textStatus,
+																	errorThrown) {
+																parent.layer.close(index);
+																var result = jQuery
+																		.parseJSON(XMLHttpRequest.responseText);
+																top.$.messager
+																		.alert(
+																				'操作失败',
+																				"操作失败["
+																						+ result.errorDesc
+																						+ "]");
+															}
+														});
+											}
+										});
+					}
+
+					/**结束当前节点**/
+					function finishCurrentFlow() {
+
+						parent.finishCurrentFlowNode(
+								'${TENDER_PROJECT_FLOW_NODE.ID}',
+								'${TENDER_PROJECT_FLOW_NODE.V_NODE_NAME}');
+					}
+				</script>
+</body>
+</html>

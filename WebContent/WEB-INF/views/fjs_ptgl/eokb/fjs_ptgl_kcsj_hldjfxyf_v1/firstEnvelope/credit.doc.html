@@ -1,0 +1,29 @@
+<div class="easyui-tabs" data-options="plain:true">
+    <sz:forEach items="${SECTION_LIST}" var="section,stat">
+        <caption>标段：${section.BID_SECTION_NAME}</caption>
+        <table class="sztable" width="100%" style="text-align: center;">
+            <thead>
+                <tr>
+                    <td width="5%">序号</td>
+                    <td width="20%">投标人名称</td>
+                    <td width="10%">保证金金额（元）</td>
+                    <td width="10%">保证金递交情况</td>
+                    <td width="5%">质量目标</td>
+                    <td width="5%">工期（日历天）</td>
+                    <td width="15%">其他内容</td>
+                </tr>
+            </thead>
+            <sz:forEach items="${section.TENDER_LIST}" var="vo,step">
+                <tr>
+                    <td>${step.index+1}</td>
+                    <td>${vo.V_BIDDER_NAME}</td>
+                    <td>${vo.bzjje}</td>
+                    <td>${vo.bzjdjqk}</td>
+                    <td>${vo.zlmb}</td>
+                    <td>${vo.gongqi}</td>
+                    <td>${vo.qtnr}</td>
+                </tr>
+            </sz:forEach>
+        </table>
+    </sz:forEach>
+</div>

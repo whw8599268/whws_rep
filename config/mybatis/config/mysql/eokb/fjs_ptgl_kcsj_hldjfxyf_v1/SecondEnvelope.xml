@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="fjs_ptgl_kcsj_hldjfxyf_v1_secondenvelope">
+    <!-- 查询有效第二信封投标人与确认信息（标段id） -->
+    <select id="getSecBidderInfo" parameterType="record" resultType="record">
+        <![CDATA[
+            SELECT *
+            FROM EKB_T_TENDER_LIST A
+              LEFT JOIN EKB_T_SECTION_INFO B
+                ON A.V_TPID = B.V_TPID
+                  AND A.V_BID_SECTION_ID = B.V_BID_SECTION_ID
+            WHERE A.N_PRICE <= B.N_CONTROL_PRICE
+                AND A.N_PRICE >= IFNULL(B.N_CONTROL_MIN_PRICE,0)
+                AND A.V_BID_SECTION_ID =#{sid}
+                AND A.V_TPID =#{tpid} 
+                AND A.N_ENVELOPE_1 = 1
+        ]]>
+    </select>
+    
+    <!-- 查询全部第二信封投标人与确认信息（标段id） -->
+    <select id="getSecBidderInfoAll" parameterType="record" resultType="record">
+        <![CDATA[
+            SELECT *
+            FROM EKB_T_TENDER_LIST A
+              LEFT JOIN EKB_T_SECTION_INFO B
+                ON A.V_TPID = B.V_TPID
+                  AND A.V_BID_SECTION_ID = B.V_BID_SECTION_ID
+            WHERE A.N_ENVELOPE_1 = 1
+                AND A.V_BID_SECTION_ID =#{sid}
+                AND A.V_TPID =#{tpid} 
+        ]]>
+    </select>
+</mapper>  

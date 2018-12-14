@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="http://java.sun.com/xml/ns/javaee" xmlns:web="http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
+	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
+	id="WebApp_ID" version="3.0">
+
+	<display-name>E Share Online Open Bid</display-name>
+	<description>在线开标辅助系统</description>
+
+	<!-- Logback配置监听器 -->
+	<context-param>
+		<param-name>logbackConfigLocation</param-name>
+		<param-value>classpath:logback.xml</param-value>
+	</context-param>
+	<listener>
+		<listener-class>com.sozone.aeolus.ext.logback.LogbackConfigListener</listener-class>
+	</listener>
+
+	<!-- 文件上传监听器 -->
+	<context-param>
+		<!-- 缓冲区大小,可以不配置默认1024 -->
+		<param-name>buffSize</param-name>
+		<param-value>2048</param-value>
+	</context-param>
+	<context-param>
+		<!-- 允许的单个文件最大值,单位B,可以不配置默认1M -->
+		<param-name>fileMaxSize</param-name>
+		<param-value>1000000000</param-value>
+	</context-param>
+	<context-param>
+		<!-- 允许的一次上传的最大值,单位B,可以不配置默认1M -->
+		<param-name>maxSize</param-name>
+		<param-value>1000000000</param-value>
+	</context-param>
+	<listener>
+		<listener-class>com.sozone.aeolus.upload.listener.AeolusUplaodListener</listener-class>
+	</listener>
+
+	<!-- Aeolus 配置初始化监听器 -->
+	<!-- Aeolus配置文件路径 -->
+	<context-param>
+		<!-- 参数名不允许改变 -->
+		<param-name>aeolusConfigLocation</param-name>
+		<param-value>classpath:AeolusConfig.xml</param-value>
+	</context-param>
+	<!-- 序列码 -->
+	<context-param>
+		<!-- 参数名不允许改变,开发版可以不需要填值 -->
+		<param-name>aeolusSerialNumber</param-name>
+		<param-value></param-value>
+	</context-param>
+
+	<!-- 定时器插件配置文件路径 -->
+	<context-param>
+		<!-- 参数名不允许改变 -->
+		<param-name>aeolusTimerConfigLocation</param-name>
+		<param-value>classpath:AeolusJobsConfig.xml</param-value>
+	</context-param>
+
+	<!-- 此参数名不可以改，该参数选填，如果使用了WEB代理，tomcat的真实端口与域名端口不一致时，这里使用域名的端口即可 <context-param> 
+		<param-name>serverPort</param-name> <param-value>8080</param-value> </context-param> -->
+
+	<listener>
+		<listener-class>com.sozone.aeolus.servlet.listener.AeolusConfigListener</listener-class>
+	</listener>
+
+	<!-- Apache Shiro 监听器 -->
+	<context-param>
+		<param-name>shiroConfigLocations</param-name>
+		<param-value>classpath:aeolusAuthorize.ini</param-value>
+	</context-param>
+	<listener>
+		<listener-class>org.apache.shiro.web.env.EnvironmentLoaderListener</listener-class>
+	</listener>
+
+	<!-- druid监控过滤器 -->
+	<filter>
+		<filter-name>DruidWebStatFilter</filter-name>
+		<filter-class>com.alibaba.druid.support.http.WebStatFilter</filter-class>
+		<init-param>
+			<param-name>exclusions</param-name>
+			<param-value>*.js,*.gif,*.jpg,*.png,*.css,*.ico,/druid/*</param-value>
+		</init-param>
+		<init-param>
+			<param-name>principalSessionName</param-name>
+			<param-value>org.apache.shiro.subject.support.DefaultSubjectContext_PRINCIPALS_SESSION_KEY</param-value>
+		</init-param>
+		<init-param>
+			<param-name>profileEnable</param-name>
+			<param-value>true</param-value>
+		</init-param>
+	</filter>
+	<filter-mapping>
+		<filter-name>DruidWebStatFilter</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+
+	<!-- Apache Shiro 过滤器 -->
+	<filter>
+		<filter-name>ShiroFilter</filter-name>
+		<filter-class>org.apache.shiro.web.servlet.ShiroFilter</filter-class>
+	</filter>
+	<filter-mapping>
+		<filter-name>ShiroFilter</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+
+	<!-- 跨域访问处理过滤器 -->
+	<filter>
+		<filter-name>CORSFileter</filter-name>
+		<filter-class>com.sozone.eokb.mobile.authz.filter.CORSFileter</filter-class>
+	</filter>
+	<!-- 特别注意控制允许跨域的路径 -->
+	<filter-mapping>
+		<filter-name>CORSFileter</filter-name>
+		<url-pattern>/authorize/mobile/*</url-pattern>
+	</filter-mapping>
+	<!-- <filter-mapping> <filter-name>CORSFileter</filter-name> <url-pattern>/authorize/dict/list/*</url-pattern> 
+		</filter-mapping> -->
+
+	<!-- WebSocket 认证过滤器 -->
+	<filter>
+		<filter-name>WebSocketAuthzFilter</filter-name>
+		<filter-class>com.sozone.eokb.mobile.authz.filter.WebSocketAuthzFilter</filter-class>
+	</filter>
+	<!-- 只过滤WebSocket路径 -->
+	<filter-mapping>
+		<filter-name>WebSocketAuthzFilter</filter-name>
+		<url-pattern>/bomim/*</url-pattern>
+	</filter-mapping>
+
+	<!-- Aeolus框架Servlet配置 -->
+	<servlet>
+		<servlet-name>AeolusServlet</servlet-name>
+		<servlet-class>com.sozone.aeolus.servlet.AeolusServlet</servlet-class>
+	</servlet>
+
+	<!-- Aeolus框架Servlet要拦截的路径 -->
+	<servlet-mapping>
+		<servlet-name>AeolusServlet</servlet-name>
+		<url-pattern>/authorize/*</url-pattern>
+	</servlet-mapping>
+
+	<!-- 配置 Druid 监控信息显示页面 -->
+	<servlet>
+		<servlet-name>DruidStatView</servlet-name>
+		<servlet-class>com.alibaba.druid.support.http.StatViewServlet</servlet-class>
+		<init-param>
+			<!-- 允许清空统计数据 -->
+			<param-name>resetEnable</param-name>
+			<param-value>true</param-value>
+		</init-param>
+		<init-param>
+			<!-- 用户名 -->
+			<param-name>loginUsername</param-name>
+			<param-value>sozone</param-value>
+		</init-param>
+		<init-param>
+			<!-- 密码 -->
+			<param-name>loginPassword</param-name>
+			<param-value>sozone</param-value>
+		</init-param>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>DruidStatView</servlet-name>
+		<url-pattern>/druid/*</url-pattern>
+	</servlet-mapping>
+
+	<!-- 即时通讯Servlet -->
+	<servlet>
+		<servlet-name>BidOpeningMeetingIMServlet</servlet-name>
+		<servlet-class>com.sozone.eokb.im.servlet.BidOpeningMeetingIMServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>BidOpeningMeetingIMServlet</servlet-name>
+		<url-pattern>/bomim</url-pattern>
+	</servlet-mapping>
+
+	<!-- WS协议测试 -->
+	<servlet>
+		<servlet-name>WebSocketTestServlet</servlet-name>
+		<servlet-class>com.sozone.eokb.im.servlet.WebSocketTestServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>WebSocketTestServlet</servlet-name>
+		<url-pattern>/wstest</url-pattern>
+	</servlet-mapping>
+
+	<!-- 随机验证码图片 -->
+	<servlet>
+		<servlet-name>XVCodeServlet</servlet-name>
+		<servlet-class>com.sozone.aeolus.code.XVCodeServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>XVCodeServlet</servlet-name>
+		<url-pattern>/rcode</url-pattern>
+	</servlet-mapping>
+
+	<!-- WebSocket压力测试 -->
+	<!-- <servlet> <servlet-name>WebSocketTestServlet</servlet-name> <servlet-class>com.sozone.websocket.stress.WebSocketTestServlet</servlet-class> 
+		</servlet> <servlet-mapping> <servlet-name>WebSocketTestServlet</servlet-name> 
+		<url-pattern>/wst</url-pattern> </servlet-mapping> -->
+
+
+	<!-- Flash Socket通信的安全策略服务启动监听器 -->
+	<listener>
+		<listener-class>com.sozone.eokb.im.flash.FlashSecurityXMLServerStartListener</listener-class>
+	</listener>
+	<!-- Flash Socket通信的安全策略服务监听端口,默认843,可以不配置 -->
+	<!-- <context-param> <param-name>FLASH_SECURITY_SERVER_PORT</param-name> 
+		<param-value>843</param-value> </context-param> -->
+
+	<!-- 解密解压Daemon服务器监听器 -->
+	<listener>
+		<listener-class>com.sozone.eokb.bus.decrypt.daemon.DaemonListener</listener-class>
+	</listener>
+
+	<welcome-file-list>
+		<welcome-file>index.jsp</welcome-file>
+	</welcome-file-list>
+
+</web-app>

@@ -1,0 +1,106 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<%includeJSP("/static/include/inc.jsp",{}){}%>
+<link href="${path}/static/css/table.css" rel="stylesheet" />
+</head>
+<body>
+    <table width="100%" class="sztable">
+        <tr bgcolor="#CCCCCC" align="left">
+            <td colspan="2">企业信息</td>
+        </tr>
+        <tr>
+            <td width="50%">企业名称:<span id="com-name">${company.V_ENTERPRIS_NAME}</span></td>
+            <td width="50%">关联编号:<input id="co-code" class="easyui-textbox" value="${company.V_CORRELATE_CODE}"></td>
+        </tr>
+        <tr>
+            <td width="50%">统一社会信用代码:${company.V_UNIFY_CODE}</td>
+            <td width="50%">组织机构代码:${company.V_ORG_CODE}</td>
+        </tr>
+    </table>
+    <table width="100%" class="sztable">
+        <tr bgcolor="#CCCCCC" align="left">
+            <td width="100%">搜索企业</td>
+            <tr>
+                <td><label>企业名称：</label><input class="easyui-textbox" style="width: 200px" id="unify_code" type="text"><a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-search" onclick="doSearch();">搜索</a></td>
+            </tr>
+    </table>
+    <table id="next-table" width="100%" class="sztable">
+        <tr bgcolor="#CCCCCC" align="center">
+            <td width="35%">企业名称</td>
+            <td width="35%">关联编号</td>
+            <td width="30%">家数</td>
+        </tr>
+        <sz:forEach items="${companys}" var="company,stat">
+            <tr>
+                <td>${company.V_ENTERPRIS_NAME}</td>
+                <td>${company.V_CORRELATE_CODE}</td>
+                <!-- 记录数不为空说明要出现列,否则列不出现 -->
+                <sz:if test="${company._COUNT!=null}">
+                    <!-- 如果记录数是1 -->
+                    <sz:if test="${company._COUNT==1}">
+                        <td>${company._COUNT}</td>
+                    </sz:if>
+                    <!-- 如果记录数大于1 -->
+                    <sz:if test="${company._COUNT>1}">
+                        <td rowspan="${company._COUNT}">${company._COUNT}</td>
+                    </sz:if>
+                </sz:if>
+            </tr>
+        </sz:forEach>
+    </table>
+    <script type="text/javascript">
+					//初始化
+					$(function() {
+					});
+
+					function doSearch() {
+						var name = $("#unify_code").val();
+						if (name.length < 1) {
+							$.messager.alert('提示', "请输入搜索条件");
+							return;
+						}
+						$
+								.ajax({
+									cache : false,
+									type : 'get',
+									//dataType : "json",
+									//data : data,
+									url : "${path}${adminPath}/fjs_gsgl_jdsg_hldjf_v1/firstenvelope/credit/searchByName/"
+											+ name,//请求的action路径  
+									error : function(XMLHttpRequest,
+											textStatus, errorThrown) {//请求失败处理函数  
+										var result = jQuery
+												.parseJSON(XMLHttpRequest.responseText);
+										$.messager.alert('异步获取数据出现异常',
+												"异步获取数据出现异常["
+														+ result.errorDesc
+														+ "]");
+									},
+									success : function(result) { //请求成功后处理函数。
+										//alert(JSON.stringify(result))
+										var html = '<tr bgcolor="#CCCCCC" align="center"><td width="35%">企业名称</td><td width="35%">关联编号</td><td width="30%">家数</td>';
+										for ( var i = 0; i < result.length; i++) {
+											var count = "";
+											if (result[i]._COUNT == 1) {
+												count = '<td>1</td>'
+											}
+											if (result[i]._COUNT > 1) {
+												count = '<td rowspan="'+result[i]._COUNT+'">'
+														+ result[i]._COUNT
+														+ '</td>'
+											}
+											html += '<tr><td>'
+													+ result[i].V_ENTERPRIS_NAME
+													+ '</td><td>'
+													+ result[i].V_CORRELATE_CODE
+													+ '</td>' + count + '</tr>'
+										}
+										$("#next-table").html(html);
+									}
+								});
+					}
+				</script>
+</body>
+</html>

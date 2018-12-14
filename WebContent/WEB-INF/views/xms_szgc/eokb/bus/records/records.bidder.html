@@ -1,0 +1,43 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>开标记录</title> <%includeJSP("/static/include/inc.jsp",{}){}%>
+<link href="${path}/static/css/table.css" rel="stylesheet" />
+</head>
+<script type="text/javascript">
+	var code = '${SessionUtils.getTenderProjectTypeCode()}';
+	function doOpen(url) {
+		window.open('${path}${adminPath}/' + code + url);
+	}
+	function doDownload(filename, comment) {
+		var _url = '${path}${adminPath}/bus/records/download/' + filename + '/'
+				+ comment;
+		window.open(_url)
+	}
+</script>
+<style type="text/css">
+.sztable td {
+	line-height: 20px;
+	text-align: left;
+	padding: 4px 10px 3px 10px;
+	height: 18px;
+	border: 1px solid #ccc;
+	font-size: 20px;
+}
+</style>
+<body>
+    <table class="sztable" width="600px" align="center" style="margin-top: 40px;">
+        <thead>
+            <tr>
+                <td>名称</td>
+                <td rowspan="2" colspan="2" style="text-align: center;">操作</td>
+            </tr>
+        </thead>
+        <tr>
+            <td>开标记录表</td>
+            <td colspan="2" style="text-align: center;"><a href="javascript:void(0)" onclick="doOpen('/firstenvelope/firstRecord')">查看</a> <a href="javascript:void(0)" onclick="doDownload('firstRecord','开标记录表')">导出</a></td>
+        </tr>
+    </table>
+</body>
+</html>

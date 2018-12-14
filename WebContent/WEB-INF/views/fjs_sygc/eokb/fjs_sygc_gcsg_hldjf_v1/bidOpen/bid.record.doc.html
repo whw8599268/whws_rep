@@ -1,0 +1,66 @@
+<div>
+    <p style="font-size: 25px; text-align: center; font-weight: bold;">
+        <u style="font-size: 25px; text-align: center; font-weight: bold;">${PROJECT_NAME}</u>施工开标记录表
+    </p>
+    <p style="font-size: 18px; text-align: center;">
+        开标时间：<u style="font-size: 18px; text-align: center;"> ${TIME}</u>
+    </p>
+</div>
+
+<div class="easyui-tabs" data-options="plain:true">
+    <sz:forEach items="${TENDER_PROJECT_EV_LIST}" var="ev,stat">
+        <caption>标段：${ev.SECTION_INFO.V_BID_SECTION_NAME}</caption>
+        <table class="sztable" width="100%" style="text-align: center;">
+            <tr>
+                <td width="5%">序号</td>
+                <td width="20%">投标人名称</td>
+                <td width="10%">投标报价（元）</td>
+                <td width="5%">质量目标</td>
+                <td width="10%">工期</td>
+                <td width="20%" colspan="2">项目负责人、证书及编号</td>
+                <td width="10%">保证金金额（元）</td>
+                <td width="10%">备注</td>
+            </tr>
+            <sz:forEach items="${ev.BIDDERS}" var="vo,step">
+                <tr>
+                    <td>${step.index+1}</td>
+                    <td>${vo.V_BIDDER_NAME}</td>
+                    <td>${fmt.format("###,##0.00",vo.N_PRICE)}</td>
+                    <td>${vo.zlmb}</td>
+                    <td>${vo.gongqi}</td>
+                    <td colspan="2">${vo.tbPmName}、${vo.zsbh}</td>
+                    <td>${vo.bzjje}</td>
+                    <td>${vo.firstRemark!}</td>
+                </tr>
+            </sz:forEach>
+            <tfoot>
+                <tr>
+                    <td colspan=2>招标人公布的最高控制价</td>
+                    <td colspan=7>${fmt.format("###,##0.00",ev.SECTION_INFO.N_CONTROL_PRICE)}</td>
+                </tr>
+                <tr>
+                    <td colspan=9>开标现场线下抽取的系数</td>
+                </tr>
+                <tr>
+                    <td colspan=2>评标办法</td>
+                    <td>${ev.METHOD}</td>
+                    <td colspan=2>最高限价权重µ</td>
+                    <td>${ev.WEIGHT_VALUE}%</td>
+                    <td colspan=2>下浮系数K</td>
+                    <td>${ev.COEFFCIENT_VALUE}</td>
+                </tr>
+                <tr>
+                    <td colspan=3>投标报价E1</td>
+                    <td colspan=2>${ev.E_VALUE_1}</td>
+                    <td colspan=2>投标报价E2</td>
+                    <td colspan=2>${ev.E_VALUE_2}</td>
+                </tr>
+            </tfoot>
+        </table>
+    </sz:forEach>
+</div>
+<div style="font-size: 18px; text-align: center; font-weight: bold; height: 100px; line-height: 100px;">
+    <p>
+        招标人代表：<span style="margin-left: 20em;">记录人：</span><span style="margin-left: 20em;">监标人：</span>
+    </p>
+</div>

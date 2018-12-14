@@ -1,0 +1,179 @@
+<html>
+<head>
+<meta charset="UTF-8">
+<title>现场摇号确定投标报价E值（E1、E2）</title> <%includeJSP("/static/include/inc.jsp",{}){}%>
+<link href="${path}/static/css/table.css" rel="stylesheet" />
+<style>
+html,body {
+	height: 100%;
+	padding: 0;
+	margin: 0;
+}
+
+td {
+	border: 1px solid #B5D6E6;
+}
+</style>
+<script type="text/javascript">
+	/**保存**/
+	function doSave() {
+		parent.$.messager
+				.confirm(
+						"提示",
+						"保存后将无法修改，确认信息无误?",
+						function(r) {
+							if (r) {
+								var sections = new Array();
+								$("form").each(function() {
+									var param = $(this).form2json({
+										allowEmptySingleVal : false
+									});
+									sections.push(param);
+								});
+								sy.progress.show();
+								// 发生Ajax请求
+								$
+										.ajax({
+											url : '${path}${adminPath}/fjs_sygc_syjc_hldjf_v1/ev/saveBidders',
+											// 设置请求方法
+											type : 'POST',
+											async : false,
+											//dataType : 'json',
+											//contentType : 'application/json;charset=UTF-8',
+											data : {
+												"bidders" : JSON
+														.stringify(sections)
+											},
+											// 成功回调
+											success : function(result) {
+												createDoc(
+														'sygc',
+														'fjs_sygc_syjc_hldjf_v1',
+														'secondEnvelope',
+														'record');
+												location.reload();
+												sy.progress.hide();
+											},
+											// 失败回调
+											error : function(XMLHttpRequest,
+													textStatus, errorThrown) {
+												parent.sy.progress.hide();
+												var result = jQuery
+														.parseJSON(XMLHttpRequest.responseText);
+												top.$.messager
+														.alert(
+																'操作失败',
+																"操作失败["
+																		+ result.errorDesc
+																		+ "]");
+											}
+										});
+							}
+						});
+	}
+
+	/**生成doc**/
+	function createDoc(sample, template, envelope, modelType) {
+		$.ajax({
+			url : "${path}${adminPath}/" + sample + "/bus/createFile/doc",
+			// 设置请求方法
+			type : "post",
+			cache : false,
+			data : {
+				template : template,
+				envelope : envelope,
+				modelType : modelType
+			},
+			// dataType : 'json',
+			// contentType : 'application/json;charset=UTF-8',
+			// 成功回调
+			success : function(result) {
+			},
+			// 失败回调
+			error : function(XMLHttpRequest, textStatus, errorThrown) {
+			}
+		});
+	}
+</script>
+</head>
+<body>
+    <sz:if test="${REMARKFLAG}">
+        <div style="text-align: center;">
+            <a id="data-save-button" href="#" class="easyui-linkbutton" style="width: 90px; height: 40px" data-options="iconCls:'icon-save'" onclick="doSave();">保存</a>
+        </div>
+    </sz:if>
+    <div>
+        <p style="font-size: 25px; text-align: center; font-weight: bold;">
+            <u style="font-size: 25px; text-align: center; font-weight: bold;">${PROJECT_NAME}</u>试验检测（监测）开标记录表
+        </p>
+        <p style="font-size: 18px; text-align: center;">
+            开标时间：<u style="font-size: 18px; text-align: center;"> ${TIME}</u>
+        </p>
+    </div>
+
+    <div class="easyui-tabs" data-options="plain:true">
+        <sz:forEach items="${TENDER_PROJECT_EV_LIST}" var="ev,stat">
+            <div title="标段：${ev.SECTION_INFO.V_BID_SECTION_NAME}" style="padding: 10px;">
+                <form>
+                    <table class="sztable" width="100%" style="text-align: center;">
+                        <thead>
+                            <tr>
+                                <td width="10%">序号</td>
+                                <td width="25%">投标人</td>
+                                <td width="10%">投标报价（元）</td>
+                                <td width="10%">服务期</td>
+                                <td width="25%" colspan="2">项目负责人姓名、证书及编号</td>
+                                <td width="10%">投标保证金（元）</td>
+                                <td width="10%">备注</td>s
+                            </tr>
+                        </thead>
+                        <sz:forEach items="${ev.BIDDERS}" var="vo,step">
+                            <tr>
+                                <td>${step.index+1}</td>
+                                <td>${vo.V_BIDDER_NAME}</td>
+                                <td>${fmt.format("###,##0.00",vo.N_PRICE)}</td>
+                                <td>${vo.fuwuqi}</td>
+                                <td colspan="2">${vo.tbPeName}、${vo.zsbh}</td>
+                                <td>${vo.bzjje}</td>
+                                <td><sz:if test="${REMARKFLAG}">
+                                        <input name="${vo.ID}" value="${vo.firstRemark==null?' ':vo.firstRemark}" />
+                                    </sz:if> <sz:if test="${!REMARKFLAG}">
+                            ${vo.firstRemark!}
+                            </sz:if></td>
+                            </tr>
+                        </sz:forEach>
+                        <tfoot>
+                            <tr>
+                                <td colspan=2>招标人公布的最高控制价</td>
+                                <td colspan=6>${fmt.format("###,##0.00",ev.SECTION_INFO.N_CONTROL_PRICE)}</td>
+                            </tr>
+                            <tr>
+                                <td colspan=8>开标现场线下抽取的系数</td>
+                            </tr>
+                            <tr>
+                                <td colspan=2>评标办法</td>
+                                <td>${ev.METHOD}</td>
+                                <td colspan=2>最高限价权重µ</td>
+                                <td>${ev.WEIGHT_VALUE}%</td>
+                                <td colspan=1>下浮系数K</td>
+                                <td>${ev.COEFFCIENT_VALUE}</td>
+                            </tr>
+                            <tr>
+                                <td colspan=2>投标报价E1</td>
+                                <td colspan=2>${ev.E_VALUE_1}</td>
+                                <td colspan=2>投标报价E2</td>
+                                <td colspan=2>${ev.E_VALUE_2}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </form>
+            </div>
+        </sz:forEach>
+    </div>
+    <div style="font-size: 18px; text-align: center; font-weight: bold; height: 100px; line-height: 100px;">
+        <p>
+            招标人代表：<span style="margin-left: 20em;">记录人：</span><span style="margin-left: 20em;">监标人：</span>
+        </p>
+    </div>
+</body>
+</html>

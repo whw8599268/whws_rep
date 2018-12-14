@@ -1,0 +1,50 @@
+.header {
+	background-color: #639cf9;
+	float: left;
+	height: 76px;
+	width: 100%;
+}
+.logo {
+	background-image: url(../images/logo_01.png);
+	float: left;
+	height: 76px;
+	width: 562px;
+}
+.head-rg {
+	font-family: "微软雅黑";
+	font-size: 16px;
+	line-height: 40px;
+	color: #FFF;
+	float: right;
+	height: 40px;
+	width: 450px;
+	margin-top: 20px;
+	margin-right: 20px;
+	margin-bottom: 15px;
+}
+.user {
+	float: left;
+	height: 40px;
+	width: 110px;
+}
+.user-tbr {
+	float: left;
+	height: 40px;
+	width: 60px;
+}
+.user-name {
+	float: left;
+	height: 40px;
+	width: 250px;
+	text-overflow:ellipsis;
+	overflow:hidden;
+	text-overflow:ellipsis;
+	white-space:nowrap;
+	word-break:keep-all;
+	cursor:pointer;
+}
+.exit {
+	float: right;
+
+	cursor:pointer
+}

@@ -1,0 +1,105 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>开标记录</title> <%includeJSP("/static/include/inc.jsp",{}){}%>
+<link href="${path}/static/css/table.css" rel="stylesheet" />
+</head>
+<script type="text/javascript">
+	var code = '${SessionUtils.getTenderProjectTypeCode()}';
+	function doOpen(url) {
+		window.open('${path}${adminPath}/' + code + url);
+	}
+	// 查看开标记录表二
+	function doOpen2() {
+		var index = parent.layer.msg('执行操作中，请稍候!', {
+			icon : 16,
+			shade : 0.3,
+			time : false
+		});
+		$.ajax({
+			url : "${path}${adminPath}/hwa/bf",
+			//设置请求方法
+			type : 'get',
+			//dataType : 'json',
+			cache : false,
+			async : false,
+			//成功回调
+			success : function(result) {
+				parent.layer.close(index);
+				window.open('${path}${adminPath}/hwa/ghwi');
+			},
+			//失败回调
+			error : function(XMLHttpRequest, textStatus, errorThrown) {
+				parent.layer.close(index);
+				var _result = jQuery.parseJSON(XMLHttpRequest.responseText);
+				$.messager.alert("失败", result.errorDesc);
+			}
+		});
+	}
+
+	// 下载开标记录表二
+	function doDownload2(filename, comment) {
+		var index = parent.layer.msg('执行操作中，请稍候!', {
+			icon : 16,
+			shade : 0.3,
+			time : false
+		});
+		$.ajax({
+			url : "${path}${adminPath}/hwa/bf",
+			//设置请求方法
+			type : 'get',
+			//dataType : 'json',
+			cache : false,
+			async : false,
+			//成功回调
+			success : function(result) {
+				parent.layer.close(index);
+				var _url = '${path}${adminPath}/bus/records/download/'
+						+ filename + '/' + comment;
+				window.open(_url)
+			},
+			//失败回调
+			error : function(XMLHttpRequest, textStatus, errorThrown) {
+				parent.layer.close(index);
+				var _result = jQuery.parseJSON(XMLHttpRequest.responseText);
+				$.messager.alert("失败", result.errorDesc);
+			}
+		});
+	}
+	function doDownload(filename, comment) {
+		var _url = '${path}${adminPath}/bus/records/download/' + filename + '/'
+				+ comment;
+		window.open(_url)
+	}
+</script>
+
+<style type="text/css">
+.sztable td {
+	line-height: 20px;
+	text-align: left;
+	padding: 4px 10px 3px 10px;
+	height: 18px;
+	border: 1px solid #ccc;
+	font-size: 20px;
+}
+</style>
+<body>
+    <table class="sztable" width="600px" align="center" style="margin-top: 40px;">
+        <thead>
+            <tr>
+                <td>名称</td>
+                <td rowspan="2" colspan="2" style="text-align: center;">操作</td>
+            </tr>
+        </thead>
+        <tr>
+            <td>开标记录表一</td>
+            <td colspan="2" style="text-align: center;"><a href="javascript:void(0)" onclick="doOpen('/firstenvelope/firstRecord')">查看</a> <a href="javascript:void(0)" onclick="doDownload('firstRecord','开标记录表')">导出</a></td>
+        </tr>
+        <tr>
+            <td>开标记录表二</td>
+            <td colspan="2" style="text-align: center;"><a href="javascript:void(0)" onclick="doOpen2()">查看</a> <a href="javascript:void(0)" onclick="doDownload2('secondRecord','开标记录表')">导出</a></td>
+        </tr>
+    </table>
+</body>
+</html>

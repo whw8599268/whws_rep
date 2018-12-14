@@ -1,0 +1,43 @@
+
+<div class="easyui-tabs" data-options="plain:true">
+    <sz:forEach items="${TENDER_PROJECT_EV_LIST}" var="ev,stat">
+        <caption>标段：${ev.SECTION_INFO.V_BID_SECTION_NAME}</caption>
+        <table class="sztable" width="100%" style="text-align: center;">
+            <tr>
+                <td width="5%">序号</td>
+                <td width="20%">投标人名称</td>
+                <td width="15%">投标报价（元）</td>
+                <td width="10%">服务期（日历天）</td>
+                <td width="10%">项目负责人姓名</td>
+                <td width="10%">项目负责人证书编号</td>
+                <td width="10%">保证金金额（元）</td>
+                <td width="10%">解密情况</td>
+                <td width="10%">备注</td>
+            </tr>
+            <sz:forEach items="${ev.BIDDERS}" var="vo,step">
+                <tr>
+                    <td>${step.index+1}</td>
+                    <td>${vo.V_BIDDER_NAME}</td>
+                    <td>${fmt.format("###,##0.00",vo.N_PRICE)}</td>
+                    <td>${vo.fuwuqi}</td>
+                    <td>${vo.tbPeName}</td>
+                    <td>${vo.zsbh}</td>
+                    <td>${vo.bzjje}</td>
+                    <sz:if test="${vo.N_ENVELOPE_0==1}">
+                        <td><span style="color: green;">成功</span></td>
+                    </sz:if>
+                    <sz:if test="${vo.N_ENVELOPE_0==0}">
+                        <td><span style="color: red;">失败</span></td>
+                    </sz:if>
+                    <td>${vo.qtnr}</td>
+                </tr>
+            </sz:forEach>
+            <tfoot>
+                <tr>
+                    <td>招标人公布的最高控制价</td>
+                    <td colspan=8>${fmt.format("###,##0.00",ev.SECTION_INFO.N_CONTROL_PRICE)} ${ev.MSG}</td>
+                </tr>
+            </tfoot>
+        </table>
+    </sz:forEach>
+</div>

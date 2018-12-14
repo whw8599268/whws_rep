@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>评标基准价计算方法录入</title> <%includeJSP("/static/include/inc.jsp",{}){}%>
+<link href="${path}/static/css/table.css" rel="stylesheet" />
+<script src="${path}${adminPath}/view/im/js/CountDown.js" type="text/javascript"></script>
+<script src="${path}${adminPath}/view/metting_room/js/handlebars-v4.0.10.js" type="text/javascript"></script>
+<style>
+html,body {
+	height: 100%;
+	padding: 0;
+	margin: 0;
+}
+
+td {
+	border: 1px solid #B5D6E6;
+}
+</style>
+<script id="tip-template" type="text/x-handlebars-template">
+<div class="xtgg_div">
+	<p class="xtgg_p">推送时间：#{date}</p>
+    <p class="xtgg_p">[${TENDER_PROJECT_FLOW_NODE.V_NODE_NAME}]进入数据确认环节!</p>
+    <p class="xtgg_p">请各投标人进入[${TENDER_PROJECT_FLOW_NODE.V_NODE_NAME}]环节!</p>
+    <p class="xtgg_p"><a style="color:#fff;" href="javascript:void(0);" onclick="openContentPage('${path}${adminPath}/tpflow/node/${TENDER_PROJECT_FLOW_NODE.ID}','${TENDER_PROJECT_FLOW_NODE.V_NODE_NAME}')">点击进入</a></p>
+</div>
+</script>
+</head>
+<body>
+    <sz:if test="${TENDER_PROJECT_FLOW_NODE.N_STATUS!=3}">
+        <div style="text-align: right;">
+            <a id="data-staging-save-button" href="#" class="easyui-linkbutton" title="暂时保存评标办法的球号信息以便最终确认保存结果做准备" data-options="iconCls:'icon-save'" onclick="doStagingSave();">暂存</a> <a id="data-save-button" href="#" class="easyui-linkbutton" title="确认球号抽取没有错误，保存抽取结果并展示抽取结果给投标人" data-options="iconCls:'icon-save'" onclick="doSave();">保存抽取结果</a> <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-ok'" title="结束评标方法抽取，进入下一个环节" onclick="finishCurrentFlow();">进入下一环节</a>
+        </div>
+    </sz:if>
+    <span id="count_down" style="display: none;"></span>
+    <div class="easyui-tabs" data-options="plain:true">
+        <sz:forEach items="${SECTION_GROUP_NAMES}" var="sectionName,stat">
+            <div title="标段组：${sectionName}" style="padding: 10px;">
+                <!-- 标段 -->
+                <sz:forEach items="${SECTION_GROUP_MAP[sectionName]}" var="bspm,stat">
+                    <div class="easyui-panel" title="标段:${bspm.SECTION_INFO.V_BID_SECTION_NAME}" style="padding: 10px;">
+                        <div>
+                            <span style="font-size: 18px; color: #ff7300; font-weight: bold;">通过第一数字信封评审的投标家数：${bspm.TOTAL_BIDDER}家&nbsp;&nbsp;&nbsp;&nbsp;有效投标家数：${bspm.TOTAL_EFFECTIVE_BIDDER}家</span>
+                        </div>
+                        <sz:if test="${!bspm.IS_LESS_THAN_FIFTEEN}">
+                            <!-- 可使用方法个数大于1家的情况 -->
+                            <sz:if test="${!bspm.ONLY_ONE}">
+                                <form id="${bspm.SECTION_INFO.V_BID_SECTION_ID}-METHOD-FORM">
+                                    <input type="hidden" id="${bspm.SECTION_INFO.V_BID_SECTION_ID}-V_BID_SECTION_ID" name="V_BID_SECTION_ID" value="${bspm.SECTION_INFO.V_BID_SECTION_ID}"> <input type="hidden" id="${bspm.SECTION_INFO.V_BID_SECTION_ID}-V_BID_SECTION_NAME" name="V_BID_SECTION_NAME" value="${bspm.SECTION_INFO.V_BID_SECTION_NAME}">
+
+                                    <table class="sztable" width="100%" style="text-align: center; margin-top: 10px;">
+                                        <thead>
+                                            <tr>
+                                                <td width="5%">球号</td>
+                                                <td width="10%">计算基准价方法名</td>
+                                                <td width="55%">说明</td>
+                                                <td width="30%">备注</td>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>
+                                                    <!-- 如果能用 --> <sz:if test="${bspm.METHOD_ONE.ADAPTE}">
+                                                        <input id="${bspm.SECTION_INFO.V_BID_SECTION_ID}-METHOD_ONE_NO" name="METHOD_ONE_NO" class="easyui-validatebox" onchange="modifyYaoHaoSelectValue('${bspm.SECTION_INFO.V_BID_SECTION_ID}');" value="${bspm.METHOD_ONE.NO}" data-options="required:true" style="width: 50px;" maxlength="4">
+                                                    </sz:if>
+                                                </td>
+                                                <td>方法一</td>
+                                                <td>将所有大于等于最高限价的95%的有效投标报价进行算数平均，再将该平均值下浮2～5%后作为评标基准价。</td>
+                                                <td>${bspm.METHOD_ONE.MEMO}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <!-- 如果能用 --> <sz:if test="${bspm.METHOD_TWO.ADAPTE}">
+                                                        <input id="${bspm.SECTION_INFO.V_BID_SECTION_ID}-METHOD_TWO_NO" name="METHOD_TWO_NO" class="easyui-validatebox" onchange="modifyYaoHaoSelectValue('${bspm.SECTION_INFO.V_BID_SECTION_ID}');" value="${bspm.METHOD_TWO.NO}" data-options="required:true" style="width: 50px;" maxlength="4">
+                                                    </sz:if>
+                                                </td>
+                                                <td>方法二</td>
+                                                <td>将所有小于最高限价的95%且大于最高限价的90%的有效投标报价进行算数平均，将该平均值下浮-1～2%后作为评标基准价。</td>
+                                                <td>${bspm.METHOD_TWO.MEMO}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <!-- 如果能用 --> <sz:if test="${bspm.METHOD_THREE.ADAPTE}">
+                                                        <input id="${bspm.SECTION_INFO.V_BID_SECTION_ID}-METHOD_THREE_NO" name="METHOD_THREE_NO" class="easyui-validatebox" onchange="modifyYaoHaoSelectValue('${bspm.SECTION_INFO.V_BID_SECTION_ID}');" value="${bspm.METHOD_THREE.NO}" data-options="required:true" style="width: 50px;" maxlength="4">
+                                                    </sz:if>
+                                                </td>
+                                                <td>方法三</td>
+                                                <td>将所有小于等于最高限价的90%的有效投标报价进行算数平均，将该平均值下浮-4～-1%后作为评标基准价。</td>
+                                                <td>${bspm.METHOD_THREE.MEMO}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                    <div style="margin-top: 10px;">
+                                        <div style="font-size: 18px; color: #ff7300; font-weight: bold;">抽取结果录入：</div>
+                                        <div style="font-size: 18px; color: #ff7300; font-weight: bold;">
+                                            &nbsp;&nbsp;&nbsp;&nbsp;抽取球号： <select id="${bspm.SECTION_INFO.V_BID_SECTION_ID}-YAOHAO_RESULT" name="YAOHAO_RESULT" style="width: 100px;" onchange="showSelectMethodTipInfo('${bspm.SECTION_INFO.V_BID_SECTION_ID}')">
+                                                <option value="">请选择</option>
+                                                <sz:if test="${bspm.METHOD_ONE.NO!=null && bspm.METHOD_ONE.NO!=''}">
+                                                    <option value="${bspm.METHOD_ONE.NO}"
+                                                        <sz:if test="${bspm.METHOD_ONE.NO==bspm.YAOHAO_NO}">selected="selected"</sz:if>
+                                                        >${bspm.METHOD_ONE.NO}
+                                                    </option>
+                                                </sz:if>
+                                                <sz:if test="${bspm.METHOD_TWO.NO!=null && bspm.METHOD_TWO.NO!=''}">
+                                                    <option value="${bspm.METHOD_TWO.NO}"
+                                                        <sz:if test="${bspm.METHOD_TWO.NO==bspm.YAOHAO_NO}">selected="selected"</sz:if>
+                                                        >${bspm.METHOD_TWO.NO}
+                                                    </option>
+                                                </sz:if>
+                                                <sz:if test="${bspm.METHOD_THREE.NO!=null && bspm.METHOD_THREE.NO!=''}">
+                                                    <option value="${bspm.METHOD_THREE.NO}"
+                                                        <sz:if test="${bspm.METHOD_THREE.NO==bspm.YAOHAO_NO}">selected="selected"</sz:if>
+                                                        >${bspm.METHOD_THREE.NO}
+                                                    </option>
+                                                </sz:if>
+                                            </select>
+                                        </div>
+                                        <div style="font-size: 18px; color: #ff7300; font-weight: bold;">
+                                            &nbsp;&nbsp;&nbsp;&nbsp;本标段所使用的基准价计算方法为：<span id="${bspm.SECTION_INFO.V_BID_SECTION_ID}-METHOD_TIP" style="font-size: 18px; color: #ff7300; font-weight: bold;">${bspm.YAOHAO_RESULT}</span>
+                                        </div>
+                                    </div>
+                                </form>
+                            </sz:if>
+                            <!-- 可使用方法个数等于1家的情况 -->
+                            <sz:if test="${bspm.ONLY_ONE}">
+                                <table class="sztable" width="100%" style="text-align: center; margin-top: 10px;">
+                                    <thead>
+                                        <tr>
+                                            <td width="10%">计算基准价方法名</td>
+                                            <td width="60%">说明</td>
+                                            <td width="30%">备注</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>方法一</td>
+                                            <td>将所有大于等于最高限价的95%的有效投标报价进行算数平均，再将该平均值下浮2～5%后作为评标基准价。</td>
+                                            <td>${bspm.METHOD_ONE.MEMO}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>方法二</td>
+                                            <td>将所有小于最高限价的95%且大于最高限价的90%的有效投标报价进行算数平均，将该平均值下浮-1～2%后作为评标基准价。</td>
+                                            <td>${bspm.METHOD_TWO.MEMO}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>方法三</td>
+                                            <td>将所有小于等于最高限价的90%的有效投标报价进行算数平均，将该平均值下浮-4～-1%后作为评标基准价。</td>
+                                            <td>${bspm.METHOD_THREE.MEMO}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <div style="margin-top: 10px;">
+                                    <div style="font-size: 18px; color: #ff7300; font-weight: bold;">
+                                        &nbsp;&nbsp;&nbsp;&nbsp;本标段所使用的基准价计算方法为：
+                                        <sz:if test="${bspm.METHOD_ONE.ADAPTE}">方法一（本标段只符合方法一）</sz:if>
+                                        <sz:if test="${bspm.METHOD_TWO.ADAPTE}">方法二（本标段只符合方法二）</sz:if>
+                                        <sz:if test="${bspm.METHOD_THREE.ADAPTE}">方法三（本标段只符合方法三）</sz:if>
+                                    </div>
+                                </div>
+                            </sz:if>
+
+                        </sz:if>
+
+                        <sz:if test="${bspm.IS_LESS_THAN_FIFTEEN}">
+                            <!-- 小于15家的方法 -->
+                            <table class="sztable" width="100%" style="text-align: center;">
+                                <thead>
+                                    <tr>
+                                        <td width="20%">计算基准价方法名</td>
+                                        <td width="55%">说明</td>
+                                        <td width="25%">备注</td>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>有效投标价家数小于15家算法</td>
+                                        <td>a)&nbsp;&nbsp;大于等于最高限价的95%，再将该平均值下浮2～5%后作为评标基准价。<br /> b)&nbsp;&nbsp;小于最高限价的95%且大于最高限价的90%，将该平均值下浮-1～2%后作为评标基准价。<br /> c)&nbsp;&nbsp;小于等于最高限价的90%，将该平均值下浮-4～-1%后作为评标基准价。
+                                        </td>
+                                        <td>${bspm.COEFFICIENT_INFO.MEMO}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </sz:if>
+                    </div>
+                    <div style="width: 100%; height: 10px;"></div>
+                </sz:forEach>
+
+            </div>
+        </sz:forEach>
+    </div>
+
+
+    <script type="text/javascript">
+                    //初始化
+                    $(function() {
+                        getConfirmStatus();
+                    });
+                    //获取确认状态值
+                    function getConfirmStatus() {
+                        $.ajax({
+                            async : true,
+                            cache : false,
+                            type : 'get',
+                            dataType : "json",
+                            //data : data,
+                            url : "${path}${adminPath}/bus/modelCheck/status/DEXF_BSPM_YAOHAO",//请求的action路径  
+                            error : function(XMLHttpRequest, textStatus, errorThrown) {//请求失败处理函数  
+                                var result = jQuery.parseJSON(XMLHttpRequest.responseText);
+                                $.messager.alert('异步获取数据出现异常', "异步获取数据出现异常[" + result.errorDesc + "]");
+                            },
+                            success : function(rs) { //请求成功后处理函数。 
+                                //没确人过
+                                if (!rs.success) {
+                                    return;
+                                }
+                                var result = rs.result;
+                                //未确认
+                                if (rs.success && result.V_STATUS == '0') {
+                                    return;
+                                }
+                                $("#data-staging-save-button").hide();
+                                $("#data-save-button").hide();
+                                var endTime = result.N_CONFIRM_TIME;
+                                var beginTime = result.NOW_TIME;
+                                var _date = new Date(endTime);
+                                showTime(_date.format('hh:mm:ss'));
+                                countDown(beginTime, endTime);
+                            }
+                        });
+                    }
+                    /**修改标段摇号下拉框值**/
+                    function modifyYaoHaoSelectValue(sid) {
+                        var methodOneNO = $("#" + sid + "-METHOD_ONE_NO").val();
+                        var methodTwoNO = $("#" + sid + "-METHOD_TWO_NO").val();
+                        var methodThreeNO = $("#" + sid + "-METHOD_THREE_NO").val();
+                        var html = '<option value="">请选择</option>';
+                        if (typeof (methodOneNO) != "undefined" && null != methodOneNO && "" != methodOneNO) {
+                            html += '<option value="'+methodOneNO+'">' + methodOneNO + '</option>';
+                        }
+                        if (typeof (methodTwoNO) != "undefined" && null != methodTwoNO && "" != methodTwoNO) {
+                            html += '<option value="'+methodTwoNO+'">' + methodTwoNO + '</option>';
+                        }
+                        if (typeof (methodThreeNO) != "undefined" && null != methodThreeNO && "" != methodThreeNO) {
+                            html += '<option value="'+methodThreeNO+'">' + methodThreeNO + '</option>';
+                        }
+                        $("#" + sid + "-YAOHAO_RESULT").html(html);
+                    }
+
+                    /**显示所选方法提示**/
+                    function showSelectMethodTipInfo(sid) {
+                        var rs = $("#" + sid + "-YAOHAO_RESULT").val();
+                        var methodOneNO = $("#" + sid + "-METHOD_ONE_NO").val();
+                        var methodTwoNO = $("#" + sid + "-METHOD_TWO_NO").val();
+                        var methodThreeNO = $("#" + sid + "-METHOD_THREE_NO").val();
+                        var html = '';
+                        if (rs == methodOneNO) {
+                            html += '方法一';
+                        } else if (rs == methodTwoNO) {
+                            html += '方法二';
+                        } else if (rs == methodThreeNO) {
+                            html += '方法三';
+                        } else {
+                            html += '';
+                        }
+                        $("#" + sid + "-METHOD_TIP").html(html);
+                    }
+
+                    /**暂存**/
+                    function doStagingSave() {
+                        var sections = new Array();
+                        var validate = true;
+                        $("form").each(function() {
+                            var param = $(this).form2json({
+                                allowEmptySingleVal : false
+                            });
+							if(param['METHOD_ONE_NO']==param['METHOD_TWO_NO']&&typeof(param['METHOD_ONE_NO'])!="undefined"){
+								alert("标段："+param['V_BID_SECTION_NAME']+"出现重复球号"+param['METHOD_ONE_NO'])
+								validate = false;
+								return;
+							}
+                            if(param['METHOD_ONE_NO']==param['METHOD_THREE_NO']&&typeof(param['METHOD_ONE_NO'])!="undefined"){
+								alert("标段："+param['V_BID_SECTION_NAME']+"出现重复球号"+param['METHOD_ONE_NO'])
+								validate = false;
+								return;
+							}
+                            if(param['METHOD_THREE_NO']==param['METHOD_TWO_NO']&&typeof(param['METHOD_THREE_NO'])!="undefined"){
+								alert("标段："+param['V_BID_SECTION_NAME']+"出现重复球号"+param['METHOD_TWO_NO'])
+								validate = false;
+								return;
+							}
+                            
+                            sections.push(param);
+                            
+                        });
+                        if (!validate) {
+							return;
+						}
+                        var obj = new Object();
+                        obj.SECTION_METHODS = sections;
+                        // 发生Ajax请求
+                        $.ajax({
+                            url : '${path}${adminPath}/fjs_ptgl_gdyh_hldjfxyf_v1/bspm/${TENDER_PROJECT_FLOW_NODE.ID}',
+                            // 设置请求方法
+                            type : 'POST',
+                            //dataType : S'json',
+                            contentType : 'application/json;charset=UTF-8',
+                            data : JSON.stringify(obj),
+                            // 成功回调
+                            success : function(result) {
+                                parent.sy.progress.hide();
+                                parent.sy.messagerShow({
+                                    msg : "操作成功!",
+                                    title : '提示'
+                                });
+                            },
+                            // 失败回调
+                            error : function(XMLHttpRequest, textStatus, errorThrown) {
+                                parent.sy.progress.hide();
+                                var result = jQuery.parseJSON(XMLHttpRequest.responseText);
+                                top.$.messager.alert('操作失败', "操作失败[" + result.errorDesc + "]");
+                            }
+                        });
+                    }
+
+                    /**保存**/
+                    function doSave() {
+                        var sections = new Array();
+                        var validate = true;
+                        $("form").each(function() {
+                            var param = $(this).form2json({
+                                allowEmptySingleVal : false
+                            });
+                            if(param['METHOD_ONE_NO']==param['METHOD_TWO_NO']&&typeof(param['METHOD_ONE_NO'])!="undefined"){
+								alert("标段："+param['V_BID_SECTION_NAME']+"出现重复球号"+param['METHOD_ONE_NO'])
+								validate = false;
+								return;
+							}
+                            if(param['METHOD_ONE_NO']==param['METHOD_THREE_NO']&&typeof(param['METHOD_ONE_NO'])!="undefined"){
+								alert("标段："+param['V_BID_SECTION_NAME']+"出现重复球号"+param['METHOD_ONE_NO'])
+								validate = false;
+								return;
+							}
+                            if(param['METHOD_THREE_NO']==param['METHOD_TWO_NO']&&typeof(param['METHOD_THREE_NO'])!="undefined"){
+								alert("标段："+param['V_BID_SECTION_NAME']+"出现重复球号"+param['METHOD_TWO_NO'])
+								validate = false;
+								return;
+							}
+                            if (!$(this).form('validate')) {
+                                alert("标段：" + param.V_BID_SECTION_NAME + "-尚有球号未录入!");
+                                validate = false;
+                                return;
+                            }
+                            if (typeof (param.YAOHAO_RESULT) == "undefined" || null == param.YAOHAO_RESULT || "" == param.YAOHAO_RESULT) {
+                                alert("标段：" + param.V_BID_SECTION_NAME + "-抽取球号未录入!");
+                                validate = false;
+                                return;
+                            }
+                            sections.push(param);
+                        });
+                        if (!validate) {
+                            return;
+                        }
+                        //alert(JSON.stringify(sections));
+                        var obj = new Object();
+                        obj.SECTION_METHODS = sections;
+                        // 发生Ajax请求
+                        $.ajax({
+                            url : '${path}${adminPath}/fjs_ptgl_gdyh_hldjfxyf_v1/bspm/${TENDER_PROJECT_FLOW_NODE.ID}',
+                            // 设置请求方法
+                            type : 'POST',
+                            //dataType : 'json',
+                            contentType : 'application/json;charset=UTF-8',
+                            data : JSON.stringify(obj),
+                            // 成功回调
+                            success : function(result) {
+                                dataConfirm();
+                            },
+                            // 失败回调
+                            error : function(XMLHttpRequest, textStatus, errorThrown) {
+                                parent.sy.progress.hide();
+                                var result = jQuery.parseJSON(XMLHttpRequest.responseText);
+                                top.$.messager.alert('操作失败', "操作失败[" + result.errorDesc + "]");
+                            }
+                        });
+                    }
+
+                    //发起确认
+                    function dataConfirm() {
+                        $.ajax({
+                            url : "${path}${adminPath}/bus/modelCheck/updateStatus",
+                            // 设置请求方法
+                            type : "POST",
+                            data : {
+                            	type : "DEXF_BSPM_YAOHAO",
+                    			tableName:"EKB_T_TENDER_LIST"
+                            },
+                            // dataType : 'json',
+                            // contentType : 'application/json;charset=UTF-8',
+                            // 成功回调
+                            success : function(result) {
+                                var html = getTemplateHtml("tip-template");
+                                parent.sendFlowCommandToBidder(html);
+                                location.reload();
+                            },
+                            // 失败回调
+                            error : function(XMLHttpRequest, textStatus, errorThrown) {
+                                var result = jQuery.parseJSON(XMLHttpRequest.responseText);
+                                $.messager.alert('操作失败', "操作失败[" + result.errorDesc + "]");
+                            }
+                        });
+                    }
+
+                    /**获取模板中的Html内容**/
+                    function getTemplateHtml(tempid) {
+                        // 用jquery获取模板
+                        var source = $("#" + tempid).html();
+                        // 预编译模板
+                        var template = Handlebars.compile(source);
+                        return template(new Object());
+                    }
+
+                    //定时器
+                    function countDown(begin, end) {
+                        var startDate = new Date(begin);
+                        var endDate = new Date(end);
+                        //开始时间小于结束时间
+                        if (startDate < endDate) {
+                            //var en
+                            //endDate.setDate(endDate.getDate()+1);
+                            CountDown.openTimeCountByStartAndEndDate({
+                                Ele : document.getElementById('count_down'),
+                                StartDate : startDate,
+                                EndDate : endDate,
+                                Sign : 'flypie',
+                                Divider : ':',
+                                EndFunc : function() {
+                                    //时间结束，自动确认
+                                    endConfirm();
+                                 	//刷新投标人页面
+                            		parent.sendFlowFlushPage();
+                                    location.reload();
+                                }
+                            });
+                        }
+                    }
+
+                    //确认时间
+                    function showTime(_time) {
+                        var endDate = new Date(_time);
+
+                        $("#con-time-zbr").css("display", "block");
+                        $("#time-zbr").html(_time);
+                    }
+
+                    /**结束当前节点**/
+                    function finishCurrentFlow() {
+                    	if(!${alreadyLaunched}){
+                			$.messager.alert('操作提示', "尚未保存抽取结果");
+                			return;
+                		}
+                    	
+                        endConfirm();
+                      	//刷新投标人页面
+                		parent.sendFlowFlushPage();
+                        parent.finishCurrentFlowNode('${TENDER_PROJECT_FLOW_NODE.ID}', '${TENDER_PROJECT_FLOW_NODE.V_NODE_NAME}');
+                        parent.createDoc('ptgl','fjs_ptgl_gdyh_hldjfxyf_v1', 'secondEnvelope,${TENDER_PROJECT_FLOW_NODE.ID}',
+        				'DEXF_BSPM_YAOHAO');
+                    }
+
+                    //结束确认
+                    function endConfirm() {
+                        $.ajax({
+                            url : "${path}${adminPath}/bus/modelCheck/end",
+                            // 设置请求方法
+                            type : "POST",
+                            data : {
+                            	type : "DEXF_BSPM_YAOHAO",
+                    			tableName:"EKB_T_TENDER_LIST"
+                            },
+                            // dataType : 'json',
+                            // contentType : 'application/json;charset=UTF-8',
+                            // 成功回调
+                            success : function(result) {
+                            },
+                            // 失败回调
+                            error : function(XMLHttpRequest, textStatus, errorThrown) {
+                                var result = jQuery.parseJSON(XMLHttpRequest.responseText);
+                                $.messager.alert('操作失败', "操作失败[" + result.errorDesc + "]");
+                            }
+                        });
+                    }
+                </script>
+</body>
+</html>

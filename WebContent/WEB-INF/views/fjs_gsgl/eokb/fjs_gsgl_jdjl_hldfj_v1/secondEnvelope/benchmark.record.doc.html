@@ -1,0 +1,309 @@
+<div>
+    <p style="font-size: 25px; text-align: center; font-weight: bold;">
+        <u style="font-size: 25px; text-align: center; font-weight: bold;">${PROJECT_NAME}</u>（项目名称）评标基准价计算记录表开标记录表
+    </p>
+    <p style="font-size: 18px; text-align: center;">
+        开标时间：<u style="font-size: 18px; text-align: center; font-weight: bold;"> ${TIME}</u>
+    </p>
+</div>
+<!-- 数据 -->
+<div id="table_div">
+    <div class="easyui-tabs" data-options="plain:true">
+        <sz:forEach items="${SECTION_LIST}" var="section,stat">
+            <caption>标段：${section.BID_SECTION_NAME}</caption>
+            <div style="margin-bottom: 10px; color: blue;">
+                <span style="line-height: 18px; font-size: 18px;">评标基准价（元）:&nbsp;&nbsp;${fmt.format("###,##0",section.N_EVALUATION_PRICE)}</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span style="line-height: 18px; font-size: 18px;">最高限价（元）:&nbsp;&nbsp;${fmt.format("###,##0",section.N_CONTROL_PRICE)}</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                <sz:if test="${section.JZJ_INFO!=null}">
+                    <span style="line-height: 18px; font-size: 18px;">下浮系数:&nbsp;&nbsp;${fmt.format("###,##0.00",section.JZJ_INFO.N_DOWN*100)}%</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                         </sz:if>
+            </div>
+            <table class="sztable" width="100%" style="text-align: center;">
+                <tr>
+                    <td width="10%">投标人编号</td>
+                    <td width="30%">投标人名称</td>
+                    <td width="10%">投标报价（元）</td>
+                    <td width="30%">投标人确认</td>
+                </tr>
+                <sz:forEach items="${section.TENDER_LIST}" var="vo,step">
+                    <tr>
+                        <td>${vo.V_BIDDER_NO}</td>
+                        <td>${vo.V_BIDDER_NAME}</td>
+                        <td>${fmt.format(" ###,##0",vo.N_PRICE)}</td>
+                        <td>${vo.V_REMARK!}</td>
+                    </tr>
+                </sz:forEach>
+            </table>
+            <div style="font-size: 16px; font-weight: bold; text-align: center;">当前使用方法${section.METHOD}</div>
+            <p>
+                <span style="font-size: 16px;">${section.REMARK}</span>
+            </p>
+            <!-- 方法一   -->
+            <sz:if test="${section.METHOD==1}">
+                <table class="sztable" width="100%" style="text-align: center;">
+                    <tr>
+                        <td width="5%">投标人编号</td>
+                        <td width="25%">投标人名称</td>
+                        <td width="15%">投标价</td>
+                        <td width="10%">是否有效报价平均值</td>
+                        <td width="10%">进入评标基准价计算的企业</td>
+                        <td width="10%">平均值</td>
+                        <td width="10%">下浮系数</td>
+                        <td width="15%">评标基准价</td>
+                    </tr>
+                    <sz:forEach items="${section.EVALUATION}" var="evaluation,step">
+                        <!-- 第一行 -->
+                        <sz:if test="${step.index == 0}">
+                            <tr>
+                                <td>${evaluation.V_BIDDER_NO}</td>
+                                <td>${evaluation.V_NAME}</td>
+                                <td>${fmt.format("###,##0",evaluation.N_PRICE)}</td>
+                                <td><sz:if test="${evaluation.N_VALID_OFFER==1}">√</sz:if> <sz:if test="${evaluation.N_VALID_OFFER!=1}">&nbsp;</sz:if></td>
+                                <td><sz:if test="${evaluation.N_VALID_GRADE==1}">√</sz:if> <sz:if test="${evaluation.N_VALID_GRADE!=1}">&nbsp;</sz:if></td>
+                                <td rowspan="${step.count}">${fmt.format("###,##0",evaluation.N_AVG)}</td>
+                                <td rowspan="${step.count}">${evaluation.N_DOWN}</td>
+                                <td rowspan="${step.count}">${fmt.format("###,##0",evaluation.N_EVALUATION_PRICE)}</td>
+                            </tr>
+                        </sz:if>
+                        <sz:if test="${step.index !=0}">
+                            <tr>
+                                <td>${evaluation.V_BIDDER_NO}</td>
+                                <td>${evaluation.V_NAME}</td>
+                                <td>${fmt.format("###,##0",evaluation.N_PRICE)}</td>
+                                <td><sz:if test="${evaluation.N_VALID_OFFER==1}">√</sz:if> <sz:if test="${evaluation.N_VALID_OFFER!=1}">&nbsp;</sz:if></td>
+                                <td><sz:if test="${evaluation.N_VALID_GRADE==1}">√</sz:if> <sz:if test="${evaluation.N_VALID_GRADE!=1}">&nbsp;</sz:if></td>
+                            </tr>
+                        </sz:if>
+                    </sz:forEach>
+                </table>
+            </sz:if>
+
+            <!-- 方法二 -->
+            <sz:if test="${section.METHOD==2}">
+                <table class="sztable" width="100%" style="text-align: center;">
+                    <tr>
+                        <td width="5%">投标人编号</td>
+                        <td width="15%">投标人名称</td>
+                        <td width="10%">投标价</td>
+                        <td width="10%">是否有效报价平均值</td>
+                        <td width="10%">进入评标基准价计算的企业</td>
+                        <td width="10%">平均值</td>
+                        <td width="10%">最高限价权重</td>
+                        <td width="10%">加权平均值</td>
+                        <td width="10%">下浮系数</td>
+                        <td width="10%">评标基准价</td>
+                    </tr>
+                    <sz:forEach items="${section.EVALUATION}" var="evaluation,step">
+                        <!-- 第一行 -->
+                        <sz:if test="${step.index == 0}">
+                            <tr>
+                                <td>${evaluation.V_BIDDER_NO}</td>
+                                <td>${evaluation.V_NAME}</td>
+                                <td>${fmt.format("###,##0",evaluation.N_PRICE)}</td>
+                                <td><sz:if test="${evaluation.N_VALID_OFFER==1}">√</sz:if> <sz:if test="${evaluation.N_VALID_OFFER!=1}">&nbsp;</sz:if></td>
+                                <td><sz:if test="${evaluation.N_VALID_GRADE==1}">√</sz:if> <sz:if test="${evaluation.N_VALID_GRADE!=1}">&nbsp;</sz:if></td>
+                                <td rowspan="${step.count}">${fmt.format("###,##0",evaluation.N_AVG)}</td>
+                                <td rowspan="${step.count}">${evaluation.N_CONTROL_WEIGHT}</td>
+                                <td rowspan="${step.count}">${fmt.format("###,##0",evaluation.N_WEIGHTING_AVG)}</td>
+                                <td rowspan="${step.count}">${evaluation.N_DOWN}</td>
+                                <td rowspan="${step.count}">${fmt.format("###,##0",evaluation.N_EVALUATION_PRICE)}</td>
+                            </tr>
+                        </sz:if>
+                        <sz:if test="${step.index !=0}">
+                            <tr>
+                                <td>${evaluation.V_BIDDER_NO}</td>
+                                <td>${evaluation.V_NAME}</td>
+                                <td>${fmt.format("###,##0",evaluation.N_PRICE)}</td>
+                                <td><sz:if test="${evaluation.N_VALID_OFFER==1}">√</sz:if> <sz:if test="${evaluation.N_VALID_OFFER!=1}">&nbsp;</sz:if></td>
+                                <td><sz:if test="${evaluation.N_VALID_GRADE==1}">√</sz:if> <sz:if test="${evaluation.N_VALID_GRADE!=1}">&nbsp;</sz:if></td>
+                            </tr>
+                        </sz:if>
+                    </sz:forEach>
+                </table>
+            </sz:if>
+
+            <!-- 方法三 -->
+            <sz:if test="${section.METHOD==3}">
+                <table class="sztable" width="100%" style="text-align: center;">
+                    <tr>
+                        <td width="5%" rowspan=2>投标人编号</td>
+                        <td width="20%" rowspan=2>投标人名称</td>
+                        <td width="10%" rowspan=2>投标价</td>
+                        <td width="10%" rowspan=2>是否有效报价平均值</td>
+                        <td width="10%" rowspan=2>进入评标基准价计算的企业</td>
+                        <sz:if test="${section.VALIDNUM <=8}">
+                            <td width=30% colspan=3>当被确定进入评标基准价计算的投标价家数≤8家时</td>
+                        </sz:if>
+                        <sz:if test="${section.VALIDNUM >=9 && section.VALIDNUM <=16}">
+                            <td width=20% colspan=2>当被确定进入评标基准价计算的投标价家数≥9家且≤16家时</td>
+                        </sz:if>
+                        <sz:if test="${section.VALIDNUM >16}">
+                            <td width=30% colspan=2>当被确定进入评标基准价计算的投标价家数>16家时</td>
+                        </sz:if>
+                        <td width="10%" rowspan=2>下浮系数</td>
+                        <td width="10%" rowspan=2>评标基准价（元）</td>
+                    </tr>
+                    <tr>
+                        <sz:if test="${section.VALIDNUM <=8}">
+                            <td width="10%">最高报价（G）</td>
+                            <td width="10%">最低报价（D）</td>
+                            <td width="10%">去掉G和D的平均值</td>
+                        </sz:if>
+                        <sz:if test="${section.VALIDNUM >=9 && section.VALIDNUM <=16}">
+                            <td width="10%">抽出百分之70%投标人的投标价总值</td>
+                            <td width="10%">平均值</td>
+                        </sz:if>
+                        <sz:if test="${section.VALIDNUM >16}">
+                            <td width="10%">抽出百分之50%投标人的投标价总值</td>
+                            <td width="10%">平均值</td>
+                        </sz:if>
+                    </tr>
+                    <sz:forEach items="${section.EVALUATION}" var="evaluation,step">
+                        <!-- 第一行 -->
+                        <sz:if test="${step.index == 0}">
+                            <tr>
+                                <td>${evaluation.V_BIDDER_NO}</td>
+                                <td>${evaluation.V_NAME}</td>
+                                <td>${fmt.format("###,##0",evaluation.N_PRICE)}</td>
+                                <td><sz:if test="${evaluation.N_VALID_OFFER==1}">√</sz:if> <sz:if test="${evaluation.N_VALID_OFFER!=1}">&nbsp;</sz:if></td>
+                                <td><sz:if test="${evaluation.N_VALID_GRADE==1}">√</sz:if> <sz:if test="${evaluation.N_VALID_GRADE!=1}">&nbsp;</sz:if></td>
+                                <sz:if test="${section.VALIDNUM <=8}">
+                                    <td rowspan="${step.count}">${fmt.format("###,##0",evaluation.N_MAXPRICE)}</td>
+                                    <td rowspan="${step.count}">${fmt.format("###,##0",evaluation.N_MINPRICE)}</td>
+                                    <td rowspan="${step.count}">${fmt.format("###,##0",evaluation.N_AVGPRICE)}</td>
+                                </sz:if>
+                                <sz:if test="${section.VALIDNUM >=9 && section.VALIDNUM <=16}">
+                                    <td rowspan="${step.count}">${fmt.format("###,##0",evaluation.N_SEVENTY_SUM)}</td>
+                                    <td rowspan="${step.count}">${fmt.format("###,##0",evaluation.N_AVG)}</td>
+                                </sz:if>
+                                <sz:if test="${section.VALIDNUM >16}">
+                                    <td rowspan="${step.count}">${fmt.format("###,##0",evaluation.N_FIFTY_SUM)}</td>
+                                    <td rowspan="${step.count}">$${fmt.format("###,##0",evaluation.N_AVG)}</td>
+                                </sz:if>
+                                <td rowspan="${step.count}">${evaluation.N_DOWN}</td>
+                                <td rowspan="${step.count}">${fmt.format("###,##0",evaluation.N_EVALUATION_PRICE)}</td>
+                            </tr>
+                        </sz:if>
+                        <sz:if test="${step.index !=0}">
+                            <tr>
+                                <td>${evaluation.V_BIDDER_NO}</td>
+                                <td>${evaluation.V_NAME}</td>
+                                <td>${fmt.format("###,##0",evaluation.N_PRICE)}</td>
+                                <td><sz:if test="${evaluation.N_VALID_OFFER==1}">√</sz:if> <sz:if test="${evaluation.N_VALID_OFFER!=1}">&nbsp;</sz:if></td>
+                                <td><sz:if test="${evaluation.N_VALID_GRADE==1}">√</sz:if> <sz:if test="${evaluation.N_VALID_GRADE!=1}">&nbsp;</sz:if></td>
+                            </tr>
+                        </sz:if>
+                    </sz:forEach>
+                </table>
+            </sz:if>
+
+            <!-- 方法四-->
+            <sz:if test="${section.METHOD==4}">
+                <table class="sztable" width="100%" style="text-align: center;">
+                    <tr>
+                        <td width="5%" rowspan=2>投标人编号</td>
+                        <td width="20%" rowspan=2>投标人名称</td>
+                        <td width="10%" rowspan=2>投标价</td>
+                        <td width="10%" rowspan=2>是否有效报价平均值</td>
+                        <td width="10%" rowspan=2>进入评标基准价计算的企业</td>
+                        <sz:if test="${section.VALIDNUM <=10}">
+                            <td width=30% colspan=3>当被确定进入评标基准价计算的投标价家数≤10家时</td>
+                        </sz:if>
+                        <sz:if test="${section.VALIDNUM >10}">
+                            <td width=30% colspan=2>当被确定进入评标基准价计算的投标价家数>10家时</td>
+                        </sz:if>
+                        <td width="10%" rowspan=2>下浮系数</td>
+                        <td width="10%" rowspan=2>评标基准价（元）</td>
+                    </tr>
+                    <tr>
+                        <sz:if test="${section.VALIDNUM <=10}">
+                            <td width="10%">最高报价（G）</td>
+                            <td width="10%">最低报价（D）</td>
+                            <td width="10%">去掉G和D的平均值</td>
+                        </sz:if>
+                        <sz:if test="${section.VALIDNUM >10}">
+                            <td width="10%">取中间8个投标价的总值</td>
+                            <td width="10%">平均值</td>
+                        </sz:if>
+                    </tr>
+                    <sz:forEach items="${section.EVALUATION}" var="evaluation,step">
+                        <!-- 第一行 -->
+                        <sz:if test="${step.index == 0}">
+                            <tr>
+                                <td>${evaluation.V_BIDDER_NO}</td>
+                                <td>${evaluation.V_NAME}</td>
+                                <td>${fmt.format("###,##0",evaluation.N_PRICE)}</td>
+                                <td><sz:if test="${evaluation.N_VALID_OFFER==1}">√</sz:if> <sz:if test="${evaluation.N_VALID_OFFER!=1}">&nbsp;</sz:if></td>
+                                <td><sz:if test="${evaluation.N_VALID_GRADE==1}">√</sz:if> <sz:if test="${evaluation.N_VALID_GRADE!=1}">&nbsp;</sz:if></td>
+                                <sz:if test="${section.VALIDNUM <=10}">
+                                    <td rowspan="${step.count}">${fmt.format("###,##0",evaluation.N_MAXPRICE)}</td>
+                                    <td rowspan="${step.count}">${fmt.format("###,##0",evaluation.N_MINPRICE)}</td>
+                                    <td rowspan="${step.count}">${fmt.format("###,##0",evaluation.N_AVG)}</td>
+                                </sz:if>
+                                <sz:if test="${section.VALIDNUM >10}">
+                                    <td rowspan="${step.count}">${fmt.format("###,##0",evaluation.N_EIGHT_PRICE)}</td>
+                                    <td rowspan="${step.count}">${fmt.format("###,##0",evaluation.N_AVG)}</td>
+                                </sz:if>
+                                <td rowspan="${step.count}">${evaluation.N_DOWN}</td>
+                                <td rowspan="${step.count}">${fmt.format("###,##0",evaluation.N_EVALUATION_PRICE)}</td>
+                            </tr>
+                        </sz:if>
+                        <sz:if test="${step.index !=0}">
+                            <tr>
+                                <td>${evaluation.V_BIDDER_NO}</td>
+                                <td>${evaluation.V_NAME}</td>
+                                <td>${fmt.format("###,##0",evaluation.N_PRICE)}</td>
+                                <td><sz:if test="${evaluation.N_VALID_OFFER==1}">√</sz:if> <sz:if test="${evaluation.N_VALID_OFFER!=1}">&nbsp;</sz:if></td>
+                                <td><sz:if test="${evaluation.N_VALID_GRADE==1}">√</sz:if> <sz:if test="${evaluation.N_VALID_GRADE!=1}">&nbsp;</sz:if></td>
+                            </tr>
+                        </sz:if>
+                    </sz:forEach>
+                </table>
+            </sz:if>
+
+            <!-- 方法五-->
+            <sz:if test="${section.METHOD==5}">
+                <table class="sztable" width="100%" style="text-align: center;">
+                    <tr>
+                        <td width="5%">投标人编号</td>
+                        <td width="25%">投标人名称</td>
+                        <td width="10%">投标价</td>
+                        <td width="10%">是否有效报价平均值</td>
+                        <td width="10%">进入评标基准价计算的企业</td>
+                        <td width="10%">投标报价平均值</td>
+                        <td width="10%">低于最高限价且高于平均值的投标价的平均值</td>
+                        <td width="10%">下浮系数</td>
+                        <td width="10%">评标基准价（元）</td>
+                    </tr>
+                    <sz:forEach items="${section.EVALUATION}" var="evaluation,step">
+                        <!-- 第一行 -->
+                        <sz:if test="${step.index == 0}">
+                            <tr>
+                                <td>${evaluation.V_BIDDER_NO}</td>
+                                <td>${evaluation.V_NAME}</td>
+                                <td>${fmt.format("###,##0",evaluation.N_PRICE)}</td>
+                                <td><sz:if test="${evaluation.N_VALID_OFFER==1}">√</sz:if> <sz:if test="${evaluation.N_VALID_OFFER!=1}">&nbsp;</sz:if></td>
+                                <td><sz:if test="${evaluation.N_VALID_GRADE==1}">√</sz:if> <sz:if test="${evaluation.N_VALID_GRADE!=1}">&nbsp;</sz:if></td>
+                                <td rowspan="${step.count}">${fmt.format("###,##0",evaluation.N_ALLPRICE_AVG)}</td>
+                                <td rowspan="${step.count}">${fmt.format("###,##0",evaluation.N_DU_PRICE_AVG)}</td>
+                                <td rowspan="${step.count}">${evaluation.N_DOWN}</td>
+                                <td rowspan="${step.count}">${fmt.format("###,##0",evaluation.N_EVALUATION_PRICE)}</td>
+                            </tr>
+                        </sz:if>
+                        <sz:if test="${step.index !=0}">
+                            <tr>
+                                <td>${evaluation.V_BIDDER_NO}</td>
+                                <td>${evaluation.V_NAME}</td>
+                                <td>${fmt.format("###,##0",evaluation.N_PRICE)}</td>
+                                <td><sz:if test="${evaluation.N_VALID_OFFER==1}">√</sz:if> <sz:if test="${evaluation.N_VALID_OFFER!=1}">&nbsp;</sz:if></td>
+                                <td><sz:if test="${evaluation.N_VALID_GRADE==1}">√</sz:if> <sz:if test="${evaluation.N_VALID_GRADE!=1}">&nbsp;</sz:if></td>
+                            </tr>
+                        </sz:if>
+                    </sz:forEach>
+                </table>
+            </sz:if>
+        </sz:forEach>
+    </div>
+</div>
+<div style="font-size: 18px; text-align: center; font-weight: bold; height: 100px; line-height: 100px;">
+    监管：&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;招标人：&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;招标代理：</span>
+</div>

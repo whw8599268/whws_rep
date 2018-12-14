@@ -1,0 +1,265 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<!-- 启用360浏览器的极速模式(webkit) -->
+<meta name="renderer" content="webkit">
+<!-- 避免IE使用兼容模式 -->
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<title>在线会议室</title> <%includeJSP("/static/include/inc.jsp",{}){}%>
+<script src="${path}${adminPath}/view/im/js/swfobject.js" type="text/javascript"></script>
+<script src="${path}${adminPath}/view/im/js/web_socket.js" type="text/javascript"></script>
+<script src="${path}${adminPath}/view/im/js/layer/layer.js" type="text/javascript"></script>
+<script src="${path}${adminPath}/view/im/js/CountDown.min.js" type="text/javascript"></script>
+<script type="text/javascript">
+	//浏览器是否支持
+	var support = true;
+	//是否IE9一下版本
+	var isLteIE9 = false;
+</script>
+<!--[if lte IE 9 ]>
+<script type="text/javascript">
+isLteIE9 = true;
+//flash 路径
+WEB_SOCKET_SWF_LOCATION = "${basePath}/static/websocket/WebSocketMain.swf";
+WEB_SOCKET_DEBUG = true;
+//加载安全策略文件
+WebSocket.loadFlashPolicyFile("${XMLSOCKET_URL}");
+</script>
+<![endif]-->
+<!--[if lt IE 8]>
+<script type="text/javascript">
+support = false;
+</script>
+<![endif]-->
+<link href="${path}${adminPath}/view/im/css/index.im.css" rel="stylesheet" />
+
+<style type="text/css">
+table {
+	border-collapse: collapse;
+	margin: 0 auto;
+	text-align: center;
+}
+
+table td,table th {
+	border: 1px solid #cad9ea;
+	color: #666;
+	height: 30px;
+	word-break: break-all;
+}
+
+table thead th {
+	background-color: #CCE8EB;
+	width: 100px;
+}
+
+table tr:nth-child(odd) {
+	background: #fff;
+}
+
+table tr:nth-child(even) {
+	background: #F5FAFA;
+}
+
+.pass {
+	padding: 1px 5px;
+	background-color: green;
+	color: #FFF;
+	border-radius: 2px;
+	font-size: 16px;
+	font-weight: bold;
+	margin-left: 10px;
+	background-color: #36E56C;
+}
+
+.fail {
+	padding: 1px 5px;
+	height: 32px;
+	background-color: red;
+	color: #FFF;
+	border-radius: 2px;
+	font-size: 16px;
+	font-weight: bold;
+	margin-left: 10px;
+}
+</style>
+
+<script type="text/javascript">
+	function openWSTestView() {
+		window.open("${path}${adminPath}/wstest/view");
+	}
+</script>
+
+</head>
+<body style="overflow: hidden;" oncontextmenu=self.event.returnValue=false onselectstart="return true">
+
+    <table width="100%" class="table">
+        <thead>
+            <tr>
+                <th>项</th>
+                <th>详情</th>
+            </tr>
+        </thead>
+        <tr>
+            <td width="32%">浏览器名称：</td>
+            <td>${BROWSER.NAME}&nbsp;&nbsp;&nbsp;&nbsp;<a href="#" class="easyui-linkbutton" onclick="openWSTestView()">在新的窗口中打开测试</a></td>
+        </tr>
+        <tr>
+            <td>浏览器版本：</td>
+            <td>${BROWSER.VERSION}</td>
+        </tr>
+        <tr>
+            <td>浏览器是否支持开标系统：</td>
+            <td><sz:if test="${BROWSER.SUPPORT_CN}">
+                    <span class="pass">√ 是</span>
+                </sz:if> <sz:if test="${!BROWSER.SUPPORT_CN}">
+                    <span class="fail">× 否</span>
+                </sz:if></td>
+        </tr>
+        <tr>
+            <td>浏览器是否自身支持WS:</td>
+            <td><sz:if test="${BROWSER.SUPPORT_WS_CN}">
+                    <span class="pass">√ 是</span>
+                </sz:if> <sz:if test="${!BROWSER.SUPPORT_WS_CN}">
+                    <span class="fail">× 否</span>
+                </sz:if></td>
+        </tr>
+        <tr>
+            <td>协议：</td>
+            <td>${PROTOCOL}</td>
+        </tr>
+        <tr>
+            <td>测试连接路径：</td>
+            <td>${WEBSOCKET_URL}/wstest;jsessionid=${SESSION_ID}</td>
+        </tr>
+        <tr>
+            <td>XS路径：</td>
+            <td>${XMLSOCKET_URL}</td>
+        </tr>
+        <tr>
+            <td>WS是否正常：</td>
+            <td id="ws-support"></td>
+        </tr>
+        <tr>
+            <td>回路测试：</td>
+            <td id="ws-call-msg"></td>
+        </tr>
+    </table>
+
+    <script type="text/javascript">
+					var webSocket;
+					var currentUser = new Object();
+					currentUser.USER_ID = "${CURRENT_USER.USER_ID}";
+					currentUser.USER_ACCOUNT = "${CURRENT_USER.USER_ACCOUNT}";
+					currentUser.V_NAME = "${CURRENT_USER.V_NAME!}";
+					$(document).ready(function(e) {
+						openSocket();
+					});
+
+					function openSocket() {
+						//var ieVersion = getIEVersion();
+						if (!support) {
+							$("#ws-support")
+									.html(
+											"<span class='fail'>您的IE浏览器版本太低,请使用IE8及以上版本的IE浏览器!</span>");
+							return;
+						}
+						if (typeof WebSocket == "undefined") {
+							$("#ws-support")
+									.html(
+											"<span class='fail'>请使用10.0.0版本以上的 Adobe Flash Player! 或者使用IE10以上的浏览器!</span>");
+							return;
+						}
+						//开启连接
+						connection();
+					}
+
+					var sendCount = 0;
+
+					function sendMsg() {
+						if (sendCount >= 10) {
+							clearInterval(timer);
+							$("#ws-call-msg")
+									.append(
+											"<span style='color:#006400;font-weight:bold;'>回路正常</span><br/>");
+							return;
+						}
+						webSocket.send("消息回路测试-" + sendCount
+								+ "&nbsp;&nbsp;&nbsp;&nbsp;");
+						sendCount++;
+					}
+					var timer = null;
+
+					/**连接次数**/
+					var connWSTimes = 0;
+					//是否已经连接
+					var isConnected = false;
+					/**连接**/
+					function connection() {
+						if (webSocket !== undefined
+								&& webSocket.readyState !== WebSocket.CLOSED
+								|| isConnected) {
+							$("#ws-call-msg").append(
+									"WebSocket is already opened.<br/>");
+							connWSTimes = 1;
+							isConnected = true;
+							return;
+						}
+						//如果小于等于IE9
+						if (isLteIE9) {
+							//加载安全策略文件
+							WebSocket.loadFlashPolicyFile("${XMLSOCKET_URL}");
+						}
+						webSocket = new WebSocket(
+								"${WEBSOCKET_URL}/wstest;jsessionid=${SESSION_ID}");
+						//打开事件
+						webSocket.onopen = function(event) {
+							connWSTimes = 1;
+							isConnected = true;
+							timer = setInterval("sendMsg()", 1000);
+						};
+
+						//接收消息事件
+						webSocket.onmessage = function(event) {
+							$("#ws-call-msg").append(
+									"<span style='color:#006400;font-weight:bold;'>"
+											+ event.data + "</span><br/>");
+							$("#ws-support").html(
+									"<span class='pass'>√正常</span>");
+						};
+
+						//关闭事件
+						webSocket.onclose = function(event) {
+							$("#ws-call-msg")
+									.append(
+											"<span style='color:#F08080;font-weight:bold;'>连接断开!</span><br/>");
+							isConnected = false;
+							//如果重连次数超过10次
+							if (connWSTimes > 10) {
+								connWSTimes = 999;
+								$("#ws-support").html(
+										"<span class='fail'>×连接异常</span>");
+								$("#ws-call-msg")
+										.append(
+												"<span style='color:#DC143C;font-weight:bold;'>会话创建失败!</span><br/>");
+								return;
+							}
+							//否则发起重新连接,最多重连10次
+							//开启一个加载层
+							layer.load(2, {
+								time : connWSTimes * 1000,
+								//结束回调
+								end : function(layero, index) {
+									$("#ws-call-msg").append(
+											"<span style='color:#FF8C00;font-weight:bold;'>第"
+													+ (connWSTimes + 1)
+													+ "次，重新连接!</span><br/>");
+									connection();
+								}
+							});
+						};
+						connWSTimes++;
+					}
+				</script>
+</body>
+</html>

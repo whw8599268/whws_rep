@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>现场摇号确定下浮系数K</title> <%includeJSP("/static/include/inc.jsp",{}){}%>
+<link href="${path}/static/css/table.css" rel="stylesheet" />
+<style>
+html,body {
+	height: 100%;
+	padding: 0;
+	margin: 0;
+}
+
+td {
+	border: 1px solid #B5D6E6;
+}
+</style>
+</head>
+<body>
+    <sz:if test="${TENDER_PROJECT_FLOW_NODE.N_STATUS! !=3}">
+        <div style="text-align: right;">
+            <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-ok'" title="结束下浮系数球号抽取，进入下一个环节" onclick="finishCurrentFlow();">进入下一环节</a>
+        </div>
+    </sz:if>
+    <div class="easyui-tabs" data-options="plain:true">
+        <sz:forEach items="${TENDER_PROJECT_LC_LIST}" var="lc,stat">
+            <div title="标段：${lc.SECTION_INFO.V_BID_SECTION_NAME}" style="padding: 10px;">
+                <p style="width: 20%; margin-left: 10%; font-size: 18px; color: #ff7300; font-weight: bold;">最高限价（元）：${fmt.format("###,##0.00",lc.SECTION_INFO.N_CONTROL_PRICE)}</p>
+                <div>
+                    <div style="width: 20%; float: left; margin-left: 10%;">
+                        <table class="sztable" width="100%" style="text-align: center;">
+                            <thead>
+                                <tr>
+                                    <td width="50%">下浮系数K</td>
+                                    <td width="50%">球号</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <sz:forEach items="${lc.COEFFICIENT_INFO.LIST_VALUS}" var="lv,step">
+                                    <tr>
+                                        <td>${lv.VALUE}</td>
+                                        <td>${lv.NO}</td>
+                                    </tr>
+                                </sz:forEach>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div style="width: 30%; float: left; margin-left: 5%;">
+                        <div style="font-size: 18px; color: #ff7300; font-weight: bold;">投标家数：${lc.BIDDER_NUM}家</div>
+                        <div style="font-size: 18px; color: #ff7300; font-weight: bold;">
+                            计算基准价方法：
+                            <sz:if test="${lc.METHOD == 1}">方法一</sz:if>
+                            <sz:if test="${lc.METHOD == 2}">方法二</sz:if>
+                        </div>
+                        <div style="font-size: 18px; color: #ff7300; font-weight: bold;">抽取球号： ${lc.YAOHAO_NO}</div>
+                        <div style="font-size: 18px; color: #ff7300; font-weight: bold;">
+                            代表系数：<span id="${lc.SECTION_INFO.V_BID_SECTION_ID}-METHOD_TIP" style="font-size: 18px; color: #ff7300; font-weight: bold;">${lc.COEFFCIENT_VALUE}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </sz:forEach>
+    </div>
+    <script type="text/javascript">
+					/**结束当前节点**/
+					function finishCurrentFlow() {
+						parent.finishCurrentFlowNode(
+								'${TENDER_PROJECT_FLOW_NODE.ID!}',
+								'${TENDER_PROJECT_FLOW_NODE.V_NODE_NAME!}');
+						//生成doc文件
+						parent.createDoc('sygc', 'fjs_sygc_gcsg_hldjf_v1',
+								'secondEnvelope', 'DEXF_LOWER_COEFFICIENT');
+					}
+				</script>
+</body>
+</html>

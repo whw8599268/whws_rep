@@ -1,0 +1,58 @@
+<html>
+<head>
+<meta charset="UTF-8">
+<title>现场摇号确定投标报价E值（E1、E2）</title> <%includeJSP("/static/include/inc.jsp",{}){}%>
+<link href="${path}/static/css/table.css" rel="stylesheet" />
+<style>
+html,body {
+	height: 100%;
+	padding: 0;
+	margin: 0;
+}
+
+td {
+	border: 1px solid #B5D6E6;
+}
+</style>
+</head>
+<body>
+    <div class="easyui-tabs" data-options="plain:true">
+        <sz:forEach items="${TENDER_PROJECT_EV_LIST}" var="ev,stat">
+            <div title="标段：${ev.SECTION_INFO.V_BID_SECTION_NAME}" style="padding: 10px;">
+                <table class="sztable" width="100%" style="text-align: center;">
+                    <thead>
+                        <tr>
+                            <td width="5%">序号</td>
+                            <td width="20%">投标人名称</td>
+                            <td width="10%">投标报价（元）</td>
+                            <td width="5%">质量标准</td>
+                            <td width="10%">工期（日历天）</td>
+                            <td width="10%">项目负责人姓名</td>
+                            <td width="10%">证书及编号</td>
+                            <td width="10%">保证金金额（元）</td>
+                        </tr>
+                    </thead>
+                    <sz:forEach items="${ev.BIDDERS}" var="vo,step">
+                        <tr>
+                            <td>${step.index+1}</td>
+                            <td>${vo.V_BIDDER_NAME}</td>
+                            <td>${fmt.format("###,##0.00",vo.N_PRICE)}</td>
+                            <td>${vo.zlmb}</td>
+                            <td>${vo.gongqi}</td>
+                            <td>${vo.tbPmName}</td>
+                            <td>${vo.zsbh}</td>
+                            <td>${vo.bzjje}</td>
+                        </tr>
+                    </sz:forEach>
+                    <tfoot>
+                        <tr>
+                            <td>招标人公布的最高控制价</td>
+                            <td colspan=7>${fmt.format("###,##0.00",ev.SECTION_INFO.N_CONTROL_PRICE)} ${ev.MSG}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </sz:forEach>
+    </div>
+</body>
+</html>

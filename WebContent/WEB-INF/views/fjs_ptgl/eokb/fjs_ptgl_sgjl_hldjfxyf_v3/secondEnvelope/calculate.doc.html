@@ -1,0 +1,57 @@
+
+<div class="easyui-tabs" data-options="plain:true">
+    <sz:forEach items="${TENDER_PROJECT_SECTION_LIST}" var="section,stat">
+        <div title="标段：${section.V_BID_SECTION_NAME}" style="padding: 10px;">
+            <div>
+                <span style="font-size: 18px; color: #ff7300; font-weight: bold;">最高限价（元）：${fmt.format("###,##0.00",section.N_CONTROL_PRICE)}&nbsp;&nbsp; 最低限价（元）:&nbsp;&nbsp;${section.N_CONTROL_MIN_PRICE==null?'无':fmt.format("###,##0.00",section.N_CONTROL_MIN_PRICE)}</span>
+            </div>
+            <table class="sztable" width="100%" style="text-align: center;">
+                <thead>
+                    <tr>
+                        <td width="5%">投标人编号</td>
+                        <td width="15%">投标人名称</td>
+                        <sz:if test="${SessionUtils.getAttribute('IS_APPRAISAL_PRICE_RATE')!='1'}">
+                            <td width="15%">投标报价（元）</td>
+                        </sz:if>
+                        <sz:if test="${SessionUtils.getAttribute('IS_APPRAISAL_PRICE_RATE')=='1'}">
+                            <td width="15%">监理服务费费率</td>
+                        </sz:if>
+                        <td width="5%">是否超过最高限价</td>
+                        <td width="5%">是否低于最低限价</td>
+                        <td width="15%">评标基准价（元）</td>
+                        <td width="20%">备注</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    <sz:forEach items="${section.TENDER_LIST}" var="tender,step">
+                        <!-- 第一行 -->
+                        <sz:if test="${step.index == 0}">
+                            <tr>
+                                <td>${tender.V_BIDDER_NO}</td>
+                                <td>${tender.V_BIDDER_NAME}</td>
+                                <td>${fmt.format("###,##0.00",tender.N_PRICE)}</td>
+                                <td><sz:if test="${section.N_CONTROL_PRICE<tender.N_PRICE}">是</sz:if> <sz:if test="${section.N_CONTROL_PRICE>=tender.N_PRICE}">否</sz:if></td>
+                                <td><sz:if test="${(section.N_CONTROL_MIN_PRICE == null ? 0: section.N_CONTROL_MIN_PRICE)>tender.N_PRICE}">是</sz:if> <sz:if test="${(section.N_CONTROL_MIN_PRICE == null ? 0: section.N_CONTROL_MIN_PRICE)<=tender.N_PRICE}">否</sz:if></td>
+                                <td rowspan="${step.count}">${fmt.format("###,##0",section.N_EVALUATION_PRICE)}</td>
+                                <td rowspan="${step.count}">参与评标基准价计算的有效投标价家数为${section.EFFECTIVE_PRICE_COUNT}家<br /> 超出控制价的投标报价${section.INVALID_PRICE_COUNT}家<br /> 评标价（有效投标价）家数为 ${section.PARTAKE_IN_CALCULATE_COUNT}家
+                                </td>
+                            </tr>
+                        </sz:if>
+                        <!-- 非第一行 -->
+                        <sz:if test="${step.index != 0}">
+                            <tr>
+                                <td>${tender.V_BIDDER_NO}</td>
+                                <td>${tender.V_BIDDER_NAME}</td>
+                                <td>${fmt.format("###,##0.00",tender.N_PRICE)}</td>
+                                <td><sz:if test="${section.N_CONTROL_PRICE<tender.N_PRICE}">是</sz:if> <sz:if test="${section.N_CONTROL_PRICE>=tender.N_PRICE}">否</sz:if></td>
+                                <td><sz:if test="${(section.N_CONTROL_MIN_PRICE == null ? 0: section.N_CONTROL_MIN_PRICE)>tender.N_PRICE}">是</sz:if> <sz:if test="${(section.N_CONTROL_MIN_PRICE == null ? 0: section.N_CONTROL_MIN_PRICE)<=tender.N_PRICE}">否</sz:if></td>
+                            </tr>
+                        </sz:if>
+
+                    </sz:forEach>
+                </tbody>
+            </table>
+            <div style="font-size: 18px; color: #ff7300; font-weight: bold;">注：评标价=财务建议书递交函中监理服务费总额文字报价（未超出招标人设定的控制价上、下限）。</div>
+        </div>
+    </sz:forEach>
+</div>

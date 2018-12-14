@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>出错了</title>
+<%includeJSP("/static/include/inc.jsp",{}){}%>
+<script type="text/javascript">
+	$(function(){
+		var msg = "${errorDesc!}";
+		alert(msg);
+		var user_type = "${user_type!}";
+        top.window.location.href = "${path}${adminPath}/view/auth.sucess.forward.html?user_type="+user_type;
+	});
+</script>
+</head>
+<body>
+
+</body>
+</html>

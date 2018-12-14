@@ -1,0 +1,69 @@
+<div>
+    <p style="font-size: 25px; text-align: center; font-weight: bold;">
+        <u style="font-size: 25px; text-align: center; font-weight: bold;">${PROJECT_NAME}</u>（项目名称）电子摇号后确定的各标段的投标人开标记录表
+    </p>
+    <p style="font-size: 18px; text-align: center;">
+        开标时间：<u style="font-size: 18px; text-align: center; font-weight: bold;"> ${TIME}</u>
+    </p>
+</div>
+<div class="main" style="height: 85%;">
+    <div class="easyui-tabs" data-options="fit:true,plain:true">
+        <sz:forEach items="${SECTION_LIST}" var="section,stat">
+            <table class="sztable" width="100%" style="text-align: center;">
+                <caption>标段组：${section.BID_SECTION_GROUP_CODE}</caption>
+                <tr>
+                    <td width="15%" rowspan='2'>标段</td>
+                    <td width="8%" rowspan='2'>投标人编号</td>
+                    <td width="30%" rowspan='2'>投标人名称</td>
+                    <td width="20%" colspan='3'>投标人信用等级及使用情况</td>
+                    <td width="20%" rowspan='2'>投标人确认</td>
+                </tr>
+                <tr>
+                    <td width="10%">等级</td>
+                    <td width="10%">A级、AA级信用分是否失效</td>
+                    <td width="10%">评标使用的等级</td>
+                </tr>
+                <sz:forEach items="${section.TENDER_LIST}" var="vo,step">
+
+                    <tr>
+                        <!-- 记录数不为空说明要出现列,否则列不出现 -->
+                        <sz:if test="${vo._COUNT!=null}">
+                            <!-- 如果记录数是1 -->
+                            <sz:if test="${vo._COUNT==1}">
+                                <td>${vo.V_BID_SECTION_NAME}</td>
+                            </sz:if>
+                            <!-- 如果记录数大于1 -->
+                            <sz:if test="${vo._COUNT>1}">
+                                <td rowspan="${vo._COUNT}">${vo.V_BID_SECTION_NAME}</td>
+                            </sz:if>
+                        </sz:if>
+
+                        <td>${vo.V_BIDDER_NO}</td>
+                        <td>${vo.V_BIDDER_NAME}</td>
+                        <td>${vo.tbTbrCR}</td>
+                        <sz:if test="${vo.cbIsAEffect=='1'}">
+                            <td>是</td>
+                        </sz:if>
+                        <sz:if test="${vo.cbIsAEffect!='1'}">
+                            <td>否</td>
+                        </sz:if>
+                        <td>${vo.tbRatingsInEvl}</td>
+                        <!-- 已发起确认 -->
+                        <sz:if test="${section.ALREADY_LAUNCHED}">
+                            <!-- 如果为空-->
+                            <sz:if test="${vo.V_STATUS == null}">
+                                <td></td>
+                            </sz:if>
+                            <sz:if test="${vo.V_STATUS != null}">
+                                <td>${vo.V_REMARK!}</td>
+                            </sz:if>
+                        </sz:if>
+                    </tr>
+                </sz:forEach>
+            </table>
+        </sz:forEach>
+    </div>
+</div>
+<div style="font-size: 18px; text-align: center; font-weight: bold; height: 100px; line-height: 100px;">
+    监管：&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;招标人：&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;招标代理：</span>
+</div>

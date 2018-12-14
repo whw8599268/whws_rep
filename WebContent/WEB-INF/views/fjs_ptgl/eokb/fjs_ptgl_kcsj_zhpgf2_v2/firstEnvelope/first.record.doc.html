@@ -1,0 +1,47 @@
+<div style="font-size: 25px; text-align: center; font-weight: bold;">
+    <p style="font-size: 25px; text-align: center; font-weight: bold;">
+        <u style="font-size: 25px; text-align: center; font-weight: bold;">${PROJECT_NAME}</u>（项目名称）勘察设计第一信封
+    </p>
+    <p style="font-size: 25px; text-align: center; font-weight: bold;">第一信封（商务文件）</p>
+    <p style="font-size: 18px; text-align: center;">
+        开标时间<u style="font-size: 18px; text-align: center; font-weight: bold;"> ${TIME}</u>
+    </p>
+</div>
+<div class="easyui-tabs" data-options="plain:true">
+    <sz:forEach items="${SECTION_LIST}" var="section,stat">
+        <caption>标段：${section.BID_SECTION_NAME}</caption>
+        <table class="sztable" width="100%" style="text-align: center;">
+            <thead>
+                <tr>
+                    <td width="5%">序号</td>
+                    <td width="20%">投标人名称</td>
+                    <td width="10%">项目负责人</td>
+                    <td width="5%">是否参加技术文件评审</td>
+                    <td width="30%">不通过原因</td>
+                    <td width="10%">商务文件得分</td>
+                    <td width="20%">备注</td>
+                </tr>
+            </thead>
+            <sz:forEach items="${section.TENDER_LIST}" var="vo,step">
+
+                <tr>
+                    <td>${step.index+1}</td>
+                    <td>${vo.V_BIDNAME}</td>
+                    <td>${vo.tbPeName}</td>
+                    <sz:if test="${vo.V_STATUS == '1'}">
+                        <td>是</td>
+                    </sz:if>
+                    <sz:if test="${vo.V_STATUS != '1'}">
+                        <td><span style="color: red;">是</span></td>
+                    </sz:if>
+                    <td>${vo.V_RESULT}</td>
+                    <td>${vo.N_SCORE_1}</td>
+                    <td>${vo.firstRemark}</td>
+                </tr>
+            </sz:forEach>
+        </table>
+    </sz:forEach>
+</div>
+<div style="font-size: 18px; text-align: center; font-weight: bold;">
+    <p>招标人代表：______记录人：_____ 监标人：____</p>
+</div>

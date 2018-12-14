@@ -1,0 +1,78 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>第一数字信封解密情况一览表</title> <%includeJSP("/static/include/inc.jsp",{}){}%>
+<style>
+td {
+	border: 1px solid #B5D6E6;
+	word-break: break-all;
+}
+</style>
+
+<script type="text/javascript">
+	var code = 'fjs_ptgl_tyb_v1';
+	/**结束当前节点**/
+	function finishCurrentFlow() {
+		parent.finishCurrentFlowNodeNoInteractive(
+				'${TENDER_PROJECT_FLOW_NODE.ID}',
+				'${TENDER_PROJECT_FLOW_NODE.V_NODE_NAME}');
+
+		//生成doc文件
+		parent.createDoc('fjsz', code, 'firstEnvelope', 'firstRecord');
+	}
+
+	// 导出excel投标报价
+	function doSelExcel() {
+		window.open('${path}${adminPath}/' + code + '/firstenvelope/export');
+	}
+
+	// 电子唱标
+	function playSound() {
+		window.open("${path}${adminPath}/bus/sing");
+	}
+</script>
+</head>
+<body>
+    <span id="count_down" style="display: none;"></span>
+    <sz:if test="${SECTION_LIST.~size==0}">
+        <div style="font-size: 25px; text-align: center; color: red;">该项目已流标</div>
+    </sz:if>
+    <sz:if test="${SECTION_LIST.~size>0}">
+        <sz:if test="${TENDER_PROJECT_FLOW_NODE.N_STATUS!=3}">
+            <div style="text-align: right;">
+                <sz:if test="${SessionUtils.getAttribute('SING_STATUS')==1}">
+                    <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-save'" onclick="playSound();">电子唱标</a>
+                </sz:if>
+                <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-save'" onclick="doSelExcel()">导出投标人名单</a><a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-ok'" onclick="finishCurrentFlow();">进入下一环节</a>
+            </div>
+            <div id="box1" style="margin-left: 30px; font-size: 16px; display: inline">${YX_N}</div>
+        </sz:if>
+        <div class="easyui-tabs" data-options="plain:true">
+            <sz:forEach items="${SECTION_LIST}" var="section,stat">
+                <div title="标段：${section.V_BID_SECTION_NAME}" style="padding: 10px;">
+                    <table class="sztable" width="100%" style="text-align: center;">
+                        <thead>
+                            <tr>
+                                <sz:forEach items="${section.TABLETITLE}" var="title,sta">
+                                    <td>${title}</td>
+                                </sz:forEach>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <sz:forEach items="${section.TENDER_LIST}" var="tender,sta">
+                                <tr>
+                                    <sz:forEach items="${tender.TABLECONTENT}" var="content,st">
+                                        <td>${content}</td>
+                                    </sz:forEach>
+                                </tr>
+                            </sz:forEach>
+                        </tbody>
+                    </table>
+                </div>
+            </sz:forEach>
+        </div>
+    </sz:if>
+</body>
+</html>

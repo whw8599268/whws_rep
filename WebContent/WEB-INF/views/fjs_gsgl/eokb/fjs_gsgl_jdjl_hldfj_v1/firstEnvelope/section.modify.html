@@ -1,0 +1,141 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<%includeJSP("/static/include/inc.jsp",{}){}%>
+</head>
+<body>
+    <div style="font-size: 18px;">
+        <p>
+            标段组:<select onchange="querySection(this.value)" id="section_group" style="width: 300px;"></select>
+        </p>
+        <p>
+            标&nbsp;&nbsp;&nbsp;&nbsp;段:<select onchange="queryBidder()" id="section_name" style="width: 300px;"><option>请选择标段</option></select>
+        </p>
+        <p>
+            投标人:<input id="bidder_code" name="bidder_code" class="easyui-combobox" style="width: 300px;" />
+        </p>
+        <div>
+
+
+            <script type="text/javascript">
+													$(function() {
+														queryGroup();
+													})
+
+													function queryGroup() {
+														//动态生成标段组
+														var _option = "<option>请选择标段组</option>";
+														$
+																.ajax({
+																	url : "${path}${adminPath}/fjs_gsgl_jdjl_hldfj_v1/firstenvelope/querySection",
+																	// 设置请求方法
+																	async : false,
+																	cache : false,
+																	type : "GET",
+																	// dataType : 'json',
+																	// contentType : 'application/json;charset=UTF-8',
+																	// 成功回调
+																	success : function(
+																			result) {
+
+																		for ( var i = 0; i < result.length; i++) {
+																			_option = _option
+																					+ '<option>'
+																					+ result[i].V_BID_SECTION_GROUP_CODE
+																					+ '</option>'
+																		}
+																		$(
+																				"#section_group")
+																				.html(
+																						_option);
+																	},
+																	// 失败回调
+																	error : function(
+																			XMLHttpRequest,
+																			textStatus,
+																			errorThrown) {
+																		var result = jQuery
+																				.parseJSON(XMLHttpRequest.responseText);
+																		$.messager
+																				.alert(
+																						'操作失败',
+																						"操作失败["
+																								+ result.errorDesc
+																								+ "]");
+																	}
+																});
+													}
+
+													//获取标段
+													function querySection(
+															_value) {
+														var _option = "<option>请选择标段</option>";
+														$
+																.ajax({
+																	url : "${path}${adminPath}/fjs_gsgl_jdjl_hldfj_v1/firstenvelope/querySection/"
+																			+ _value,
+																	// 设置请求方法
+																	async : false,
+																	cache : false,
+																	type : "GET",
+																	// dataType : 'json',
+																	// contentType : 'application/json;charset=UTF-8',
+																	// 成功回调
+																	success : function(
+																			result) {
+																		for ( var i = 0; i < result.length; i++) {
+																			_option = _option
+																					+ '<option>'
+																					+ result[i].V_BID_SECTION_NAME
+																					+ '</option>'
+																		}
+																		$(
+																				"#section_name")
+																				.html(
+																						_option)
+																	},
+																	// 失败回调
+																	error : function(
+																			XMLHttpRequest,
+																			textStatus,
+																			errorThrown) {
+																		var result = jQuery
+																				.parseJSON(XMLHttpRequest.responseText);
+																		$.messager
+																				.alert(
+																						'操作失败',
+																						"操作失败["
+																								+ result.errorDesc
+																								+ "]");
+																	}
+																});
+													}
+
+													function queryBidder() {
+														var sectionGroup = $(
+																"#section_group")
+																.val();
+														$("#bidder_code")
+																.combobox(
+																		{
+																			url : "${path}${adminPath}/fjs_gsgl_jdjl_hldfj_v1/firstenvelope/queryBidder/"
+																					+ sectionGroup,
+																			panelHeight : 'auto',
+																			valueField : 'V_BIDDER_NO',
+																			textField : 'V_BIDDER_NAME',
+																			editable : true,
+																			mode : 'remote',
+																			onSelect : function(
+																					rec) {
+																				var value = p
+																						.find(
+																								"#bidder_code")
+																						.combobox(
+																								"getValues");
+																			}
+																		});
+													}
+												</script>
+</body>
+</html>

@@ -1,0 +1,42 @@
+
+<script type="text/javascript">
+	//初始化
+	$(function() {
+	});
+
+	/**
+	 * 查询
+	 */
+	function doSearch() {
+		// 使用Form2Json插件处理,同时过滤掉空数据
+		var searchParam = $('#searchForm').form2json({
+			allowEmptySingleVal : false
+		});
+		$('#formGrid').datagrid('load', searchParam);
+	}
+
+	/**
+	 * 清空
+	 */
+	function doClear() {
+		$('#searchForm').form('reset');
+		$('#formGrid').datagrid('load', {});
+	}
+</script>
+<!-- 表格 -->
+<table id="formGrid" style="width: auto; height: auto" class="easyui-datagrid" title="" toolbar="#searchForm-toolbar" rownumbers="true" singleSelect="false" fitColumns="true" fit="true" url="${path}${adminPath}/bus/bp/gbpl" pagination="true" pageList="[50,100,150,200]" pageSize="50" data-options="nowrap:false,method:'get'">
+    <thead>
+        <tr>
+            <!--<th data-options="field:'ID',checkbox:true"></th>-->
+            <th field="V_ENTERPRIS_NAME" align="left" width="50">企业名称</th>
+            <th field="V_BIDDER_NAME" align="left" width="25">联系人名称</th>
+            <th field="V_BIDDER_PHONE" align="left" width="25">联系人电话</th>
+        </tr>
+    </thead>
+</table>
+<!-- 搜索工具栏 -->
+<div id="searchForm-toolbar" style="padding: 5px; height: auto">
+    <form id="searchForm">
+        <label>企业名称</label> <input class="easyui-textbox" style="width: 200px" id="V_ENTERPRIS_NAME" name="V_ENTERPRIS_NAME" type="text"> <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-search'" onclick="doSearch()">搜索</a> <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-clear'" onclick="doClear()">清空搜索条件</a>
+    </form>
+</div>

@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="xms_fjsz_common">
+    <!-- 查询有效标段的K值信息 -->
+    <select id="getKvalue" resultType="string" parameterType="record">
+        <![CDATA[
+            SELECT TD.V_JSON_OBJ
+              FROM EKB_T_TPFN_DATA_INFO TD
+              JOIN EKB_T_SECTION_INFO S ON (TD.V_BUS_ID = S.V_BID_SECTION_ID AND
+                                           S.V_TPID = #{tpid} AND
+                                           S.V_BID_OPEN_STATUS NOT LIKE '10%' AND
+                                           S.V_BID_EVALUATION_STATUS != '10')
+             WHERE TD.V_BUS_FLAG_TYPE = #{type}
+             ORDER BY S.V_BID_SECTION_NAME ASC
+        ]]>
+    </select>
+    <!-- 查询筛选的投标人列表 -->
+    <select id="getSieveList" resultType="record" parameterType="record">
+        <![CDATA[
+            SELECT
+              T.ID,
+              T.V_BIDDER_ORG_CODE AS V_ORG_CODE,
+              T.V_BIDDER_NAME,
+              T.N_ENVELOPE_9,
+              T.V_BIDDER_NO,
+              B.V_DELIVER_TIME
+            FROM EKB_T_TENDER_LIST T
+               JOIN EKB_T_TBIMPORTBIDDING B
+                ON T.V_BIDDER_ORG_CODE = B.V_ORG_CODE
+            WHERE T.V_TPID = #{tpid}
+        ]]>
+        <if test="N_STATUS!=null and N_STATUS!=''">
+            AND T.N_ENVELOPE_9 NOT IN (-1,1)
+        </if>
+            GROUP BY T.V_BIDDER_ORG_CODE
+    </select>
+
+    <!-- 分标段查询投标人 -->
+    <select id="getPreTenderListForJl" resultType="string" parameterType="record">
+        <![CDATA[
+            SELECT T.ID,T.V_BIDDER_NAME,T.V_BIDDER_NO,T.N_CREDITSCORE,T.N_ENVELOPE_9
+            FROM EKB_T_TENDER_LIST T
+            WHERE T.V_TPID = #{tpid}
+            AND   T.N_ENVELOPE_0 = 1
+        ]]>
+        <if test='status=="1"'>
+            AND T.N_ENVELOPE_9 = #{status}
+        </if>
+        <if test='status=="11"'>
+            AND T.N_ENVELOPE_9 IN (0,1,2,3)
+        </if>
+        <if test='status=="2"'>
+            AND T.N_ENVELOPE_9 = #{status}
+        </if>
+        <if test='status=="22"'>
+            AND T.N_ENVELOPE_9 IN (0,2,3)
+        </if>
+        <if test='status=="3"'>
+            AND T.N_ENVELOPE_9 = #{status}
+        </if>
+        <if test='status=="33"'>
+            AND T.N_ENVELOPE_9 IN (0,3)
+        </if>
+        <if test='status=="4"'>
+            AND T.N_ENVELOPE_9 IN (1,2,3)
+        </if>
+        <if test="bidderNo!=null and bidderNo!=''">
+            AND T.V_BIDDER_NO = #{bidderNo}
+        </if>
+        ORDER BY T.N_CREDITSCORE DESC,T.V_BIDDER_NO
+    </select>
+
+    <!-- 获取投标人以及投递信息 -->
+    <select id="getBidderBiddingInfo" resultType="record" parameterType="record">
+        <![CDATA[
+        SELECT 
+          T.V_BIDDER_NAME,
+          T.V_BIDDER_NO,
+          T.N_CREDITSCORE,
+          T.V_JSON_OBJ,
+          B.V_DELIVER_TIME 
+        FROM
+          ekb_t_tender_list T 
+          LEFT JOIN ekb_t_tbimportbidding B 
+            ON (
+              (T.V_BIDDER_ORG_CODE = B.V_ORG_CODE 
+                  OR T.V_UNIFY_CODE = B.V_UNIFY_CODE)
+                  AND T.V_tpid = b.V_tpid
+            ) 
+        WHERE T.V_TPID = #{tpid}
+        LIMIT ${begin},${size}
+        ]]>
+    </select>
+    <!-- 获取投标人以及投递时间信息 -->
+    <select id="getBidderBiddingTimeInfo" resultType="record" parameterType="record">
+        <![CDATA[
+        SELECT 
+          T.V_BIDDER_NAME,
+          T.V_BIDDER_NO,
+          T.N_CREDITSCORE,
+          T.V_JSON_OBJ,
+          B.V_DELIVER_TIME 
+        FROM
+          ekb_t_tender_list T 
+          LEFT JOIN ekb_t_tbimportbidding B 
+            ON (
+              (T.V_BIDDER_ORG_CODE = B.V_ORG_CODE 
+                  OR T.V_UNIFY_CODE = B.V_UNIFY_CODE)
+                  AND T.V_tpid = b.V_tpid
+            ) 
+        WHERE T.V_TPID = #{tpid}
+        ]]>
+    </select>
+
+    <!-- 获取投标人以及球号信息 -->
+    <select id="getBidderNoInfo" resultType="record" parameterType="record">
+        <![CDATA[
+        SELECT 
+          T.ID,
+          T.V_BIDDER_NAME,
+          T.V_JSON_OBJ,
+          GROUP_CONCAT(
+            B.V_BIDDER_NO 
+            ORDER BY B.N_CREATE_TIME SEPARATOR ','
+          ) AS BIDDERS 
+        FROM    
+          EKB_T_TENDER_LIST T 
+          LEFT JOIN 
+            EKB_T_BIDDER_NO B
+            ON (T.ID = B.V_BIDDER_ID) 
+        WHERE T.V_TPID = #{tpid}
+        AND T.N_ENVELOPE_0=1
+        GROUP BY T.ID
+        ORDER BY N_SORT_FILE_BID
+        ]]>
+    </select>
+
+    <!-- 获取投标人mac和cpu序列号信息 -->
+    <select id="getBidderMacInfo" resultType="record" parameterType="record">
+        <![CDATA[
+        SELECT 
+          T.V_BIDDER_NAME,
+          T.V_BIDDER_NO,
+          T.V_BIDDER_ORG_CODE,
+          B.V_FILEADDR,
+          B.V_MAC,
+          B.V_DELIVER_TIME,
+          B.V_CPUID,
+          B.V_DISKID,
+          B.V_JSON_OBJ
+        FROM
+          EKB_T_TENDER_LIST T 
+          LEFT JOIN EKB_T_TBIMPORTBIDDING B 
+            ON ((T.V_BIDDER_ORG_CODE = B.V_ORG_CODE OR T.V_UNIFY_CODE = B.V_UNIFY_CODE) AND T.V_TPID=B.V_TPID)
+        WHERE T.V_TPID = #{tpid}
+        ORDER BY T.V_BIDDER_NO
+        ]]>
+    </select>
+</mapper>  

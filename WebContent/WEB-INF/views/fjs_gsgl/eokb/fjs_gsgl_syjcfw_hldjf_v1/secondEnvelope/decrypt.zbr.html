@@ -1,0 +1,283 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>第二数字信封解密结果</title> <%includeJSP("/static/include/inc.jsp",{}){}%>
+<link href="${path}/static/css/table.css" rel="stylesheet" />
+<script src="${path}${adminPath}/view/im/js/CountDown.js" type="text/javascript"></script>
+<style>
+td {
+	border: 1px solid #B5D6E6;
+	word-break: break-all;
+}
+</style>
+<script src="${path}${adminPath}/view/metting_room/js/handlebars-v4.0.10.js" type="text/javascript"></script>
+<script id="tip-template" type="text/x-handlebars-template">
+<div class="xtgg_div">
+	<p class="xtgg_p">推送时间：#{date}</p>
+    <p class="xtgg_p">[${TENDER_PROJECT_FLOW_NODE.V_NODE_NAME}]进入数据确认环节!</p>
+    <p class="xtgg_p">请各投标人进入[${TENDER_PROJECT_FLOW_NODE.V_NODE_NAME}]环节!</p>
+    <p class="xtgg_p"><a style="color:#fff;" href="javascript:void(0);" onclick="openContentPage('${path}${adminPath}/tpflow/node/${TENDER_PROJECT_FLOW_NODE.ID}','${TENDER_PROJECT_FLOW_NODE.V_NODE_NAME}')">点击进入</a></p>
+</div>
+</script>
+<script type="text/javascript">
+    var modelType = "DEXF_offer";
+    var theme = "gsgl";
+    var projectCode = "fjs_gsgl_syjcfw_hldjf_v1"
+    var envelope = "secondEnvelope";
+	$(function() {
+		getConfirmStatus();
+	});
+
+	//确认时间
+	function showTime(_time) {
+		$("#con-time-zbr").css("display", "block");
+		$("#time-zbr").html(_time);
+	}
+
+	//获取确认状态值
+	function getConfirmStatus() {
+		$.ajax({
+			async : true,
+			cache : false,
+			type : 'get',
+			dataType : "json",
+			//data : data,
+			url : "${path}${adminPath}/bus/modelCheck/status/"+modelType,//请求的action路径  
+			error : function(XMLHttpRequest, textStatus, errorThrown) {//请求失败处理函数  
+				var result = jQuery.parseJSON(XMLHttpRequest.responseText);
+				$.messager.alert('异步获取数据出现异常', "异步获取数据出现异常[" + result.errorDesc
+						+ "]");
+			},
+			success : function(rs) { //请求成功后处理函数。 
+				//没确人过
+				if (!rs.success) {
+					return;
+				}
+				var result = rs.result;
+				//未确认
+				if (rs.success && result.V_STATUS == '0') {
+					return;
+				}
+				$("#first-envelope-data-confirm-button").hide();
+				var endTime = result.N_CONFIRM_TIME;
+				var beginTime = result.NOW_TIME;
+				var _date = new Date(endTime);
+				showTime(_date.format('hh:mm:ss'));
+				countDown(beginTime, endTime);
+			}
+		});
+	}
+
+	//定时器
+	function countDown(begin, end) {
+		var startDate = new Date(begin);
+		var endDate = new Date(end);
+		//开始时间小于结束时间
+		if (startDate < endDate) {
+			//var en
+			//endDate.setDate(endDate.getDate()+1);
+			CountDown.openTimeCountByStartAndEndDate({
+				Ele : document.getElementById('count_down'),
+				StartDate : startDate,
+				EndDate : endDate,
+				Sign : 'flypie',
+				Divider : ':',
+				EndFunc : function() {
+					//刷新投标人页面
+					parent.sendFlowFlushPage();
+					location.reload();
+				}
+			});
+		}
+	}
+
+	/**结束当前节点**/
+	function finishCurrentFlow() {
+		if(!${alreadyLaunched}){
+			$.messager.alert('操作提示', "请您先发起确认后再点击进入下一环节");
+			return;
+		}
+		
+		//刷新投标人页面
+		parent.sendFlowFlushPage();
+		//结束确认
+		parent.endConfirm(modelType);
+
+		parent.finishCurrentFlowNode('${TENDER_PROJECT_FLOW_NODE.ID}',
+				'${TENDER_PROJECT_FLOW_NODE.V_NODE_NAME}');
+
+		//生成doc文件
+		parent.createDoc(theme,projectCode, envelope,
+				modelType);
+	}
+
+	//数据确认
+	function dataConfirm() {
+		var minTime=5;
+		parent.layer.prompt({title: '请输入确认分钟数，最低'+minTime+'分钟', formType: 0}, function(time, index){
+			parent.layer.close(index); 
+			var isNum = parent.isPositiveNum(time);
+			  if(!isNum){
+				  parent.layer.alert("请输入整数", {icon: 2});
+				  return;
+			  }
+			  if(time<minTime){
+				  parent.layer.alert('输入的 时间于'+minTime+'分钟', {icon: 2});
+				  return;
+			  }
+			  $
+				.ajax({
+					url : "${path}${adminPath}/bus/modelCheck/updateStatus",
+					// 设置请求方法
+					type : "POST",
+					cache : false,
+					async : false,
+					data : {
+						"type" : modelType,
+						"confirm_time" : time
+					},
+					// dataType : 'json',
+					// contentType : 'application/json;charset=UTF-8',
+					// 成功回调
+					success : function(result) {
+						parent.addNotice("#{date}：第二数字信封解密结果的数据确认环节已开始", '1');
+						var html = getTemplateHtml("tip-template");
+						parent.sendFlowCommandToBidder(html);
+						location.reload();
+					},
+					// 失败回调
+					error : function(XMLHttpRequest, textStatus, errorThrown) {
+						var result = jQuery
+								.parseJSON(XMLHttpRequest.responseText);
+						$.messager.alert('操作失败', "操作失败[" + result.errorDesc
+								+ "]");
+					}
+				});
+			  
+			});
+	}
+	//修改投标价格
+	function modifyPrice(){
+		var _data = [];
+		var tableList = $(".tables table");//获取TABLE个数
+		for (var i=0;i<tableList.length;i++) {
+	    	var tableI=$(".tables table:eq("+i+")");
+	    	var trI=tableI.find("tbody").children("tr").find("input[name=tenlistId]");
+	    	for (var k=0;k<trI.length;k++) {
+	    		var ID = tableI.find("tbody").children("tr").find("input[name=tenlistId]").eq(k).val();
+	    		var PRICE = tableI.find("tbody").children("tr").find("input[name=bidderPrice]").eq(k).val();
+	    		var _obj={"ID":ID,"PRICE":PRICE};
+				_data.push(_obj);
+	    	}
+	    }
+		$.ajax({
+            async : true,
+            cache : false,
+            type : 'post',
+            //dataType : "json",
+            data : {"info":JSON.stringify(_data)},
+            url : "${path}${adminPath}/"+projectCode+"/secondenvelope/modifyPrice",//请求的action路径  
+            error : function(XMLHttpRequest, textStatus, errorThrown) {//请求失败处理函数  
+            	$.messager.progress('close');
+                var result = jQuery.parseJSON(XMLHttpRequest.responseText);
+                $.messager.alert('提示', result.errorDesc);
+            },
+            success : function(result) { //请求成功后处理函数。  
+            	$.messager.progress('close');
+            	$.messager.alert('提示', "修改成功");
+            	parent.reComfirm(modelType);
+            	var html = getTemplateHtml("price-tip-template");
+				parent.sendFlowCommandToBidder(html);
+            	location.reload();
+            }
+        });
+	}
+	
+	/**获取模板中的Html内容**/
+	function getTemplateHtml(tempid) {
+		// 用jquery获取模板
+		var source = $("#" + tempid).html();
+		// 预编译模板
+		var template = Handlebars.compile(source);
+		return template(new Object());
+	}
+</script>
+<script id="price-tip-template" type="text/x-handlebars-template">
+    <div class="xtgg_div">
+        <p class="xtgg_p">推送时间：#{date}</p>
+        <p class="xtgg_p">投标价格已修改</p>
+        <p class="xtgg_p"><a style="color: #fff;" href="javascript:void(0);" onclick="openContentPage('${path}${adminPath}/tpflow/node/${TENDER_PROJECT_FLOW_NODE.ID}','${TENDER_PROJECT_FLOW_NODE.V_NODE_NAME}')">点击查看</a></p>
+    </div>
+</script>
+</head>
+<body>
+    <sz:if test="${TENDER_PROJECT_FLOW_NODE.N_STATUS!=3}">
+        <div style="text-align: right;">
+            <a id="first-envelope-data-confirm-button" href="#" class="easyui-linkbutton" data-options="iconCls:'icon-save'" onclick="dataConfirm()">发起确认</a><a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-edit'" onclick="modifyPrice()">修改投标报价</a> <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-ok'" onclick="finishCurrentFlow();">进入下一环节</a>
+        </div>
+        <div style="font-size: 25px; text-align: center; color: red; display: none;" id="con-time-zbr">
+            投标人会在<span style="font-size: 25px; text-align: center; color: red;" id="time-zbr"></span>时间点前完成信息确认。请点击<a onclick="location.reload();" style="color: blue; text-decoration: underline; cursor: pointer; font-size: 25px">刷新</a><span style="font-size: 25px; text-align: center; color: red;">查看确认情况</span>
+        </div>
+    </sz:if>
+    <span id="count_down" style="display: none;"></span>
+    <!-- 数据 -->
+    <div class="easyui-tabs" data-options="plain:true">
+
+        <sz:forEach items="${SECTION_LIST}" var="section,stat">
+            <div class="tables" title="标段：${section.BID_SECTION_NAME}" style="padding: 10px;">
+                <div style="margin-bottom: 10px; color: blue;">
+                    <span style="line-height: 18px; font-size: 18px;">最高限价（元）:&nbsp;&nbsp;${fmt.format("###,##0",section.N_CONTROL_PRICE)}</span>
+                </div>
+                <table class="sztable" width="100%" style="text-align: center;">
+                    <thead>
+                        <tr>
+                            <td width="5%">序号</td>
+                            <td width="30%">投标人名称</td>
+                            <td width="15%">投标报价（不含暂列金）元</br></>以大写金额为准
+                            </td>
+                            <td width="20%">投标报价（大写）元</td>
+                            <td width="10%">是否超过最高限价</td>
+                            <td width="20%">投标人确认</td>
+                        </tr>
+                    </thead>
+                    <sz:forEach items="${section.TENDER_LIST}" var="vo,step">
+
+                        <tr>
+                            <td>${step.index+1}</td>
+                            <td>${vo.V_BIDDER_NAME}</td>
+                            <sz:if test="${TENDER_PROJECT_FLOW_NODE.N_STATUS!=3}">
+                                <td><input class="easyui-validatebox textbox" name="tenlistId" type="hidden" value="${vo.ID}" /><input name="bidderPrice" value="${fmt.format("###,##0",vo.N_PRICE)}"/></td>
+                            </sz:if>
+                            <sz:if test="${TENDER_PROJECT_FLOW_NODE.N_STATUS==3}">
+                                <td>${fmt.format("###,##0",vo.N_PRICE)}</td>
+                            </sz:if>
+                            <td>${vo.tbbj_CN!}</td>
+                            <sz:if test="${vo.N_PRICE>section.N_CONTROL_PRICE!0}">
+                                <td><span style="color: red;">超过</span></td>
+                            </sz:if>
+                            <sz:if test="${vo.N_PRICE<=section.N_CONTROL_PRICE!0}">
+                                <td>未超过</td>
+                            </sz:if>
+                            <!-- 已发起确认 -->
+                            <sz:if test="${section.ALREADY_LAUNCHED}">
+                                <!-- 如果为空-->
+                                <sz:if test="${vo.V_STATUS == null}">
+                                    <td></td>
+                                </sz:if>
+                                <sz:if test="${vo.V_STATUS != null}">
+                                    <td>${vo.V_REMARK!}</td>
+                                </sz:if>
+                            </sz:if>
+                            <!-- 未发起确认 -->
+                            <sz:if test="${!section.ALREADY_LAUNCHED}">
+                                <td></td>
+                            </sz:if>
+                        </tr>
+                    </sz:forEach>
+                </table>
+            </div>
+        </sz:forEach>
+    </div>
+</body>
+</html>

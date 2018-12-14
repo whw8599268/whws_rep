@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="Mac">
+    <!-- 获取重复的mac信息  -->
+    <select id="getMacInfo" parameterType="string" resultType="record">
+        <![CDATA[
+            SELECT DISTINCT A.*,S.V_BID_SECTION_NAME
+            FROM EKB_T_TBIMPORTBIDDING A
+            LEFT JOIN EKB_T_TENDER_LIST B
+            ON A.V_BID_SECTION_ID = B.V_BID_SECTION_ID
+            AND A.V_ORG_CODE = B.V_BIDDER_ORG_CODE
+            LEFT JOIN EKB_T_SECTION_INFO S
+            ON A.V_BID_SECTION_ID = S.V_BID_SECTION_ID
+            WHERE EXISTS(SELECT
+                             T.V_MAC
+                           FROM (SELECT
+                                   V_ORG_CODE,
+                                   V_MAC
+                                 FROM EKB_T_TBIMPORTBIDDING
+                                 WHERE V_TPID =  #{tpid}
+                                     AND V_BID_SECTION_ID = #{sid}
+                                 GROUP BY V_ORG_CODE,V_MAC
+                                 ORDER BY V_MAC) T WHERE A.V_MAC=T.V_MAC
+                           GROUP BY V_MAC
+                           HAVING COUNT(T.V_MAC) > 1)
+           AND A.V_TPID =  #{tpid} 
+           AND A.V_BID_SECTION_ID = #{sid}
+           AND B.N_ENVELOPE_0 = 1
+           ORDER BY B.V_BIDDER_NO,A.V_FTID,A.V_MAC
+        ]]>
+    </select>
+    
+    <!-- 获取重复的mac信息（标段组）  -->
+    <select id="getMacInfoByGroup" parameterType="string" resultType="record">
+        <![CDATA[
+            SELECT DISTINCT A.*,S.V_BID_SECTION_NAME
+            FROM EKB_T_TBIMPORTBIDDING A
+            LEFT JOIN EKB_T_DECRYPT_INFO B
+            ON A.V_BID_SECTION_ID = B.V_BID_SECTION_ID
+            AND A.V_ORG_CODE = B.V_BIDDER_ORG_CODE
+            LEFT JOIN EKB_T_SECTION_INFO S
+            ON A.V_BID_SECTION_ID = S.V_BID_SECTION_ID
+            WHERE EXISTS(SELECT
+                             T.V_MAC
+                           FROM (SELECT
+                                   V_ORG_CODE,
+                                   V_MAC
+                                 FROM EKB_T_TBIMPORTBIDDING
+                                 WHERE V_TPID =  #{tpid}
+                                     AND V_BID_SECTION_ID = #{sid}
+                                 GROUP BY V_ORG_CODE,V_MAC
+                                 ORDER BY V_MAC) T WHERE A.V_MAC=T.V_MAC
+                           GROUP BY V_MAC
+                           HAVING COUNT(T.V_MAC) > 1)
+           AND A.V_TPID =  #{tpid} 
+           AND A.V_BID_SECTION_ID = #{sid}
+           AND B.N_ENVELOPE_0 = 1
+           ORDER BY B.V_BIDDER_NO,A.V_FTID,A.V_MAC
+        ]]>
+    </select>
+    <!-- 获取MAC地址重复的组织机构号码 -->
+    <select id="getSameMacOrgCode" parameterType="String" resultType="String">
+        <![CDATA[
+            SELECT
+              A.V_ORG_CODE
+            FROM EKB_T_TBIMPORTBIDDING A
+            WHERE EXISTS(SELECT
+                           T.V_MAC
+                         FROM (SELECT
+                                 V_ORG_CODE,
+                                 V_MAC
+                               FROM EKB_T_TBIMPORTBIDDING
+                               WHERE V_TPID = #{tpid}
+                                   AND V_BID_SECTION_ID = #{sid}
+                               GROUP BY V_ORG_CODE,V_MAC
+                               ORDER BY V_MAC) T
+                         WHERE A.V_MAC = T.V_MAC
+                         GROUP BY V_MAC
+                         HAVING COUNT(T.V_MAC) > 1)
+                AND A.V_TPID = #{tpid}
+                AND A.V_BID_SECTION_ID = #{sid}
+        ]]>
+    </select>
+</mapper>  

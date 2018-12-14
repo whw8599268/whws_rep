@@ -1,0 +1,23 @@
+<html>
+<head></head>
+<body>
+    <form id="inputForm" method="post" class="formstyle">
+        <!-- START DYFORM LAYOUT -->
+        <input type="hidden" id="ID" name="ID" value="${ID}" autocomplete="off"> 
+        <input type="hidden" id="V_TPID" name="V_TPID" value="${V_TPID}"  autocomplete="off">
+        <table align="left" width="100%" class="sztable" border="0" cellspacing="0" cellpadding="0">
+            <tbody>
+                <tr>
+                    <td width="30%" class="sztabletext" title="开标室地址">开标室地址：</td>
+                    <td data-label="开标室地址" width="70%"><input type="text" class="easyui-validatebox" id="V_ROOM_AREA" name="V_ROOM_AREA" value="${V_ROOM_AREA!}" data-options="required:true,validType:'length[1,100]'" style="width: 200px;" title="" autocomplete="off"></td>
+                </tr>
+                <tr>
+                    <td width="30%" class="sztabletext" title="开标室名称">开标室名称：</td>
+                    <td data-label="开标室名称" width="70%"><input type="text" class="easyui-validatebox" id="V_ROOM_NAME" name="V_ROOM_NAME" value="${V_ROOM_NAME!}" data-options="required:true,validType:'length[1,100]'" style="width: 200px;" title="" autocomplete="off"></td>
+                </tr>
+            </tbody>
+        </table>
+        <!-- END DYFORM LAYOUT -->
+    </form>
+</body>
+</html>

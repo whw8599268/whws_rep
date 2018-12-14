@@ -1,0 +1,503 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>评标基准价计算记录表</title> <%includeJSP("/static/include/inc.jsp",{}){}%>
+<script src="${path}${adminPath}/view/im/js/CountDown.js" type="text/javascript"></script>
+<link href="${path}/static/css/table.css" rel="stylesheet" />
+<style>
+td {
+	border: 1px solid #B5D6E6;
+	word-break: break-all;
+}
+</style>
+<script src="${path}${adminPath}/view/metting_room/js/handlebars-v4.0.10.js" type="text/javascript"></script>
+<script id="tip-template" type="text/x-handlebars-template">
+<div class="xtgg_div">
+	<p class="xtgg_p">推送时间：#{date}</p> 
+    <p class="xtgg_p">[${TENDER_PROJECT_FLOW_NODE.V_NODE_NAME}]进入数据确认环节!</p>
+    <p class="xtgg_p">请各投标人进入[${TENDER_PROJECT_FLOW_NODE.V_NODE_NAME}]环节!</p>
+    <p class="xtgg_p"><a style="color:#fff;" href="javascript:void(0);" onclick="openContentPage('${path}${adminPath}/tpflow/node/${TENDER_PROJECT_FLOW_NODE.ID}','${TENDER_PROJECT_FLOW_NODE.V_NODE_NAME}')">点击进入</a></p>
+</div>
+</script>
+<script id="pbjzj-jsff-tip-template" type="text/x-handlebars-template">
+    <div id='k' style='font-size: 18px'>
+        <div style='color: blue; text-align: center; font-weight: bold'>评标基准价须知</div>
+        &nbsp;&nbsp;&nbsp;&nbsp;高于最高限价的投标报价为无效报价，其投标文件应予以否决，评标基准价为所有不小于最高限价的85%的评标价的算术平均值。</br>
+        <div style='color: blue; text-align: center; font-weight: bold'>评标基准价计算原则</div>
+        &nbsp;&nbsp;&nbsp;&nbsp;①高于最高限价的投标价为无效投标价，不参与评标基准价计算；低于最高限价的85%的投标价，亦不参与评标基准价计算。
+②在开标现场被当场否决的投标文件，其投标报价不参与评标基准价计算，报价文件不参与评审；若报价文件在评审过程中被否决，但其开标报价不高于最高限价且不低于最高限价的85%的投标报价，仍然参与评标基准价的计算；
+③ 在投标截止期后撤销的投标文件，也应按程序对投标商务、技术文件进行评审，若其通过商务、技术评审，则其投标报价文件在第二次报价文件开标时也应开启；若其投标报价不高于最高限价，也不低于最高限价的85%时，其投标报价仍参与评标基准价计算，但其报价文件不参与评审；
+④ 招标人应在开标现场宣读完投标人的投标报价后，当场计算评标基准价。
+⑤ 如果投标人认为评标基准价计算有误，有权在开标现场提
+出，经监标人当场核实确认后，可重新计算和宣布评标基准价。在开标结束后且在评标结束前若发现计算有误，经评标委员会确认后应予以更正（评标基准价计算原则和已确定的评标基准价计算方法及下浮系数不予更改）。评标结束后若发现计算有误，则不予更正。
+⑥ 评标基准价除按⑤予以更正外，评标基准价和投标报价在整个评标期间保持不变，不随通过报价文件评审的投标人数量、算术性修正发生变化。评标基准价在整个评标期间保持不变，不随通过报价清单符合性审查和详细评审的投标人的数量发生变化。
+    </div>
+</script>
+<script id="comfirm-tip-template" type="text/x-handlebars-template">
+    <div class="xtgg_div">
+		<p class="xtgg_p">推送时间：#{date}</p>
+        <p class="xtgg_p">评标基准价已计算</p>
+        <p class="xtgg_p"><a style="color: #fff;" href="javascript:void(0);" onclick="openContentPage('${path}${adminPath}/tpflow/node/${TENDER_PROJECT_FLOW_NODE.ID}','${TENDER_PROJECT_FLOW_NODE.V_NODE_NAME}')">点击查看</a></p>
+    </div>
+</script>
+<script id="price-tip-template" type="text/x-handlebars-template">
+    <div class="xtgg_div">
+        <p class="xtgg_p">推送时间：#{date}</p>
+        <p class="xtgg_p">投标价格已修改</p>
+        <p class="xtgg_p"><a style="color: #fff;" href="javascript:void(0);" onclick="openContentPage('${path}${adminPath}/tpflow/node/${TENDER_PROJECT_FLOW_NODE.ID}','${TENDER_PROJECT_FLOW_NODE.V_NODE_NAME}')">点击查看</a></p>
+    </div>
+</script>
+<script id="comfirm-modify-tip-template" type="text/x-handlebars-template">
+    <div class="xtgg_div">
+		<p class="xtgg_p">推送时间：#{date}</p>
+        <p class="xtgg_p">评标基准价已修改</p>
+        <p class="xtgg_p"><a style="color: #fff;" href="javascript:void(0);" onclick="openContentPage('${path}${adminPath}/tpflow/node/${TENDER_PROJECT_FLOW_NODE.ID}','${TENDER_PROJECT_FLOW_NODE.V_NODE_NAME}')">点击查看</a></p>
+    </div>
+</script>
+<script type="text/javascript">
+    var modelType = "DEXF_price";
+    var theme = "gsgl";
+    var projectCode = "fjs_gsgl_jdsg_hldjf_v1"
+    var envelope = "secondEnvelope";
+	$(function() {
+		getConfirmStatus();
+	});
+	//确认时间
+	function showTime(_time) {
+		$("#con-time-zbr").css("display", "block");
+		$("#time-zbr").html(_time);
+	}
+
+	//获取确认状态值
+	function getConfirmStatus() {
+		$.ajax({
+			async : true,
+			cache : false,
+			type : 'get',
+			dataType : "json",
+			//data : data,
+			url : "${path}${adminPath}/bus/modelCheck/status/"+modelType,//请求的action路径  
+			error : function(XMLHttpRequest, textStatus, errorThrown) {//请求失败处理函数  
+				var result = jQuery.parseJSON(XMLHttpRequest.responseText);
+				$.messager.alert('异步获取数据出现异常', "异步获取数据出现异常[" + result.errorDesc
+						+ "]");
+			},
+			success : function(rs) { //请求成功后处理函数。 
+				//没确人过
+				if (!rs.success) {
+					return;
+				}
+				var result = rs.result;
+				//未确认
+				if (rs.success && result.V_STATUS == '0') {
+					return;
+				}
+				$("#first-envelope-data-confirm-button").hide();
+				var endTime = result.N_CONFIRM_TIME;
+				var beginTime = result.NOW_TIME;
+				var _date = new Date(endTime);
+				showTime(_date.format('hh:mm:ss'));
+				countDown(beginTime, endTime);
+			}
+		});
+	}
+
+	/**打开评标基准价计算方法说明提示框**/
+	function doOpen() {
+		var html = getTemplateHtml("pbjzj-jsff-tip-template");
+		var p = parent.sy.dialog({
+			title : '评标基准价计算方法说明',
+			width : 950,
+			height : 450,
+			closed : false,
+			cache : false,
+			content: html,
+			modal : true,
+			buttons : [ {
+				text : "开始计算评标基准价",
+				iconCls : "icon-ok",
+				handler : function() {
+					doBasePrice();
+					p.dialog('close');
+				}
+			}, {
+				text : "取消",
+				iconCls : "icon-remove",
+				handler : function() {
+					p.dialog('close');
+				}
+			} ],
+		});
+	}
+	//评标基准价计算
+	function doBasePrice() {
+		$.messager.progress({
+			title : '提示',
+			msg : '评标基准价计算中，请稍候……',
+			text : ''
+		});
+		$
+				.ajax({
+					async : true,
+					cache : false,
+					type : 'get',
+					//dataType : "json",
+					//data : data,
+					url : "${path}${adminPath}/"+projectCode+"/secondenvelope/doBasePrice",//请求的action路径  
+					error : function(XMLHttpRequest, textStatus, errorThrown) {//请求失败处理函数  
+						$.messager.progress('close');
+						var result = jQuery
+								.parseJSON(XMLHttpRequest.responseText);
+						$.messager.alert('异步获取数据出现异常', "异步获取数据出现异常["
+								+ result.errorDesc + "]");
+					},
+					success : function(result) { //请求成功后处理函数。  
+						$.messager.progress('close');
+						$.messager.alert('提示', "评标基准价计算成功");
+						var html = getTemplateHtml("comfirm-tip-template");
+						parent.sendFlowCommandToBidder(html);
+						location.reload();
+					}
+				});
+	}
+	//修改评标基准价
+	function changeBasePrice(obj,price) {
+		if (!${BENCHMARK}) {
+			$.messager.alert('提示', '尚未计算评标基准价');
+			return;
+		}
+		if ('${TENDER_PROJECT_FLOW_NODE.N_STATUS}' == '3') {
+			$.messager.alert('提示', "评标基准价计算环节已结束");
+			return;
+		}
+		var a = obj;
+		var b = $("#" + a + "").val();
+		var c=b.replace(/,/g,"");
+		if(c>=price){
+			$.messager.alert('提示', "您修改的评标基准价超过最高限价，请重新填写！");
+			return;
+		}
+		parent.sy.progress.show();
+		$
+				.ajax({
+					async : true,
+					cache : false,
+					type : 'post',
+					//dataType : "json",
+					data : {
+						"section_id" : a,
+						"eprice" : b
+					},
+					url : "${path}${adminPath}/"+projectCode+"/secondenvelope/changeBasePrice",//请求的action路径  
+					error : function(XMLHttpRequest, textStatus, errorThrown) {//请求失败处理函数  
+						parent.sy.progress.hide();
+						var result = jQuery
+								.parseJSON(XMLHttpRequest.responseText);
+						$.messager.alert('提示', result.errorDesc);
+					},
+					success : function(result) { //请求成功后处理函数。  
+						parent.reComfirm('DYXF_price');
+						parent.sy.progress.hide();
+						$.messager.alert('提示', "评标基准价修改成功");
+						var html = getTemplateHtml("comfirm-modify-tip-template");
+						parent.sendFlowCommandToBidder(html);
+						//getPageContent();
+					}
+				});
+	}
+
+	//基准价方法对话框
+	function methodDialog(obj) {
+		if (!${BENCHMARK}) {
+			$.messager.alert('提示', '尚未计算评标基准价');
+			return;
+		}
+		var p = parent.sy
+				.dialog({
+					title : '&nbsp;基准价方法',
+					// iconCls: "icon-man",
+					href : '${path}${adminPath}/bus/benchmark/record/'+ obj,
+					width : 1200,
+					height : 450,
+					
+				});
+	}
+
+	//按步骤抽取系数计算评标基准价
+	function modifyPriceByStep(sid) {
+		var p = parent.sy
+				.dialog({
+					title : '&nbsp;基准价方法',
+					// iconCls: "icon-man",
+					href : '${path}${adminPath}/view/eokb/bus/benchmark/benchmark.index.html?sid='
+						+ sid,
+					width : 1000,
+					height : 600,
+					onload:function(){
+						
+					}
+				});
+	}
+
+	//定时器
+	function countDown(begin, end) {
+		var startDate = new Date(begin);
+		var endDate = new Date(end);
+		//开始时间小于结束时间
+		if (startDate < endDate) {
+			//var en
+			//endDate.setDate(endDate.getDate()+1);
+			CountDown.openTimeCountByStartAndEndDate({
+				Ele : document.getElementById('count_down'),
+				StartDate : startDate,
+				EndDate : endDate,
+				Sign : 'flypie',
+				Divider : ':',
+				EndFunc : function() {
+					//刷新投标人页面
+					parent.sendFlowFlushPage();
+					location.reload();
+				}
+			});
+		}
+	}
+
+	/**结束当前节点**/
+	function finishCurrentFlow() {
+		if (!${BENCHMARK}) {
+			$.messager.alert('提示', '尚未计算评标基准价');
+			return;
+		}
+		
+		if(!${alreadyLaunched}){
+			$.messager.alert('操作提示', "请您先发起确认后再点击进入下一环节");
+			return;
+		}
+		
+		//结束确认
+		parent.endConfirm(modelType);
+		//结束开标流程
+		finishKBFlow();
+		//刷新投标人页面
+		parent.sendFlowFlushPage();
+		parent.finishFlow('${TENDER_PROJECT_FLOW_NODE.ID}',
+				'${TENDER_PROJECT_FLOW_NODE.V_NODE_NAME}');
+
+		//生成doc文件
+		parent.createDoc(theme,projectCode, envelope,
+				modelType);
+	}
+
+	/**结束开标流程**/
+	function finishKBFlow() {
+		$
+				.ajax({
+					async : false,
+					cache : false,
+					url : "${path}${adminPath}/"+projectCode+"/firstenvelope/firstRs/end",//请求的action路径  
+					// 设置请求方法
+					type : "GET",
+					// dataType : 'json',
+					contentType : 'application/json;charset=UTF-8',
+					// 成功回调
+					success : function(result) {
+					},
+					// 失败回调
+					error : function(XMLHttpRequest, textStatus, errorThrown) {
+						var result = jQuery
+								.parseJSON(XMLHttpRequest.responseText);
+						$.messager.alert('操作失败', "操作失败[" + result.errorDesc
+								+ "]");
+					}
+				});
+
+	}
+
+	/**获取模板中的Html内容**/
+	function getTemplateHtml(tempid) {
+		// 用jquery获取模板
+		var source = $("#" + tempid).html();
+		// 预编译模板
+		var template = Handlebars.compile(source);
+		return template(new Object());
+	}
+
+	//数据确认
+	function dataConfirm() {
+		if (!${BENCHMARK}) {
+			$.messager.alert('提示', '尚未计算评标基准价');
+			return;
+		}
+		var minTime=5;
+		parent.layer.prompt({title: '请输入确认分钟数，最低'+minTime+'分钟', formType: 0}, function(time, index){
+			parent.layer.close(index); 
+			var isNum = parent.isPositiveNum(time);
+			  if(!isNum){
+				  parent.layer.alert("请输入整数", {icon: 2});
+				  return;
+			  }
+			  if(time<minTime){
+				  parent.layer.alert('输入的 时间于'+minTime+'分钟', {icon: 2});
+				  return;
+			  }
+			  $
+				.ajax({
+					url : "${path}${adminPath}/bus/modelCheck/updateStatus",
+					// 设置请求方法
+					type : "POST",
+					cache : false,
+					async : false,
+					data : {
+						"type" : modelType,
+						"confirm_time" : time
+					},
+					// dataType : 'json',
+					// contentType : 'application/json;charset=UTF-8',
+					// 成功回调
+					success : function(result) {
+						parent.addNotice("#{date}：评标基准价记录表的数据确认环节已开始", '1');
+						var html = getTemplateHtml("tip-template");
+						parent.sendFlowCommandToBidder(html);
+						location.reload();
+					},
+					// 失败回调
+					error : function(XMLHttpRequest, textStatus, errorThrown) {
+						var result = jQuery
+								.parseJSON(XMLHttpRequest.responseText);
+						$.messager.alert('操作失败', "操作失败[" + result.errorDesc
+								+ "]");
+					}
+				});
+			  
+			});
+		
+	}
+	//tableName:ekb_t_record_b,ekb_t_record_b
+	//mode:V_ELECTRONICS_CONFIRM....
+	//flag:1:点击确认 2：点击不确认
+	function confirm(busName, status, tpid, id) {
+		if (status == 1) {
+			var remark = "确认";
+			parent.$.messager.confirm("提示", "确认当前信息无误?", function(r) {
+				if (r) {
+					sendAjax(busName, status, tpid, id, remark)
+				}
+			});
+		} else {
+			var p = parent.sy
+					.dialog({
+						title : '不同意说明',
+						width : 300,
+						height : 200,
+						content : "<input id='con-msg'  class='easyui-textbox' type='text' data-options='multiline:true,required:false' style='width: 100%; height: 100%;'/> ",
+						closed : false,
+						cache : false,
+						modal : true,
+						buttons : [
+								{
+									text : "确定",
+									iconCls : "icon-ok",
+									handler : function() {
+										var remark = p.find("#con-msg").val();
+										if (remark.length == 0
+												|| parent.isNull(remark)) {
+											alert("请输入不同意理由");
+											return;
+										}
+										if (remark.length >= 200) {
+											alert("您输入的内容过长");
+											return;
+										}
+										remark = '不确认原因:' + remark;
+										sendAjax(busName, status, tpid, id,
+												remark);
+										p.dialog('close');
+									}
+								}, {
+									text : "取消",
+									iconCls : "icon-remove",
+									handler : function() {
+										p.dialog('close');
+									}
+								} ],
+
+						onLoad : function() {
+						}
+					});
+		}
+	}
+</script>
+</head>
+
+<body>
+    <sz:if test="${TENDER_PROJECT_FLOW_NODE.N_STATUS!=3}">
+        <div style="text-align: right;">
+            <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-edit'" onclick="doOpen()">评标基准价计算</a> <a id="first-envelope-data-confirm-button" href="#" class="easyui-linkbutton" data-options="iconCls:'icon-save'" onclick="dataConfirm()">发起确认</a> <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-ok'" onclick="finishCurrentFlow();">进入下一环节</a></br> <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-edit'" onclick="modifyPrice()">修改投标报价</a>
+        </div>
+        <div style="font-size: 25px; text-align: center; color: red; display: none;" id="con-time-zbr">
+            投标人会在<span style="font-size: 25px; text-align: center; color: red;" id="time-zbr"></span>时间点前完成信息确认。请点击<a onclick="location.reload();" style="color: blue; text-decoration: underline; cursor: pointer; font-size: 25px">刷新</a><span style="font-size: 25px; text-align: center; color: red;">查看确认情况</span>
+        </div>
+    </sz:if>
+    <span id="count_down" style="display: none;"></span>
+    <!-- 数据 -->
+    <div id="table_div">
+        <div class="easyui-tabs" data-options="plain:true">
+            <sz:forEach items="${SECTION_LIST}" var="section,stat">
+                <div class="tables" title="标段：${section.BID_SECTION_NAME}" style="padding: 10px;">
+                    <div style="margin-bottom: 10px; color: blue;">
+
+                        <sz:if test="${TENDER_PROJECT_FLOW_NODE.N_STATUS!=3}">
+                            <span style="line-height: 18px; font-size: 18px;">评标基准价（元）:&nbsp;&nbsp;<input type="text" id="${section.V_BID_SECTION_ID}" value='${fmt.format("###,##0",section.N_EVALUATION_PRICE)}'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <a href="javascript:void(0)" class="easyui-linkbutton" onclick="changeBasePrice('${section.V_BID_SECTION_ID}',${fmt.format("#####0",section.N_CONTROL_PRICE)})" style="width: 120px">修改评标基准价</a></span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span style="line-height: 18px; font-size: 18px;">最高限价（元）:&nbsp;&nbsp;${fmt.format("###,##0",section.N_CONTROL_PRICE)}</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                        </sz:if>
+                        <sz:if test="${TENDER_PROJECT_FLOW_NODE.N_STATUS==3}">
+                            <span style="line-height: 18px; font-size: 18px;">评标基准价（元）:&nbsp;&nbsp;${fmt.format("###,##0",section.N_EVALUATION_PRICE)}</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+                        <span style="line-height: 18px; font-size: 18px;">最高限价（元）:&nbsp;&nbsp;${fmt.format("###,##0",section.N_CONTROL_PRICE)}</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                        </sz:if>
+                    </div>
+                    <table class="sztable" width="100%" style="text-align: center;">
+                        <thead>
+                            <tr>
+                                <td width="10%">投标人编号</td>
+                                <td width="30%">投标人名称</td>
+                                <td width="10%">投标报价（元）</td>
+                                <td width="30%">投标人确认</td>
+                            </tr>
+                        </thead>
+                        <sz:forEach items="${section.TENDER_LIST}" var="vo,step">
+
+                            <!-- 不是自己 -->
+                            <sz:if test="${SessionUtils.getEntUniqueCode()!=vo.V_BIDDER_ORG_CODE}">
+                                <tr>
+                                    <td>${vo.V_BIDDER_NO}</td>
+                                    <td>${vo.V_BIDDER_NAME}</td>
+                                    <sz:if test="${TENDER_PROJECT_FLOW_NODE.N_STATUS!=3}">
+                                        <td><input class="easyui-validatebox textbox" name="tenlistId" type="hidden" value="${vo.ID}" /><input name="bidderPrice" value="${fmt.format("###,##0",vo.N_PRICE)}"/></td>
+                                    </sz:if>
+                                    <sz:if test="${TENDER_PROJECT_FLOW_NODE.N_STATUS==3}">
+                                        <td>${fmt.format("###,##0",vo.N_PRICE)}</td>
+                                    </sz:if>
+                                    <!-- 已发起确认 -->
+                                    <sz:if test="${section.ALREADY_LAUNCHED}">
+                                        <!-- 如果为空-->
+                                        <sz:if test="${vo.V_STATUS == null}">
+                                            <td></td>
+                                        </sz:if>
+                                        <sz:if test="${vo.V_STATUS != null}">
+                                            <td>${vo.V_REMARK!}</td>
+                                        </sz:if>
+                                    </sz:if>
+                                    <!-- 未发起确认 -->
+                                    <sz:if test="${!section.ALREADY_LAUNCHED}">
+                                        <td></td>
+                                    </sz:if>
+                                </tr>
+                            </sz:if>
+                        </sz:forEach>
+                    </table>
+                </div>
+            </sz:forEach>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,35 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>抽取K值结果</title> <%includeJSP("/static/include/inc.jsp",{}){}%>
+<link href="${path}/static/css/table.css" rel="stylesheet" />
+</head>
+<body>
+    <sz:if test="${TENDER_PROJECT_FLOW_NODE.N_STATUS!=3}">
+        <div style="text-align: right;">
+            <a id="data-save-button" href="#" class="easyui-linkbutton" data-options="iconCls:'icon-ok'" onclick="finishCurrentFlow();">进入下一个环节</a>
+        </div>
+    </sz:if>
+    <div class="easyui-tabs" data-options="plain:true">
+        <sz:forEach items="${KINFOS}" var="kinfo,stat">
+            <div title="标段：${kinfo.V_BID_SECTION_NAME!}" style="padding: 10px;">
+                <div>K的取值区间：${MIN_K!}% - ${MAX_K!}%（含 ${MIN_K}% ,不含 ${MAX_K!}%），按百分数表示的K值小数点后保留2位。</div>
+                <div style="font-size: 18px; color: #ff7300; font-weight: bold;">K值抽取结果：${kinfo.RESULT!}%</div>
+            </div>
+        </sz:forEach>
+    </div>
+
+    <script type="text/javascript">
+					/**结束当前节点**/
+					function finishCurrentFlow() {
+						//生成doc文件
+						parent.createDoc('fjsz', '', '', 'K_VALUE');
+						parent.finishCurrentFlowNodeNoInteractive(
+								'${TENDER_PROJECT_FLOW_NODE.ID}',
+								'${TENDER_PROJECT_FLOW_NODE.V_NODE_NAME}');
+					}
+				</script>
+</body>
+</html>

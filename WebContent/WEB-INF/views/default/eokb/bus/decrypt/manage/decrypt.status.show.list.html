@@ -1,0 +1,153 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title></title> <%includeJSP("/static/include/inc.jsp",{}){}%>
+<script src="${path}${adminPath}/view/common/js/layer/layer.js" type="text/javascript"></script>
+<script type="text/javascript">
+    SZUtilsExtEasyUIListPage.datagrid.pagination();
+    //初始化
+    $(function() {
+    });
+
+    /**
+     * 查询
+     */
+    function doSearch() {
+        // 使用Form2Json插件处理,同时过滤掉空数据
+        var searchParam = $('#searchForm').form2json({
+            allowEmptySingleVal : false
+        });
+        $('#formGrid').datagrid('load', searchParam);
+    }
+
+    /**
+     * 清空
+     */
+    function doClear() {
+        $('#searchForm').form('reset');
+        $('#formGrid').datagrid('load', {});
+    }
+
+    var GridFormatter = {
+        "TIME" : function(val, row, index) {
+            if (typeof (val) == "undefined") {
+                return "";
+            }
+            var date = new Date(val);
+            return date.format("yyyy-MM-dd hh:mm:ss");
+        },
+        "V_FILESIZE" : function(val, row, index) {
+            if (typeof (val) == "undefined") {
+                return "";
+            }
+            var rs = Number(val);
+            rs = rs / (1021 * 1024);
+            //保留两位小数
+            return rs.toFixed(2);
+        },
+        "N_STATUS" : function(val, row, index) {
+            if (typeof (val) == "undefined") {
+                return "未知状态";
+            } else if (val == 0) {
+                return "未解析"
+            } else if (val == -10) {
+                return "JSON解析失败"
+            } else if (val == -20) {
+                return "密码解密失败"
+            } else if (val == -30) {
+                return "摘要解密失败"
+            } else if (val == -40) {
+                return "解析文件失败"
+            } else if (val == -50) {
+                return "文件解密失败"
+            } else if (val == -60) {
+                return "解压失败"
+            } else if (val == 10) {
+                return "JSON解析成功"
+            } else if (val == 20) {
+                return "密码解密成功"
+            } else if (val == 30) {
+                return "摘要解密成功"
+            } else if (val == 40) {
+                return "解析文件成功"
+            } else if (val == 50) {
+                return "文件解密成功"
+            } else if (val == 60) {
+                return "解压成功"
+            } else {
+                return "无效状态";
+            }
+        }
+    };
+
+    /**
+     * 列表行格式化
+     * 
+     * @param index
+     *            索引
+     * @param row
+     *            行值
+     */
+    function rowStyler(index, row) {
+        if (row.N_STATUS == 0) {
+            return "color:#C0C0C0;font-weight:bold;";
+        } else if (row.N_STATUS == -10) {
+            return "color:#F08080;font-weight:bold;";
+        } else if (row.N_STATUS == -20) {
+            return "color:#BC8F8F;font-weight:bold;";
+        } else if (row.N_STATUS == -30) {
+            return "color:#CD5C5C;font-weight:bold;";
+        } else if (row.N_STATUS == -40) {
+            return "color:#FF0000;font-weight:bold;";
+        } else if (row.N_STATUS == -50) {
+            return "color:#A52A2A;font-weight:bold;";
+        } else if (row.N_STATUS == -60) {
+            return "color:#8B0000;font-weight:bold;";
+        } else if (row.N_STATUS == 10) {
+            return "color:#00FFFF;font-weight:bold;";
+        } else if (row.N_STATUS == 20) {
+            return "color:#00CED1;font-weight:bold;";
+        } else if (row.N_STATUS == 30) {
+            return "color:#48D1CC;font-weight:bold;";
+        } else if (row.N_STATUS == 40) {
+            return "color:#40E0D0;font-weight:bold;";
+        } else if (row.N_STATUS == 50) {
+            return "color:#20B2AA;font-weight:bold;";
+        } else if (row.N_STATUS == 60) {
+            return "color:#008080;font-weight:bold;";
+        }
+    }
+
+</script>
+</head>
+<body>
+    <!-- 表格 -->
+    <table id="formGrid" style="width: auto; height: auto" class="easyui-datagrid" title="" toolbar="#searchForm-toolbar" rownumbers="true" fitColumns="true" fit="true" url="${path}${adminPath}/dmgr?V_TPID=${SessionUtils.getTPID()}" pagination="true" pageList="[50,100,150,200]" pageSize="50" data-options="rowStyler:rowStyler,method:'get'">
+        <thead>
+            <tr>
+                <th field="V_BID_SECTION_NAME" align="left" width="100">标段名称</th>
+                <th field="V_BID_SECTION_GROUP_CODE" align="left" width="100">标段组名称</th>
+                <th field="V_ORG_CODE" align="left" width="100">组织机构代码</th>
+                <th field="V_UNIFY_CODE" align="left" width="100">统一社会信用代码</th>
+                <th field="V_BIDDER_NAME" align="left" width="100">投标人名称</th>
+                <th field="V_TIPSNAME" align="left" width="100">文件类型</th>
+                <th field="V_FILESIZE" align="left" width="100" formatter="GridFormatter.V_FILESIZE">文件大小(单位:MB)</th>
+                <th field="N_STATUS" align="left" width="100" formatter="GridFormatter.N_STATUS">状态</th>
+            </tr>
+        </thead>
+    </table>
+    <!-- 搜索工具栏 -->
+    <div id="searchForm-toolbar" style="padding: 5px; height: auto">
+        <div>
+            <form id="searchForm">
+                <label>组织机构代码：</label> <input class="easyui-textbox" style="width: 120px" id="V_ORG_CODE" name="V_ORG_CODE" type="text"> <label>统一社会信用代码：</label> <input class="easyui-textbox" style="width: 120px" id="V_UNIFY_CODE" name="V_UNIFY_CODE" type="text"> <label>投标人名称：</label> <input class="easyui-textbox" style="width: 120px" id="V_BIDDER_NAME" name="V_BIDDER_NAME" type="text"> <label>解压状态：</label><select name="N_STATUS" class="easyui-combobox" panelHeight="auto" style="width: 100px">
+                    <option value="">全部</option>
+                    <option value="0">未解析</option>
+                    <option value="50">文件解密成功</option>
+                </select> <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-search'" onclick="doSearch()">搜索</a> <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-clear'" onclick="doClear()">清空搜索条件</a>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

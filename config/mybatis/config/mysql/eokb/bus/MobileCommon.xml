@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="mobile">
+    <!-- 查询解密表与确认信息（标段组） -->
+    <select id="getBidderCreditList" parameterType="record" resultType="record">
+        <![CDATA[
+            SELECT
+              DI.ID,
+              V_BIDDER_NAME,
+              V_BIDDER_NO,
+              V_BIDDER_ORG_CODE,
+              V_CORRELATE_CODE,
+              GROUP_CONCAT(
+                S.V_BID_SECTION_NAME 
+                ORDER BY S.V_BID_SECTION_NAME SEPARATOR ','
+              ) AS SECTIONS 
+            FROM
+              EKB_T_DECRYPT_INFO DI 
+              JOIN EKB_T_SECTION_INFO S 
+                ON (
+                  DI.V_BID_SECTION_ID = S.V_BID_SECTION_ID 
+                  AND DI.V_TPID = S.V_TPID
+                ) 
+            WHERE DI.V_TPID = #{tpID}
+              AND DI.V_BID_SECTION_GROUP_CODE = #{group}
+              AND DI.N_ENVELOPE_0 = 1 ]]>
+        <if test="V_BIDDER_NAME != null and V_BIDDER_NAME !=''">
+           <![CDATA[AND V_BIDDER_NAME LIKE '%${V_BIDDER_NAME}%' ]]>
+        </if>
+        <![CDATA[ GROUP BY DI.V_BIDDER_ORG_CODE 
+            ORDER BY IF(ISNULL(V_CORRELATE_CODE),1,0),
+                V_CORRELATE_CODE,
+                V_BIDDER_NO 
+        ]]>
+    </select>
+
+    <!-- 投标人获取开标项目信息列表（手机版） -->
+    <select id="getTenderProjectListOfMobile" parameterType="record" resultType="record">
+         <![CDATA[
+            SELECT PI.*,
+                   T2.V_SIGN_IN_TIME
+              FROM EKB_T_TENDER_PROJECT_INFO PI
+              LEFT JOIN (SELECT SI.V_TPID, MIN(SI.V_SIGN_IN_TIME) AS V_SIGN_IN_TIME
+                           FROM EKB_T_SIGN_IN SI
+                          WHERE SI.V_ORG_CODE = #{orgcode}
+                          GROUP BY SI.V_TPID) T2 ON (PI.ID = T2.V_TPID)
+              WHERE PI.V_TENDER_PROJECT_ID=#{tenderProjectID}]]>
+        <if test="sectionID != null and sectionID !='' and sectionID !='undefined' ">
+           <![CDATA[AND PI.V_BID_SECTION_ID = #{sectionID} ]]>
+        </if>
+           <![CDATA[     
+              ORDER BY PI.V_BIDOPEN_TIME
+        ]]>
+    </select>
+</mapper>

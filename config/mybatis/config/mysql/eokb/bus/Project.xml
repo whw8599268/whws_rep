@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="Project">
+
+    <!-- 投标人获取开标项目信息列表 -->
+    <select id="getTenderProjectListOfBidder" parameterType="record" resultType="record">
+        <![CDATA[
+            SELECT PI.ID,
+                   PI.V_INVITENO,
+                   PI.V_TENDER_PROJECT_NAME,
+                   PI.V_BIDOPEN_TIME,
+                   PI.V_TENDER_PROJECT_ID,
+                   PI.V_JSON_OBJ,
+                   T2.V_SIGN_IN_TIME
+              FROM EKB_T_TENDER_PROJECT_INFO PI
+              LEFT JOIN (SELECT SI.V_TPID, MIN(SI.V_SIGN_IN_TIME) AS V_SIGN_IN_TIME
+                           FROM EKB_T_SIGN_IN SI
+                          WHERE SI.V_ORG_CODE = #{orgcode}
+                          GROUP BY SI.V_TPID) T2 ON (PI.ID = T2.V_TPID)
+             WHERE PI.V_TENDERPROJECT_APP_TYPE = #{type}
+               AND ((PI.V_BIDOPEN_TIME >= #{start} AND PI.V_BIDOPEN_TIME <= #{end}) OR N_FB_STATUS =1 )
+             ORDER BY PI.V_BIDOPEN_TIME
+        ]]>
+    </select>
+</mapper>  

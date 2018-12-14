@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="fjs_gsgl_common">
+    <!-- 查询解密表与确认信息（标段组） -->
+    <select id="getDecryptInfoAndConfirmByGroup" parameterType="record" resultType="record">
+        <![CDATA[
+            SELECT T.*, C.V_STATUS, C.V_REMARK
+              FROM (SELECT DI.*,
+                           GROUP_CONCAT(S.V_BID_SECTION_NAME ORDER BY S.V_BID_SECTION_NAME SEPARATOR ',') AS SECTIONS
+                      FROM EKB_T_DECRYPT_INFO DI
+                      JOIN EKB_T_SECTION_INFO S
+                        ON (DI.V_BID_SECTION_ID = S.V_BID_SECTION_ID AND DI.V_TPID=S.V_TPID)
+                     WHERE DI.V_TPID = #{tpid}
+                       AND DI.V_BID_SECTION_GROUP_CODE = #{groupId}
+                       AND DI.N_ENVELOPE_0 = 1
+                     GROUP BY DI.V_BIDDER_ORG_CODE) T
+              LEFT JOIN (SELECT
+                           V_BUSID,
+                           V_BUSNAME,
+                           V_STATUS,
+                           V_REMARK
+                         FROM EKB_T_CHECK_DATA
+                         GROUP BY V_BUSID,V_BUSNAME,V_STATUS,V_REMARK) C
+                ON (T.ID = C.V_BUSID AND C.V_BUSNAME = #{modelType})
+             ORDER BY IF(ISNULL(T.V_CORRELATE_CODE),1,0),
+                T.V_CORRELATE_CODE,
+                T.V_BIDDER_NO 
+        ]]>
+    </select>
+
+    <!-- 查询投标人与确认信息（电子摇号标段组） -->
+    <select id="getBidderInfoAndConfirmByGroup" parameterType="record" resultType="record">
+        <![CDATA[
+            SELECT B.*, C.V_STATUS, C.V_REMARK, I.V_BID_SECTION_NAME
+              FROM EKB_T_TENDER_LIST B
+               LEFT JOIN (SELECT
+                           V_BUSID,
+                           V_BUSNAME,
+                           V_STATUS,
+                           V_REMARK
+                         FROM EKB_T_CHECK_DATA
+                         GROUP BY V_BUSID,V_BUSNAME,V_STATUS,V_REMARK) C
+                ON (B.ID = C.V_BUSID AND C.V_BUSNAME = #{modelType})
+              LEFT JOIN EKB_T_SECTION_INFO I
+                ON (B.V_TPID = I.V_TPID AND
+                   B.V_BID_SECTION_GROUP_CODE = I.V_BID_SECTION_GROUP_CODE AND
+                   B.V_BID_SECTION_ID = I.V_BID_SECTION_ID)
+             WHERE B.V_TPID = #{tpid}
+               AND B.V_BID_SECTION_GROUP_CODE = #{groupId}
+               AND B.N_ENVELOPE_0=1
+               AND I.V_BID_OPEN_STATUS NOT LIKE '10%'
+             ORDER BY I.V_BID_SECTION_NAME,B.V_BIDDER_NO
+        ]]>
+    </select>
+
+    <!-- 第一信封评审结果查询 -->
+    <select id="getReviewResult" resultType="record" parameterType="record">
+        <![CDATA[
+            SELECT 
+                D.V_BID_SECTION_GROUP_CODE AS GROUP_CODE,
+                D.V_BID_SECTION_CODE AS SECTION_CODE,
+                A.V_BIDDER_ID,
+                A.V_BIDDER_NAME AS V_BIDNAME,
+                A.V_STATUS_0 V_STATUS,
+                A.V_RESULT,
+                IFNULL(A.N_SCORE_1,0)+IFNULL(A.N_SCORE_2,0) AS N_TOTAL,
+                D.V_BID_SECTION_NAME
+            FROM ${PB_DB_ID}.EPB_T_PB_STATRECORD A 
+            LEFT JOIN (SELECT B.ID,B.V_BID_SECTION_GROUP_CODE,B.V_BID_SECTION_CODE,C.V_BID_SECTION_NAME,C.V_BID_EVALUATION_STATUS FROM EKB_T_TENDER_LIST B LEFT JOIN EKB_T_SECTION_INFO C ON B.V_TPID=C.V_TPID AND B.V_BID_SECTION_ID=C.V_BID_SECTION_ID) D ON A.V_BIDDER_ID=D.ID
+             ]]>
+        <where>
+            AND (D.V_BID_EVALUATION_STATUS = '2-1' OR D.V_BID_EVALUATION_STATUS = '2-2' OR D.V_BID_EVALUATION_STATUS = '2')
+            AND (A.V_STATUS IN ('1','0-0') OR A.V_STATUS_0 IN ('0','1'))
+            <if test="tpid !=null and tpid !=''">
+                AND A.V_TPID=#{tpid}
+
+            </if>
+            <if test="sid !=null and sid !=''">
+                AND A.V_BID_SECTION_ID = #{sid}
+            </if>
+        </where>
+         <![CDATA[
+            ORDER BY D.V_BID_SECTION_GROUP_CODE,D.V_BID_SECTION_NAME,A.V_BIDDER_NAME
+        ]]>
+    </select>
+
+    <!-- 查询投标人与确认信息（标段id） -->
+    <select id="getBidderInfoAndConfirm" parameterType="record" resultType="record">
+        <![CDATA[
+            SELECT B.*, C.V_STATUS, C.V_REMARK
+              FROM EKB_T_TENDER_LIST B
+               LEFT JOIN (SELECT
+                           V_BUSID,
+                           V_BUSNAME,
+                           V_STATUS,
+                           V_REMARK
+                         FROM EKB_T_CHECK_DATA
+                         GROUP BY V_BUSID,V_BUSNAME,V_STATUS,V_REMARK) C
+                ON (B.ID = C.V_BUSID AND C.V_BUSNAME = #{modelType})
+             WHERE B.V_TPID = #{tpid}
+               AND B.V_BID_SECTION_ID = #{sid}
+               AND B.N_ENVELOPE_0=1
+             ORDER BY B.V_BIDDER_NO
+        ]]>
+    </select>
+
+    <!-- 查询第二信封投标人与确认信息（标段id） -->
+    <select id="getSecBidderInfoAndConfirm" parameterType="record" resultType="record">
+        <![CDATA[
+            SELECT B.*, C.V_STATUS, C.V_REMARK
+              FROM EKB_T_TENDER_LIST B
+               LEFT JOIN (SELECT
+                           V_BUSID,
+                           V_BUSNAME,
+                           V_STATUS,
+                           V_REMARK
+                         FROM EKB_T_CHECK_DATA
+                         GROUP BY V_BUSID,V_BUSNAME,V_STATUS,V_REMARK) C
+                ON (B.ID = C.V_BUSID AND C.V_BUSNAME = #{modelType})
+              LEFT JOIN EKB_T_SECTION_INFO I
+                ON (B.V_TPID = I.V_TPID AND
+                   B.V_BID_SECTION_ID = I.V_BID_SECTION_ID)
+             WHERE B.V_TPID = #{tpid}
+               AND B.V_BID_SECTION_ID = #{sid}
+               AND B.N_ENVELOPE_1=1
+             ORDER BY B.V_BIDDER_NO
+        ]]>
+    </select>
+    
+    <!-- 查询第一信封投标人与确认信息（标段id）综合评估法 -->
+    <select id="getfirBidderInfo" parameterType="record" resultType="record">
+        <![CDATA[
+            SELECT B.*, C.V_STATUS, C.V_REMARK
+              FROM EKB_T_TENDER_LIST B
+               LEFT JOIN (SELECT
+                           V_BUSID,
+                           V_BUSNAME,
+                           V_STATUS,
+                           V_REMARK
+                         FROM EKB_T_CHECK_DATA
+                         GROUP BY V_BUSID,V_BUSNAME,V_STATUS,V_REMARK) C
+                ON (B.ID = C.V_BUSID AND C.V_BUSNAME = #{modelType})
+             WHERE B.V_TPID = #{tpid}
+               AND B.V_BID_SECTION_ID = #{sid}
+               AND B.N_ENVELOPE_0=1
+             ORDER BY B.V_BIDDER_NO,B.V_CORRELATE_CODE
+        ]]>
+    </select>
+    
+    <!-- 获取方法 -->
+    <select id="getEvaluation" resultType="record" parameterType="record">
+        <![CDATA[
+            SELECT A.*, B.V_BID_SECTION_NAME, A.V_BIDDER_NO
+              FROM EKB_T_FJS_GSGL_LJSG_HLDJF_EVALUATION A
+              LEFT JOIN EKB_T_SECTION_INFO B
+                ON A.V_TPID = B.V_TPID
+               AND A.V_BID_SECTION_ID = B.V_BID_SECTION_ID
+              LEFT JOIN EKB_T_TENDER_LIST C
+                ON A.V_TPID = C.V_TPID
+               AND A.V_BID_SECTION_ID = C.V_BID_SECTION_ID
+               AND A.V_BIDDER_NO = C.V_BIDDER_NO
+             ]]>
+        <where>
+            AND B.V_BID_OPEN_STATUS !='0'
+            AND B.V_BID_OPEN_STATUS NOT LIKE '10%'
+            AND C.N_ENVELOPE_1 = 1
+            <if test="tpid !=null and tpid !=''">
+                AND A.V_TPID=#{tpid}
+            </if>
+            <if test="sid !=null and sid !=''">
+                AND A.V_BID_SECTION_ID=#{sid}
+            </if>
+        </where>
+         <![CDATA[
+            ORDER BY C.V_BIDDER_NO
+        ]]>
+    </select>
+</mapper>  

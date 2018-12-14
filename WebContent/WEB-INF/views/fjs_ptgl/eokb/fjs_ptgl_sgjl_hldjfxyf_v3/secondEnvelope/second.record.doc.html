@@ -1,0 +1,62 @@
+<div style="font-size: 25px; text-align: center; font-weight: bold;">
+    <p style="font-size: 25px; text-align: center; font-weight: bold;">
+        <u style="font-size: 25px; text-align: center; font-weight: bold;">${PROJECT_NAME}</u>（项目名称）开标记录表
+    </p>
+    <p style="font-size: 25px; text-align: center; font-weight: bold;">第二信封（报价文件）</p>
+    <p style="font-size: 18px; text-align: center;">
+        开标时间：<u style="font-size: 18px; text-align: center; font-weight: bold;"> ${TIME}</u>
+    </p>
+</div>
+<div class="easyui-tabs" data-options="plain:true">
+    <sz:forEach items="${SECTION_LIST}" var="section,stat">
+        <sz:if test="${!SessionUtils.isSectionGroup()}">
+            <caption>标段：${section.BID_SECTION_NAME}</caption>
+        </sz:if>
+        <table class="sztable" width="100%" style="text-align: center;">
+            <thead>
+                <tr>
+                    <td width="5%">序号</td>
+                    <td width="30%">投标人名称</td>
+                    <sz:if test="${SessionUtils.getAttribute('IS_APPRAISAL_PRICE_RATE')!=1}">
+                        <td width="10%">投标报价（元）</td>
+                    </sz:if>
+                    <sz:if test="${SessionUtils.getAttribute('IS_APPRAISAL_PRICE_RATE')==1}">
+                        <td width="10%">监理服务费费率</td>
+                    </sz:if>
+                    <td width="10%">是否超过投标限价</td>
+                    <td width="20%">备注</td>
+                </tr>
+            </thead>
+            <sz:forEach items="${section.TENDER_LIST}" var="vo,step">
+                <tr>
+                    <td>${step.index+1}</td>
+                    <td>${vo.V_BIDDER_NAME}</td>
+                    <td>${fmt.format("###,##0.00",vo.N_PRICE)}</td>
+                    <sz:if test="${vo.N_PRICE<=section.N_CONTROL_PRICE && vo.N_PRICE>=(section.N_CONTROL_MIN_PRICE==null?0:section.N_CONTROL_MIN_PRICE)}">
+                        <td>未超过</td>
+                    </sz:if>
+                    <sz:if test="${vo.N_PRICE>section.N_CONTROL_PRICE}">
+                        <td><span style="color: red;">超过最高限价</span></td>
+                    </sz:if>
+                    <sz:if test="${vo.N_PRICE<(section.N_CONTROL_MIN_PRICE==null?0:section.N_CONTROL_MIN_PRICE)}">
+                        <td><span style="color: red;">低于最低限价</span></td>
+                    </sz:if>
+                    <td>${vo.secondRemark!}</td>
+                </tr>
+            </sz:forEach>
+            <tfoot>
+                <tr>
+                    <td colspan=4>招标人编制的限制价上限（元）</td>
+                    <td>${fmt.format("###,##0.00",section.N_CONTROL_PRICE)}</td>
+                </tr>
+                <tr>
+                    <td colspan=4>招标人编制的限制价下限（元）</td>
+                    <td>${section.N_CONTROL_MIN_PRICE==null?'无':fmt.format("###,##0.00",section.N_CONTROL_MIN_PRICE)}</td>
+                </tr>
+            </tfoot>
+        </table>
+    </sz:forEach>
+</div>
+<div style="font-size: 18px; text-align: center; font-weight: bold;">
+    <p>招标人代表：______记录人：_____ 监标人：____</p>
+</div>

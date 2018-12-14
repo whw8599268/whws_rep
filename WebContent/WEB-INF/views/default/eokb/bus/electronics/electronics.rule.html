@@ -1,0 +1,30 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title></title>
+</head>
+<body>
+    <div style="font-size: 16px;">
+        <span style="font-size: 16px;font-weight: bold;">确定各标段投标人</span>
+        </br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;设本次招标共设置若干个标段组，其中第i个标段组为Zi=(zi1,…,zim)，zij为第i个标段组中第j个标段的编号。
+        </br>先确定第1个标段组中各标段的投标人，然后依次确定其它各标段组各标段的投标人。
+        </br><span style="font-size: 16px;font-weight: bold;">确定Zi标段组各标段投标人方法为：</span>
+        </br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;a.设对第Zi标段组进行投标的所有投标人队列为C(每个投标人含投标人名称、评标时采用的信用等级，投标人编号，关联企业组编号，关联企业组成员家数等信息。关联企业组成员家数为１家的，为非关联企业)，先对队列C按投标人编号增序排列，排序后的所有投标人队列仍为C。
+        </br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;b.从对列C中取出（从投标人编号为1-001开始取，逐一取出）１个投标人r，并分配给Zi标段组内的一个标段，直到队列C被取完为止。
+        </br><span style="font-size: 16px;font-weight: bold;">分配标段的原则：</span>
+        </br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;对标段组(zi1,zi2,…,zim)从左至右，先将投标人r预分配给已分配投标人家数最少的那个标段（标段数相同的，则分配给其中的第一个标段），若该投标人为非关联企业，即确定了该投标人的分配；若该投标人与预分配标段的已分配的投标人中的某个投标人为关联企业，则应再次按上述原则进行分配（被预分配过的标段被排除在外），若与标段组内所有标段都存在关联企业，则该投标人不予分配，自动失去投标资格。
+        </br><span style="font-size: 16px;font-weight: bold;">分配标段的算法：</span>
+        </br>&nbsp;&nbsp;（a）将标段组Zi=(zi1,zi2,…,zim)赋给临时标段组Ｐ=(p1,p2,…,pn) ,n=m。
+        </br>&nbsp;&nbsp;（b）计算标段组Ｐ=(p1,p2,…,pn)中各标段已经分配到的投标人的家数为（j1,j2,…,jn）,其中家数最少的且最靠左的序号为k；
+        </br>&nbsp;&nbsp;（c）若投标人r的关联企业数为１，则r为非关联企业，直接将r分配给标段pk对应的投标人队列Ck中，即完成了对投标人r的分配，转b步骤。
+        </br>&nbsp;&nbsp;（d）若r的关联企业数>１, 则r为关联企业成员，将投标人r与已经分配给标段pk的所有投标人进行比较：
+        </br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;若无关联（比较关联企业编号即可，编号相同的为关联企业.关联企业库及编号方法,见附件4），则直接将r分配给标段pk对应的投标人队列Ck中，即完成了对投标人r的分配，转b步骤。
+        </br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;若有关联，则说明标段pk已经分配给关联组中的其他成员，不得再分配。将标段pk从Ｐ=(p1,p2,…,pn)中移除，并去除空位置，n=n-1
+        </br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;若n=0,说明已经没有标段可分配，投标人r失去了投标机会，转b步骤。
+        </br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;若n>0,转（b）步，继续分配。
+        </br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;重复上述b步骤，即可确定Zi标段组各标段的投标人。
+        </br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;对所有标段组从重复上述a,b步骤，即可确定了所有标段组各标段的投标人。
+    </div>
+</body>
+</html>

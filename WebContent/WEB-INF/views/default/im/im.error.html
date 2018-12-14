@@ -1,0 +1,57 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>在线会议室</title>
+<style type="text/css">
+<!--
+body,div{
+    margin:0;
+    paddding:0;
+}
+.mid-rg {
+	background-color: #FFF;
+	width: 288px;
+	border: 1px solid #e9e6e6;
+	font-family: "微软雅黑";
+    position: relative;
+}
+
+.ycts {
+	background-image: url('${path}${adminPath}/view/frame/images/ycts.png');
+	width: 232px;
+	position: relative;
+    margin: 50px auto 0px;
+	font-family: "微软雅黑";
+	font-size: 20px;
+	color: #808a96;
+}
+
+.ycts-wz {
+	text-align: center;
+	width: 232px;
+    position:absolute;
+	top: 180px;
+}
+-->
+</style>
+<%includeJSP("/static/include/inc.jsp",{}){}%>
+<script type="text/javascript">
+	$(function(){
+		adaptHeight();
+	});
+	function adaptHeight(){
+    	var height = top.$("#im-ifame").height();
+    	$('.mid-rg').height(height-2);
+		$('.ycts').height(height-2-50);
+    }
+</script>
+</head>
+<body style="overflow: hidden;">
+    <div class="mid-rg">
+        <div class="ycts">
+            <span class="ycts-wz">${MSG}</span>
+        </div>
+    </div>
+</body>
+</html>

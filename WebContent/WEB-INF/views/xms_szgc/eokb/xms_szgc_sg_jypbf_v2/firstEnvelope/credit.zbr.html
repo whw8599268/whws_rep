@@ -1,0 +1,255 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>第一数字信封解密情况一览表</title> <%includeJSP("/static/include/inc.jsp",{}){}%>
+<style>
+td {
+	border: 1px solid #B5D6E6;
+	word-break: break-all;
+}
+</style>
+
+<script type="text/javascript">
+	parent.sy.progress.show();
+    $(function(){
+    	parent.sy.progress.hide();
+        // 分页信息更新
+        $('#pagination-id').pagination('refresh', { // change options and refresh pager bar information
+            total : ${TOTAL},
+            pageNumber : ${PAGE}
+        });
+        // 没有数据隐藏分页
+        if(${TOTAL}==0){
+            $('#pagination-id').hide();
+        }
+    })
+    var code = 'xms_szgc_sg_jypbf_v2';
+    
+    /**结束当前节点**/
+	function finishCurrentFlow() {
+		//由于施工简易有可能超过500家需要进行筛选摇号，先判断家数，如果小于500家直接下一步，如果大于500家且未筛选，则进行
+		$.ajax({
+			url : '${path}${adminPath}/bus/sa',
+			// 设置请求方法
+			type : 'get',
+			//dataType : 'json',
+			contentType : 'application/json;charset=UTF-8',
+			// 成功回调
+			success : function(result) {
+				if(result){
+					parent.layer.open({
+						title :'提示'
+						,area: ['500px', '500px']
+						,content: '<span style="font-size:20px;">解密成功的投标人家数超过450家，需要根据《关于调整房屋建筑和市政基础设施工程施工电子招投标入围投标人随机抽取方式的通知》中的数学模型算法筛选450家投标人进入后续开、评标流程，请问是否采用数学模型算法筛选450家投标人并进入下一环节？</span>'
+						,btn: ['采用数学模型算法', '不采用数学模型算法']
+						,yes: function(index, layero){
+							parent.layer.close(index);
+							doSieve();
+						}
+						,btn2: function(index, layero){
+							parent.layer.open({
+								title :'提示'
+								,area: ['500px', '500px']
+								,content: '<span style="font-size:20px;">若不采用数学模型算法，请点击【确定】按钮进入下一环节。若无法确定是否采用数学模型算法进行筛选450家投标人，请先点击【取消】按钮并与交易中心工作人员联系。</span>'
+								,btn: ['确定', '取消']
+								,yes: function(index1, layero1){
+									parent.layer.close(index1);
+									parent.layer.open({
+										title :'提示'
+										,area: ['500px', '500px']
+										,content: '<span style="font-size:20px;">若不采用数学模型算法筛选450家投标人，进入下一环节后，将无法返回修改。请问是否继续进入下一环节？</span>'
+										,btn: ['进入下一个环节', '取消']
+										,yes: function(index2, layero1){
+											parent.layer.close(index2);
+											parent.createDoc('fjsz', code, 'firstEnvelope',
+							                'firstRecord');
+											parent.finishCurrentFlowNodeNoInteractive(
+													'${TENDER_PROJECT_FLOW_NODE.ID}',
+													'${TENDER_PROJECT_FLOW_NODE.V_NODE_NAME}');
+											
+										}
+										,btn2: function(index2, layero2){
+											parent.layer.close(index2);
+										}
+									})
+								}
+								,btn2: function(index2, layero2){
+									parent.layer.close(index2);
+								}
+							})
+						}
+					});
+				}else{
+					parent.finishCurrentFlowNodeNoInteractive(
+			                '${TENDER_PROJECT_FLOW_NODE.ID}',
+			                '${TENDER_PROJECT_FLOW_NODE.V_NODE_NAME}');
+
+			        //生成doc文件
+			        parent.createDoc('fjsz', code, 'firstEnvelope',
+			                'firstRecord');
+			        
+			        /* parent.createDoc('fjsz', '', '', 'HARDWARE_INFO'); */
+				}
+			},
+			// 失败回调
+			error : function(XMLHttpRequest,
+					textStatus, errorThrown) {
+				parent.sy.progress.hide();
+				var result = jQuery
+						.parseJSON(XMLHttpRequest.responseText);
+				top.$.messager.alert('操作失败', "操作失败["
+						+ result.errorDesc + "]");
+			}
+		});
+	}
+	
+	// 筛选
+	function doSieve(){
+		parent.sy.progress.show();
+		$.ajax({
+			url : '${path}${adminPath}/bus/sa/ds',
+			// 设置请求方法
+			type : 'get',
+			//dataType : 'json',
+			contentType : 'application/json;charset=UTF-8',
+			// 成功回调
+			success : function(result) {
+				parent.sy.progress.hide();
+				parent.finishCurrentFlowNodeNoInteractive(
+		                '${TENDER_PROJECT_FLOW_NODE.ID}',
+		                '${TENDER_PROJECT_FLOW_NODE.V_NODE_NAME}');
+
+		        //生成doc文件
+		        parent.createDoc('fjsz', code, 'firstEnvelope',
+		                'firstRecord');
+			},
+			// 失败回调
+			error : function(XMLHttpRequest,
+					textStatus, errorThrown) {
+				parent.sy.progress.hide();
+				var result = jQuery
+						.parseJSON(XMLHttpRequest.responseText);
+				top.$.messager.alert('操作失败', "操作失败["
+						+ result.errorDesc + "]");
+			}
+		});
+	}
+    
+    // 导出excel投标报价
+    function doSelExcel() {
+        window.open('${path}${adminPath}/' + code
+                + '/firstenvelope/export');
+    }
+    function onSelectPageContent(page, size) {
+        parent.sy.progress.show();
+        // 使用Form2Json插件处理,同时过滤掉空数据
+        var bidderName = $("#V_BIDDER_NAME").val();
+        //location.href="${path}${adminPath}/view/eokb/xms_szgc_sg_jypbf_v2/firstEnvelope/credit.flow.html?flowId=${TENDER_PROJECT_FLOW_NODE.ID}&page="+page+"&size="+size;//请求的action路径  
+        location.href="${path}${adminPath}/"+code+"/firstenvelope/credit/flow/${TENDER_PROJECT_FLOW_NODE.ID}?page="+page+"&size="+size;//请求的action路径  
+    }
+    
+    /**
+     * 查询
+     */
+    function doSearch() {
+        var bidderName = $("#V_BIDDER_NAME").val();
+        //location.href="${path}${adminPath}/xms_szgc_sg_jypbf_v2/firstenvelope/credit/flow/${TENDER_PROJECT_FLOW_NODE.ID}?page=1&size=200&bn="+bidderName;//请求的action路径  
+        location.href="${path}${adminPath}/"+code+"/firstenvelope/credit/flow/${TENDER_PROJECT_FLOW_NODE.ID}?page=1&size=200";//请求的action路径  
+    }
+
+    /**
+     * 清空
+     */
+    function doClear() {
+        $('#searchForm').form('reset');
+        var bidderName = $("#V_BIDDER_NAME").val();
+        location.href="${path}${adminPath}/"+code+"/firstenvelope/credit/flow/${TENDER_PROJECT_FLOW_NODE.ID}?page=1&size=200&bn="+bidderName;//请求的action路径  
+    }
+</script>
+</head>
+<body>
+    <sz:if test="${SECTION_LIST.~size==0}">
+        <div style="font-size: 25px; text-align: center; color: red;">该项目已流标</div>
+    </sz:if>
+    <sz:if test="${SECTION_LIST.~size>0}">
+        <sz:if test="${TENDER_PROJECT_FLOW_NODE.N_STATUS!=3}">
+            <div style="text-align: right;">
+                <sz:if test="${HAS_ALGORITHM}">
+                    <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-save'" onclick="parent.doImportDeliverTime()">导出投递时间列表</a>
+                </sz:if>
+                <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-save'" onclick="doSelExcel()">导出投标人名单</a><a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-ok'" onclick="finishCurrentFlow();">进入下一环节</a>
+            </div>
+            <div id="box1" style="margin-left: 30px; font-size: 16px; display: inline">${YX_N}</div>
+        </sz:if>
+        <div class="easyui-tabs" data-options="plain:true">
+            <sz:forEach items="${SECTION_LIST}" var="section,stat">
+                <div title="标段：${section.V_BID_SECTION_NAME}" style="padding: 10px;">
+                    <table class="sztable" width="100%" style="text-align: center;">
+                        <thead>
+                            <!-- 无筛选 -->
+                            <sz:if test="${!HAS_ALGORITHM}">
+                                <tr>
+                                    <td width="5%">序号</td>
+                                    <td width="15%">投标人名称</td>
+                                    <td width="10%">组织机构代码</td>
+                                    <td width="10%">社会统一信用代码</td>
+                                    <td width="10%">项目负责人姓名</td>
+                                    <td width="10%">项目负责人建造师注册证书号</td>
+                                    <td width="10%">投标保证金（元）</td>
+                                    <td width="5%">投标保证金缴交方式</td>
+                                    <td width="10%">投标报价（元）</td>
+                                    <td width="5%">质量目标</td>
+                                    <td width="5%">工期（日历天）</td>
+                                    <td width="5%">投标人代表号</td>
+                                </tr>
+                            </sz:if>
+                            <!-- 有筛选 -->
+                            <sz:if test="${HAS_ALGORITHM}">
+                                <tr>
+                                    <td width="5%">序号</td>
+                                    <td width="15%">投标人名称</td>
+                                    <td width="10%">组织机构代码</td>
+                                    <td width="10%">社会统一信用代码</td>
+                                    <td width="10%">项目负责人姓名</td>
+                                    <td width="5%">项目负责人建造师注册证书号</td>
+                                    <td width="10%">投标保证金（元）</td>
+                                    <td width="5%">投标保证金缴交方式</td>
+                                    <td width="10%">投标报价（元）</td>
+                                    <td width="5%">质量目标</td>
+                                    <td width="5%">工期（日历天）</td>
+                                    <td width="5%">投标人代表号</td>
+                                    <td width="5%">投递时间</td>
+                                </tr>
+                            </sz:if>
+                        </thead>
+                        <sz:forEach items="${section.TENDER_LIST}" var="vo,step">
+                            <tr>
+                                <td>${(PAGE-1)*SIZE+step.index+1}</td>
+                                <td>${vo.tbrmc}</td>
+                                <td>${vo.bidder_org_code}</td>
+                                <td>${vo.bidder_unify_code}</td>
+                                <td>${vo.tbPeName}</td>
+                                <td>${vo.zsbh}</td>
+                                <td>${vo.bzjje}</td>
+                                <td>${vo.bzjdjqk}</td>
+                                <td>${vo.tbbj}</td>
+                                <td>${vo.zlmb}</td>
+                                <td>${vo.gongqi}</td>
+                                <td>${vo.V_BIDDER_NO}</td>
+                                <sz:if test="${HAS_ALGORITHM}">
+                                    <td>${vo.V_DELIVER_TIME}</td>
+                                </sz:if>
+                            </tr>
+                        </sz:forEach>
+                    </table>
+                    <div class="pagination">
+                        <div id="pagination-id" class="easyui-pagination" pageList="[300,350,400,500]" pageSize="300" data-options="onSelectPage:onSelectPageContent"></div>
+                    </div>
+                </div>
+            </sz:forEach>
+        </div>
+    </sz:if>
+</body>
+</html>

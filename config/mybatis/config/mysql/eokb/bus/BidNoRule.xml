@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="bidnorule">
+    <!-- 查询有效标段的最高权重信息 -->
+    <select id="getBidNoRuleJson" resultType="string" parameterType="record">
+        <![CDATA[
+            SELECT V_JSON_OBJ
+            FROM EKB_T_TPFN_DATA_INFO 
+            WHERE V_BUS_FLAG_TYPE = #{type}
+            AND V_TPID=#{tpid}
+        ]]>
+    </select>
+</mapper>  

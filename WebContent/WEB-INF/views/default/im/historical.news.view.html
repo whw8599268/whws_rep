@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>消息记录</title>
+</head>
+<body>
+    <script type="text/javascript">
+                    SZUtilsExtEasyUIListPage.datagrid.pagination();
+                    /**
+                     * 查询
+                     */
+                    function doSearch() {
+                        // 使用Form2Json插件处理,同时过滤掉空数据
+                        var searchParam = $('#searchForm').form2json({
+                            allowEmptySingleVal : false
+                        });
+                        $('#formGrid').datagrid('load', searchParam);
+                    }
+
+                    /**
+                     * 清空
+                     */
+                    function doClear() {
+                        $('#searchForm').form('reset');
+                        $('#formGrid').datagrid('load', {});
+                    }
+
+                    var GridFormatter = {
+                        "TIME" : function(val, row, index) {
+                            if (typeof (val) == "undefined") {
+                                return "";
+                            }
+                            var date = new Date(val);
+                            return date.format("yyyy-MM-dd hh:mm:ss");
+                        },
+                        "V_RECIPIENT_NAME" : function(val, row, index) {
+                            if (typeof (val) == "undefined" || val == "") {
+                                return "所有人";
+                            }
+                            return val;
+                        }
+                    };
+                </script>
+    <table id="formGrid" class="easyui-datagrid" fit="true" url="${path}${adminPath}/im/hns/${param.tpid}" pagination="true" rownumbers="true" fitColumns="true" singleSelect="true" pageList="[10,25,35,45,50]" pageSize="25" data-options="method:'get'">
+        <thead>
+            <tr>
+                <th field="V_SENDER_NAME" width="30">发送人</th>
+                <th field="V_MESSAGE_CONTENT" width="50">消息内容</th>
+                <th field="V_RECIPIENT_NAME" width="30" formatter="GridFormatter.V_RECIPIENT_NAME">接收人</th>
+                <th field="N_SEND_TIME" width="30" formatter="GridFormatter.TIME">发送时间</th>
+            </tr>
+        </thead>
+    </table>
+</body>
+</html>

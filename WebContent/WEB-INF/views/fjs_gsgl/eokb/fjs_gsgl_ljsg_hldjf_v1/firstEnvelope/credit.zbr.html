@@ -1,0 +1,500 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>投标人所投标段组及信用等级与关联情况</title> <%includeJSP("/static/include/inc.jsp",{}){}%>
+<link href="${path}/static/css/table.css" rel="stylesheet" />
+<script src="${path}${adminPath}/view/im/js/CountDown.js" type="text/javascript"></script>
+<script src="${path}${adminPath}/view/metting_room/js/handlebars-v4.0.10.js" type="text/javascript"></script>
+<style>
+td {
+	border: 1px solid #B5D6E6;
+	word-break: break-all;
+}
+</style>
+<script id="tip-template" type="text/x-handlebars-template">
+<div class="xtgg_div">
+	<p class="xtgg_p">推送时间：#{date}</p>
+    <p class="xtgg_p">[${TENDER_PROJECT_FLOW_NODE.V_NODE_NAME}]进入数据确认环节!</p>
+    <p class="xtgg_p">请各投标人进入[${TENDER_PROJECT_FLOW_NODE.V_NODE_NAME}]环节!</p>
+    <p class="xtgg_p"><a style="color:#fff;" href="javascript:void(0);" onclick="openContentPage('${path}${adminPath}/tpflow/node/${TENDER_PROJECT_FLOW_NODE.ID}','${TENDER_PROJECT_FLOW_NODE.V_NODE_NAME}')">点击进入</a></p>
+</div>
+</script>
+<script id="credit-modify-tip-template" type="text/x-handlebars-template">
+    <div class="xtgg_div">
+		<p class="xtgg_p">推送时间：#{date}</p>
+        <p class="xtgg_p">信用等级已修改</p>
+        <p class="xtgg_p"><a style="color: #fff;" href="javascript:void(0);" onclick="openContentPage('${path}${adminPath}/tpflow/node/${TENDER_PROJECT_FLOW_NODE.ID}','${TENDER_PROJECT_FLOW_NODE.V_NODE_NAME}')">点击查看</a></p>
+    </div>
+</script>
+<script id="ent-modify-tip-template" type="text/x-handlebars-template">
+    <div class="xtgg_div">
+		<p class="xtgg_p">推送时间：#{date}</p>
+        <p class="xtgg_p">【{{_name}}】关联企业已修改</p>
+        <p class="xtgg_p"><a style="color: #fff;" href="javascript:void(0);" onclick="openContentPage('${path}${adminPath}/tpflow/node/${TENDER_PROJECT_FLOW_NODE.ID}','${TENDER_PROJECT_FLOW_NODE.V_NODE_NAME}')">点击查看</a></p>
+    </div>
+</script>
+<script type="text/javascript">
+    var modelType = "DYXF_credit";
+    var theme = "gsgl";
+    var projectCode = "fjs_gsgl_ljsg_hldjf_v1";
+    var envelope = "firstEnvelope";
+	//初始化
+	$(function() {
+		getConfirmStatus();
+	});
+
+	//获取确认状态值
+	function getConfirmStatus() {
+		$.ajax({
+			async : true,
+			cache : false,
+			type : 'get',
+			dataType : "json",
+			//data : data,
+			url : "${path}${adminPath}/bus/modelCheck/status/"+modelType,//请求的action路径  
+			error : function(XMLHttpRequest, textStatus, errorThrown) {//请求失败处理函数  
+				var result = jQuery.parseJSON(XMLHttpRequest.responseText);
+				$.messager.alert('异步获取数据出现异常', "异步获取数据出现异常[" + result.errorDesc
+						+ "]");
+			},
+			success : function(rs) { //请求成功后处理函数。 
+				//没确人过
+				if (!rs.success) {
+					return;
+				}
+				var result = rs.result;
+				//未确认
+				if (rs.success && result.V_STATUS == '0') {
+					return;
+				}
+				$("#first-envelope-data-confirm-button").hide();
+				var endTime = result.N_CONFIRM_TIME;
+				var beginTime = result.NOW_TIME;
+				var _date = new Date(endTime);
+				showTime(_date.format('hh:mm:ss'));
+				countDown(beginTime, endTime);
+			}
+		});
+	}
+
+	//确认时间
+	function showTime(_time) {
+		var endDate = new Date(_time);
+
+		$("#con-time-zbr").css("display", "block");
+		$("#time-zbr").html(_time);
+	}
+	//信息修改
+	function doCreditChange() {
+		$.messager.progress({
+			title : '提示',
+			msg : '信息修改中，请稍候……',
+			text : ''
+		});
+		var param = $('#first-envelope-dp-table-form').form2json({
+			allowEmptySingleVal : false
+		});
+
+		$
+				.ajax({
+					async : true,
+					cache : false,
+					type : 'POST',
+					//dataType : "json",
+					data : {
+						"BIDDER_CREDIT_RATINGS" : JSON.stringify(param)
+					},
+					url : "${path}${adminPath}/fjs_gsgl_ljsg_hldjf_v1/firstenvelope/mbcr",//请求的action路径  
+					error : function(XMLHttpRequest, textStatus, errorThrown) {//请求失败处理函数  
+						$.messager.progress('close');
+						var result = jQuery
+								.parseJSON(XMLHttpRequest.responseText);
+						$.messager.alert('异步获取数据出现异常', "异步获取数据出现异常["
+								+ result.errorDesc + "]");
+					},
+					success : function(result) { //请求成功后处理函数。  
+						parent.reComfirm(modelType);
+						$.messager.progress('close');
+						$.messager.alert('提示', "修改成功");
+						location.reload();
+						var html = getTemplateHtml("credit-modify-tip-template");
+						parent.sendFlowCommandToBidder(html);
+						
+						var flowNode = ${TENDER_PROJECT_FLOW_NODE};
+						// 发送指令给手机端
+						parent.sendModifyCurrentNodeInfoCommandToBidder("信用等级已修改",flowNode);
+					}
+				});
+	}
+
+	//修改关联企业
+	function changeBlgh(orgcode) {
+		var p = parent.sy
+				.dialog({
+					title : '企业关联修改',
+					width : 800,
+					height : 500,
+					href : '${path}${adminPath}/fjs_gsgl_ljsg_hldjf_v1/firstenvelope/credit/modifyByName/'+orgcode,
+					closed : false,
+					cache : false,
+					modal : true,
+					buttons : [ {
+						text : "确定",
+						iconCls : "icon-ok",
+						handler : function() {
+							var _name = p.find("#com-name").html();
+							var _code = p.find("#co-code").val();
+
+							updateCode(_name, _code);
+							p.dialog('close');
+						}
+					}, {
+						text : "取消",
+						iconCls : "icon-remove",
+						handler : function() {
+							p.dialog('close');
+						}
+					} ],
+
+					onLoad : function() {
+					}
+				});
+	}
+
+	//更行关联关系
+	function updateCode(_name, _code) {
+		$
+				.ajax({
+					async : true,
+					cache : false,
+					type : 'post',
+					data : {
+						code : _code,
+						name : _name
+					},
+					url : "${path}${adminPath}/fjs_gsgl_ljsg_hldjf_v1/firstenvelope/credit/updateCode",//请求的action路径  
+					error : function(XMLHttpRequest, textStatus, errorThrown) {//请求失败处理函数  
+						var result = jQuery
+								.parseJSON(XMLHttpRequest.responseText);
+						$.messager.alert('异步获取数据出现异常', "异步获取数据出现异常["
+								+ result.errorDesc + "]");
+					},
+					success : function(result) { //请求成功后处理函数。 
+						parent.reComfirm(modelType);
+						$.messager.alert('操作成功', "操作成功");
+						var html = getTemplateHtmlName(
+								"ent-modify-tip-template", _name);
+						parent.sendFlowCommandToBidder(html);
+						location.reload();
+					}
+				});
+	}
+
+	/**获取模板中的Html内容**/
+	function getTemplateHtml(tempid) {
+		// 用jquery获取模板
+		var source = $("#" + tempid).html();
+		// 预编译模板
+		var template = Handlebars.compile(source);
+		return template(new Object());
+	}
+
+	/**获取模板中的Html内容**/
+	function getTemplateHtmlName(tempid, name) {
+		// 用jquery获取模板
+		var source = $("#" + tempid).html();
+		// 预编译模板
+		var template = Handlebars.compile(source);
+		var context = {
+			_name : name
+		};
+		return template(context);
+	}
+
+	//定时器
+	function countDown(begin, end) {
+		var startDate = new Date(begin);
+		var endDate = new Date(end);
+		//开始时间小于结束时间
+		if (startDate < endDate) {
+			//var en
+			//endDate.setDate(endDate.getDate()+1);
+			CountDown.openTimeCountByStartAndEndDate({
+				Ele : document.getElementById('count_down'),
+				StartDate : startDate,
+				EndDate : endDate,
+				Sign : 'flypie',
+				Divider : ':',
+				EndFunc : function() {
+					//刷新投标人页面
+					parent.sendFlowFlushPage();
+					location.reload();
+				}
+			});
+		}
+	}
+
+	/**结束当前节点**/
+	function finishCurrentFlow() {
+		if(!${alreadyLaunched}){
+			$.messager.alert('操作提示', "请您先发起确认后再点击进入下一环节");
+			return;
+		}
+		parent.endConfirm(modelType);
+		//刷新投标人页面
+		parent.sendFlowFlushPage();
+		parent.finishCurrentFlowNode('${TENDER_PROJECT_FLOW_NODE.ID}',
+				'${TENDER_PROJECT_FLOW_NODE.V_NODE_NAME}');
+
+		//生成doc文件
+		parent.createDoc(theme,projectCode, envelope,
+				modelType);
+	}
+
+	//数据确认
+	function dataConfirm() {
+		var minTime=5;
+		parent.layer.prompt({title: '请输入确认分钟数，最低'+minTime+'分钟', formType: 0}, function(time, index){
+			parent.layer.close(index); 
+			var isNum = parent.isPositiveNum(time);
+			  if(!isNum){
+				  parent.layer.alert("请输入整数", {icon: 2});
+				  return;
+			  }
+			  if(time<minTime){
+				  parent.layer.alert('输入的 时间于'+minTime+'分钟', {icon: 2});
+				  return;
+			  }
+			  $
+				.ajax({
+					url : "${path}${adminPath}/bus/modelCheck/updateStatus",
+					// 设置请求方法
+					type : "POST",
+					cache : false,
+					async : false,
+					data : {
+						"type" : modelType,
+						"confirm_time" : time
+					},
+					// dataType : 'json',
+					// contentType : 'application/json;charset=UTF-8',
+					// 成功回调
+					success : function(result) {
+						parent.addNotice("#{date}：投标人所投标段组及信用组的数据确认环节已开始", '1');
+						var html = getTemplateHtml("tip-template");
+						parent.sendFlowCommandToBidder(html);
+						
+						var flowNode = ${TENDER_PROJECT_FLOW_NODE};
+						var tipMsg = flowNode.V_NODE_NAME+"进入数据确认环节";
+						// 发送指令给手机端
+						parent.sendModifyCurrentNodeInfoCommandToBidder(tipMsg,flowNode);
+						location.reload();
+					},
+					// 失败回调
+					error : function(XMLHttpRequest, textStatus, errorThrown) {
+						var result = jQuery
+								.parseJSON(XMLHttpRequest.responseText);
+						$.messager.alert('操作失败', "操作失败[" + result.errorDesc
+								+ "]");
+					}
+				});
+			  
+			});
+	}
+
+	/**发送响应指令**/
+	function sendRespCommond() {
+		var msg = "投标人解密成功";
+		var param = new Object();
+		param.msg = msg;
+		param.nodeID = "${TENDER_PROJECT_FLOW_NODE.ID}";
+		param.title = "${TENDER_PROJECT_FLOW_NODE.V_NODE_NAME}";
+		//alert(JSON.stringify(param));
+		parent.sendRespCommand(param);
+	}
+</script>
+</head>
+<body>
+    <span id="count_down" style="display: none;"></span>
+    <sz:if test="${SECTION_LIST.~size==0}">
+        <div style="font-size: 25px; text-align: center; color: red;">该项目已流标</div>
+    </sz:if>
+    <sz:if test="${SECTION_LIST.~size>0}">
+        <sz:if test="${TENDER_PROJECT_FLOW_NODE.N_STATUS!=3}">
+            <div style="text-align: right;">
+                <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-save'" onclick="doCreditChange()">修改信用等级</a> <a id="first-envelope-data-confirm-button" href="#" class="easyui-linkbutton" data-options="iconCls:'icon-save'" onclick="dataConfirm()">发起确认</a> <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-ok'" onclick="finishCurrentFlow();">进入下一环节</a>
+            </div>
+            <div style="font-size: 25px; text-align: center; color: red; display: none;" id="con-time-zbr">
+                投标人会在<span style="font-size: 25px; text-align: center; color: red;" id="time-zbr"></span>时间点前完成信息确认。请点击<a onclick="location.reload();" style="color: blue; text-decoration: underline; cursor: pointer; font-size: 25px">刷新</a><span style="font-size: 25px; text-align: center; color: red;">查看确认情况</span>
+            </div>
+            <div align="left" id="but" style="display: inline">
+                <span style="margin-left: 10px; font-size: 16px; color: red;">备注：点击企业名称可以对关联企业进行修改</span>
+            </div>
+            <div id="box1" style="margin-left: 30px; font-size: 16px; display: inline">
+                【完成解密家数 <span id="yx_n" style="font-size: 16px;">${YX_N}</span> 家，未完成解密家数 <span id="wx_n" style="font-size: 16px;">${WX_N}</span> 家】
+            </div>
+        </sz:if>
+        <form id="first-envelope-dp-table-form" style="width: 100%;">
+            <div class="easyui-tabs" data-options="plain:true">
+                <sz:forEach items="${SECTION_LIST}" var="section,stat">
+                    <div title="标段组：${section.BID_SECTION_GROUP_CODE}" style="padding: 10px;">
+                        <table class="sztable" width="100%" style="text-align: center;">
+                            <thead>
+                                <tr>
+                                    <td width="5%" rowspan='2'>投标人编号</td>
+                                    <td width="10%" rowspan='2'>投标人名称</td>
+                                    <td width="5%" rowspan='2'>已提交的投标文件的标段号</td>
+                                    <td width="6%" colspan='2'>关联企业情况</td>
+                                    <td width="20%" colspan='5'>投标人信用等级及使用情况</td>
+                                    <td width="24%" colspan='6'>项目经理信用等级</td>
+                                    <td width="24%" colspan='6'>项目总工信用等级</td>
+                                    <td width="6%" rowspan='2'>投标人确认</td>
+                                </tr>
+                                <tr>
+                                    <td width="3%">编号</td>
+                                    <td width="3%">家数</td>
+                                    <td width="4%">等级</td>
+                                    <td width="4%">A级、AA级信用分是否失效</td>
+                                    <td width="4%">评标使用的等级</td>
+                                    <td width="4%">可享受加分次数</td>
+                                    <td width="4%">已享受加分次数</td>
+                                    <td width="4%">姓名</td>
+                                    <td width="4%">等级</td>
+                                    <td width="4%">A级、AA级信用分是否失效</td>
+                                    <td width="4%">评标使用的等级</td>
+                                    <td width="4%">可享受加分次数</td>
+                                    <td width="4%">已享受加分次数</td>
+                                    <td width="4%">姓名</td>
+                                    <td width="4%">等级</td>
+                                    <td width="4%">A级、AA级信用分是否失效</td>
+                                    <td width="4%">评标使用的等级</td>
+                                    <td width="4%">可享受加分次数</td>
+                                    <td width="4%">已享受加分次数</td>
+                                </tr>
+                            </thead>
+                            <sz:forEach items="${section.TENDER_LIST}" var="vo,step">
+                                <tr>
+                                    <td>${vo.V_BIDDER_NO}</td>
+                                    <sz:if test="${TENDER_PROJECT_FLOW_NODE.N_STATUS!=3}">
+                                        <td><span style="color: blue; text-decoration: underline; cursor: pointer;" onclick="changeBlgh('${vo.V_BIDDER_ORG_CODE}');">${vo.V_BIDDER_NAME}</span></td>
+                                    </sz:if>
+                                    <sz:if test="${TENDER_PROJECT_FLOW_NODE.N_STATUS==3}">
+                                        <td>${vo.V_BIDDER_NAME}</span></td>
+                                    </sz:if>
+                                    <td>${vo.SECTIONS}</td>
+                                    <td>${vo.V_CORRELATE_CODE}</td>
+                                    <!-- 记录数不为空说明要出现列,否则列不出现 -->
+                                    <sz:if test="${vo._COUNT!=null}">
+                                        <!-- 如果记录数是1 -->
+                                        <sz:if test="${vo._COUNT==1}">
+                                            <td>${vo._COUNT}</td>
+                                        </sz:if>
+                                        <!-- 如果记录数大于1 -->
+                                        <sz:if test="${vo._COUNT>1}">
+                                            <td rowspan="${vo._COUNT}">${vo._COUNT}</td>
+                                        </sz:if>
+                                    </sz:if>
+                                    <td>${vo.tbTbrCR}</td>
+                                    <sz:if test="${TENDER_PROJECT_FLOW_NODE.N_STATUS!=3}">
+                                        <sz:if test="${vo.cbIsAEffect=='1'}">
+                                            <td><sz:dict showtype="select" type="3" pid='c93fa2da01854757b7db990c1517f735' width="50px;" id="${vo.V_BIDDER_NO}+${section.V_BID_SECTION_GROUP_CODE}.cbIsAEffect" shownull="false" value="${vo.cbIsAEffect}" /></td>
+                                        </sz:if>
+                                        <sz:if test="${vo.cbIsAEffect!='1'}">
+                                            <td><sz:dict showtype="select" type="3" pid='c93fa2da01854757b7db990c1517f735' width="50px;" id="${vo.V_BIDDER_NO}+${section.V_BID_SECTION_GROUP_CODE}.cbIsAEffect" shownull="false" value="${vo.cbIsAEffect}" /></td>
+                                        </sz:if>
+                                    </sz:if>
+                                    <sz:if test="${TENDER_PROJECT_FLOW_NODE.N_STATUS==3}">
+                                        <sz:if test="${vo.cbIsAEffect=='1'}">
+                                            <td>是</td>
+                                        </sz:if>
+                                        <sz:if test="${vo.cbIsAEffect!='1'}">
+                                            <td>否</td>
+                                        </sz:if>
+                                    </sz:if>
+                                    <sz:if test="${TENDER_PROJECT_FLOW_NODE.N_STATUS!=3}">
+                                        <!-- <td>${vo.tbRatingsInEvl}</td> -->
+                                        <td><sz:dict showtype="select" type="2" pid='c93fa2da01854757b7db990c1517f734' width="50px;" id="${vo.V_BIDDER_NO}+${section.V_BID_SECTION_GROUP_CODE}.tbRatingsInEvl" shownull="false" value="${vo.tbRatingsInEvl}" /></td>
+                                    </sz:if>
+                                    <sz:if test="${TENDER_PROJECT_FLOW_NODE.N_STATUS==3}">
+                                        <td>${vo.tbRatingsInEvl}</td>
+                                    </sz:if>
+                                    <td>${vo.ceep}</td>
+                                    <td>${vo.heep}</td>
+                                    <td>${vo.tbPmName}</td>
+                                    <td>${vo.tbPmCR}</td>
+                                    <sz:if test="${TENDER_PROJECT_FLOW_NODE.N_STATUS!=3}">
+                                        <sz:if test="${vo.cbIsAEffect_Pm=='1'}">
+                                            <td><sz:dict showtype="select" type="3" pid='c93fa2da01854757b7db990c1517f735' width="50px;" id="${vo.V_BIDDER_NO}+${section.V_BID_SECTION_GROUP_CODE}.cbIsAEffect_Pm" shownull="false" value="${vo.cbIsAEffect_Pm}" /></td>
+                                        </sz:if>
+                                        <sz:if test="${vo.cbIsAEffect_Pm!='1'}">
+                                            <td><sz:dict showtype="select" type="3" pid='c93fa2da01854757b7db990c1517f735' width="50px;" id="${vo.V_BIDDER_NO}+${section.V_BID_SECTION_GROUP_CODE}.cbIsAEffect_Pm" shownull="false" value="${vo.cbIsAEffect_Pm}" /></td>
+                                        </sz:if>
+                                    </sz:if>
+                                    <sz:if test="${TENDER_PROJECT_FLOW_NODE.N_STATUS==3}">
+                                        <sz:if test="${vo.cbIsAEffect_Pm=='1'}">
+                                            <td>是</td>
+                                        </sz:if>
+                                        <sz:if test="${vo.cbIsAEffect_Pm!='1'}">
+                                            <td>否</td>
+                                        </sz:if>
+                                    </sz:if>
+                                    <sz:if test="${TENDER_PROJECT_FLOW_NODE.N_STATUS!=3}">
+                                        <td><sz:dict showtype="select" type="2" pid='c93fa2da01854757b7db990c1517f734' width="50px;" id="${vo.V_BIDDER_NO}+${section.V_BID_SECTION_GROUP_CODE}.tbRatingsInEvl_Pm" shownull="false" value="${vo.tbRatingsInEvl_Pm}" /></td>
+                                    </sz:if>
+                                    <sz:if test="${TENDER_PROJECT_FLOW_NODE.N_STATUS==3}">
+                                        <td>${vo.tbRatingsInEvl_Pm}</td>
+                                    </sz:if>
+                                    <td>${vo.ceep_Pm}</td>
+                                    <td>${vo.heep_Pm}</td>
+                                    <td>${vo.tbPeName}</td>
+                                    <td>${vo.tbPeCR}</td>
+                                    <sz:if test="${TENDER_PROJECT_FLOW_NODE.N_STATUS!=3}">
+                                        <sz:if test="${vo.cbIsAEffect_Pe=='1'}">
+                                            <td><sz:dict showtype="select" type="3" pid='c93fa2da01854757b7db990c1517f735' width="50px;" id="${vo.V_BIDDER_NO}+${section.V_BID_SECTION_GROUP_CODE}.cbIsAEffect_Pe" shownull="false" value="${vo.cbIsAEffect_Pe}" /></td>
+                                        </sz:if>
+                                        <sz:if test="${vo.cbIsAEffect_Pe!='1'}">
+                                            <td><sz:dict showtype="select" type="3" pid='c93fa2da01854757b7db990c1517f735' width="50px;" id="${vo.V_BIDDER_NO}+${section.V_BID_SECTION_GROUP_CODE}.cbIsAEffect_Pe" shownull="false" value="${vo.cbIsAEffect_Pe}" /></td>
+                                        </sz:if>
+                                    </sz:if>
+                                    <sz:if test="${TENDER_PROJECT_FLOW_NODE.N_STATUS==3}">
+                                        <sz:if test="${vo.cbIsAEffect_Pe=='1'}">
+                                            <td>是</td>
+                                        </sz:if>
+                                        <sz:if test="${vo.cbIsAEffect_Pe!='1'}">
+                                            <td>否</td>
+                                        </sz:if>
+                                    </sz:if>
+                                    <sz:if test="${TENDER_PROJECT_FLOW_NODE.N_STATUS!=3}">
+                                        <td><sz:dict showtype="select" type="2" pid='c93fa2da01854757b7db990c1517f734' width="50px;" id="${vo.V_BIDDER_NO}+${section.V_BID_SECTION_GROUP_CODE}.tbRatingsInEvl_Pe" shownull="false" value="${vo.tbRatingsInEvl_Pe}" /></td>
+                                    </sz:if>
+                                    <sz:if test="${TENDER_PROJECT_FLOW_NODE.N_STATUS==3}">
+                                        <td>${vo.tbRatingsInEvl_Pe}</td>
+                                    </sz:if>
+                                    <td>${vo.ceep_Pe}</td>
+                                    <td>${vo.heep_Pe}</td>
+                                    <!-- 已发起确认 -->
+                                    <sz:if test="${section.ALREADY_LAUNCHED}">
+                                        <!-- 如果为空-->
+                                        <sz:if test="${vo.V_STATUS == null}">
+                                            <td></td>
+                                        </sz:if>
+                                        <sz:if test="${vo.V_STATUS != null}">
+                                            <td>${vo.V_REMARK!}</td>
+                                        </sz:if>
+                                    </sz:if>
+                                    <!-- 未发起确认 -->
+                                    <sz:if test="${!section.ALREADY_LAUNCHED}">
+                                        <td></td>
+                                    </sz:if>
+                                </tr>
+                            </sz:forEach>
+                        </table>
+                    </div>
+                </sz:forEach>
+            </div>
+        </form>
+    </sz:if>
+</body>
+</html>

@@ -1,0 +1,43 @@
+<div>
+    <p style="font-size: 25px; text-align: center; font-weight: bold;">
+        <u style="font-size: 25px; text-align: center; font-weight: bold;">${PROJECT_NAME}</u>（项目名称）<u style="font-size: 25px; text-align: center; font-weight: bold;">${SECTIONS} </u>（资格审查文件）开标记录表
+    </p>
+    <p style="font-size: 18px; text-align: center;">
+        </u>开标时间：<u style="font-size: 18px; text-align: center; font-weight: bold;"> ${TIME}</u>
+    </p>
+</div>
+<div class="easyui-tabs" data-options="plain:true">
+    <sz:forEach items="${SECTION_LIST}" var="section,stat">
+        <table class="sztable" width="100%" style="text-align: center;">
+            <tr>
+                <td width="10%">序号</td>
+                <td width="20%">投标人名称</td>
+                <td width="10%">组织机构代码</td>
+                <td width="10%">社会统一信用代码</td>
+                <td width="10%">拟担任勘察项目负责人姓名</td>
+                <td width="10%">注册土木工程师（岩土）执业资格证书注册编号</td>
+                <td width="10%">解密情况</td>
+                <td width="5%">联系方式</td>
+                <td width="15%">备注</td>
+            </tr>
+            <sz:forEach items="${section.TENDER_LIST}" var="vo,step">
+                <tr>
+                    <td>${step.index+1}</td>
+                    <td>${vo.tbrmc}</td>
+                    <td>${vo.bidder_org_code}</td>
+                    <td>${vo.bidder_unify_code}</td>
+                    <td>${vo.tbPeName}</td>
+                    <td>${vo.zsbh}</td>
+                    <td>成功</td>
+                    <td>${vo.bidder_phone!}</td>
+                    <td>${vo.firstRemark!}</td>
+                </tr>
+            </sz:forEach>
+        </table>
+    </sz:forEach>
+</div>
+<div style="font-size: 18px; text-align: center; font-weight: bold; height: 100px; line-height: 100px;">
+    <p>
+        招标人电子盖章（或签字）：<span style="margin-left: 20em;">招标代理机构电子盖章（或签字）：</span><span style="margin-left: 20em;">公证处电子盖章（或签字）：</span>
+    </p>
+</div>

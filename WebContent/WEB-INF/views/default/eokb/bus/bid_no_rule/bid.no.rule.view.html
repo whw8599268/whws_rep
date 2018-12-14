@@ -1,0 +1,63 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>投标人代表号生成规则</title> <%includeJSP("/static/include/inc.jsp",{}){}%>
+<link href="${path}/static/css/table.css" rel="stylesheet" />
+</head>
+<body>
+        <div>
+            <div style="width: 40%; float:left; margin-left: 10%;">
+                <div style="font-size: 20px; font-weight: bold;">分配球号</div>
+                <table class="sztable" width="100%" style="text-align: center;">
+                    <thead>
+                        <tr>
+                            <td>序号</td>
+                            <td>投标人代表号产生规则</td>
+                            <td>代表球号</td>
+                        </tr>
+                    </thead>
+                    <sz:forEach items="${RULE_INFO.RULE_LIST}" var="rule,sta">
+                        <tr>
+                            <td>${sta.index+1}</td>
+                            <td>${rule.RULE}</td>
+                            <td>${rule.NO}</td>
+                        </tr>
+                    </sz:forEach>
+                </table>
+            </div>
+            <div style="width: 40%; float: left; margin-left: 5%;">
+                <div style="font-size: 20px; font-weight: bold;">摇球结果</div>
+                <table class="sztable" width="100%" style="text-align: center;">
+                    <thead>
+                        <tr>
+                            <td>序号</td>
+                            <td>代表球号</td>
+                            <td>投标人代表号产生规则</td>
+                        </tr>
+                    </thead>
+                    <tr>
+                        <td>1</td>
+                        <td>${RULE_INFO.RESULT_BALL}</td>
+                        <td><span id="RULE_TIP">${RULE_INFO.RULE!}</span></td>
+                    </tr>
+                </table>
+            </div>
+            <div style="clear:both"></div>
+        </div>
+ <div style="margin-left:10%;margin-top:5%;">
+       <strong> 关于投标人代表号产生规则</strong></br> 
+        （一）在系统中预先设置按照下列两种方式生成投标人代表号：</br>
+         &nbsp;&nbsp;&nbsp;1、按照投标人递交投标文件的正顺序； </br>
+         &nbsp;&nbsp;&nbsp;2、按照投标人递交投标文件的逆顺序；</br>
+          （二）在开标时由招标人通过以下程序来确定采用何种方式产生投标人代表号： </br>
+          &nbsp;&nbsp;&nbsp;1、 向抽取机中任意放入30个不重复号码的号码球；</br>
+           &nbsp;&nbsp;&nbsp;2、 进行公开随机抽取，抽出2个号码球；</br>
+            &nbsp;&nbsp;&nbsp;3、对号码球根据号码大小进行排序，最小的号码球代表按照上述第1种方式确定，次小的号码球代表按照上述第2种方式确定；</br>
+             &nbsp;&nbsp;&nbsp;4、将抽出的2个号码球放入抽取机； </br>
+             &nbsp;&nbsp;&nbsp;5、进行公开随机抽取，抽出1个号码球；</br>
+              &nbsp;&nbsp;&nbsp;6、根据抽取结果，在系统上确定投标人代表号。
+</div>
+</body>
+</html>

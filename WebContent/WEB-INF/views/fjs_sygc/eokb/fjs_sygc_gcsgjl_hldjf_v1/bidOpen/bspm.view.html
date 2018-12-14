@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>评标基准价B计算方法抽取表</title> <%includeJSP("/static/include/inc.jsp",{}){}%>
+<link href="${path}/static/css/table.css" rel="stylesheet" />
+<style>
+html,body {
+	height: 100%;
+	padding: 0;
+	margin: 0;
+}
+
+td {
+	border: 1px solid #B5D6E6;
+}
+</style>
+</head>
+<body>
+    <sz:if test="${TENDER_PROJECT_FLOW_NODE.N_STATUS! !=3}">
+        <div style="text-align: right;">
+            <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-ok'" title="结束评标方法抽取，进入下一个环节" onclick="finishCurrentFlow();">进入下一环节</a>
+        </div>
+    </sz:if>
+    <div class="easyui-tabs" data-options="plain:true">
+        <sz:forEach items="${TENDER_PROJECT_BSPM_LIST}" var="bspm,stat">
+            <div title="标段：${bspm.SECTION_INFO.V_BID_SECTION_NAME}" style="padding: 10px;">
+                <p style="font-size: 18px; color: #ff7300; font-weight: bold;">最高限价（元）：${fmt.format("###,##0.00",bspm.SECTION_INFO.N_CONTROL_PRICE)}</p>
+                <form id="${bspm.SECTION_INFO.V_BID_SECTION_ID}-METHOD-FORM">
+                    <input type="hidden" id="${bspm.SECTION_INFO.V_BID_SECTION_ID}-V_BID_SECTION_ID" name="V_BID_SECTION_ID" value="${bspm.SECTION_INFO.V_BID_SECTION_ID}"> <input type="hidden" id="${bspm.SECTION_INFO.V_BID_SECTION_ID}-V_BID_SECTION_NAME" name="V_BID_SECTION_NAME" value="${bspm.SECTION_INFO.V_BID_SECTION_NAME}">
+                    <table class="sztable" width="100%" style="text-align: center; margin-top: 10px;">
+                        <thead>
+                            <tr>
+                                <td width="5%">球号</td>
+                                <td width="10%">计算基准价方法名</td>
+                                <td width="85%">说明</td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>${bspm.METHOD_ONE}</td>
+                                <td>方法一</td>
+                                <td style="text-align: left;">除按规定被宣布废标的投标报价外，所有参与评标基准价计算的投标价的算术平均值，若参与评标基准价计算的投标人超过5家，则剔除最高、最低标后，进行算术平均。再将该算术平均值A按抽取的下浮系数K下浮后作为评标基准价B。</td>
+                            </tr>
+                            <tr>
+                                <td>${bspm.METHOD_TWO}</td>
+                                <td>方法二</td>
+                                <td style="text-align: left;">除按规定被宣布废标的投标报价外，将所有参与评标基准价计算的投标价的算术平均值A1，与最高限价A2按一定权重加权计算得出加权平均值A（最高限价权重系数μ为20~40%，以4%为一档，在开标现场随机抽取，μ分μ1、μ2、μ3……μ6，即μ1对应20%、μ2对应24%、μ3对应28%……μ6对应40%）。再将该加权平均值A按抽取的下浮系数K下浮后作为评标基准价B。</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div style="margin-top: 10px;">
+                        <div style="font-size: 18px; color: #ff7300; font-weight: bold;">抽取结果录入：</div>
+                        <div style="font-size: 18px; color: #ff7300; font-weight: bold;">&nbsp;&nbsp;&nbsp;&nbsp;抽取球号： ${bspm.YAOHAO_NO}</div>
+                        <div style="font-size: 18px; color: #ff7300; font-weight: bold;">
+                            &nbsp;&nbsp;&nbsp;&nbsp;本标段所使用的基准价计算方法为：<span id="${bspm.SECTION_INFO.V_BID_SECTION_ID}-METHOD_TIP" style="font-size: 18px; color: #ff7300; font-weight: bold;">${bspm.YAOHAO_RESULT}</span>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </sz:forEach>
+    </div>
+    <script type="text/javascript">
+					/**结束当前节点**/
+					function finishCurrentFlow() {
+
+						parent.finishCurrentFlowNode(
+								'${TENDER_PROJECT_FLOW_NODE.ID!}',
+								'${TENDER_PROJECT_FLOW_NODE.V_NODE_NAME!}');
+						parent.createDoc('sygc', 'fjs_sygc_gcsgjl_hldjf_v1',
+								'secondEnvelope', 'DEXF_BSPM_YAOHAO');
+					}
+				</script>
+</body>
+</html>

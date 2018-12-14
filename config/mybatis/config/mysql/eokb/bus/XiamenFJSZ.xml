@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="XiamenFJSZ">
+
+    <!-- 获取投递倒序列表 -->
+    <select id="getReverseDelivery" parameterType="string" resultType="record">
+        <![CDATA[
+            SELECT MAX(V_CREATETIME) AS MAXTIME, V_ORG_CODE
+              FROM EKB_T_TBIMPORTBIDDING
+             WHERE V_TPID = #{tpid}
+             GROUP BY V_ORG_CODE
+             ORDER BY MAXTIME DESC
+        ]]>
+    </select>
+    
+    <!-- 获取投递组织机构代码列表 -->
+    <select id="getDeliveryOrgCodes" parameterType="string" resultType="string">
+        <![CDATA[
+            SELECT V_ORG_CODE
+              FROM EKB_T_TBIMPORTBIDDING
+             WHERE V_TPID = #{tpid}
+        ]]>
+    </select>
+    
+</mapper>  

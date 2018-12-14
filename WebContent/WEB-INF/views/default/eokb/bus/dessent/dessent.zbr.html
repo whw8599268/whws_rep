@@ -1,0 +1,263 @@
+<!doctype html>
+<html>
+
+<head>
+<meta charset="UTF-8">
+<%includeJSP( "/static/include/inc.jsp",{}){}%>
+<script src="${path}${adminPath}/view/im/js/CountDown.js" type="text/javascript"></script>
+<script type="text/javascript">
+	SZUtilsExtEasyUIListPage.datagrid.pagination();
+	var can_next = true;
+	var flowid = '${TENDER_PROJECT_FLOW_NODE.ID}';
+	//初始化
+	$(function() {
+		sy.progress.show();
+		showTime();
+	});
+
+	function showTime() {
+		$.ajax({
+			type : 'GET',
+			cache : false,
+			//data : data,
+			url : "${path}${adminPath}/bus/dessent/getTime/" + flowid,//请求的action路径  
+			error : function(XMLHttpRequest, textStatus, errorThrown) {//请求失败处理函数  
+				var result = jQuery.parseJSON(XMLHttpRequest.responseText);
+				$.messager.alert('异步获取数据出现异常', "异步获取数据出现异常[" + result.errorDesc
+						+ "]");
+			},
+			success : function(rs) { //请求成功后处理函数。 
+				var endTime = rs.END_TIME;
+				var beginTime = rs.NOW_TIME;
+				if (beginTime > endTime) {
+					$('#time-tip-div').hide();
+					$('#btn-add-time').hide();
+					$('#time-over-div').show();
+				} else {
+					countDown(beginTime, endTime);
+				}
+			}
+		});
+	}
+
+	// 添加开标异议时间
+	function addTime() {
+		$.ajax({
+			type : 'GET',
+			cache : false,
+			//data : data,
+			url : "${path}${adminPath}/bus/dessent/addTime/" + flowid,//请求的action路径  
+			error : function(XMLHttpRequest, textStatus, errorThrown) {//请求失败处理函数  
+				var result = jQuery.parseJSON(XMLHttpRequest.responseText);
+				$.messager.alert('异步获取数据出现异常', "异步获取数据出现异常[" + result.errorDesc
+						+ "]");
+			},
+			success : function(rs) { //请求成功后处理函数。 
+				location.reload();
+			}
+		});
+	}
+
+	function addDessent(id) {
+		var p = parent.sy
+				.dialog({
+					title : '&nbsp;上传文件',
+					// iconCls: "icon-man",
+					href : '${path}${adminPath}/view/eokb/bus/dessent/upload.zbr.html',
+					width : 350,
+					height : 180,
+					buttons : [
+							{
+								text : "上传",
+								iconCls : "icon-save",
+								handler : function() {
+									//文件验证
+									var file = p.find("#FILE_LIST_ONE");
+									var filename = file.val();
+									if (!filename) {
+										top.$.messager.alert("提示", "请上传文件!");
+										return;
+									}
+									var f = p.find('form');
+									if (f.form('validate')) {
+										// 初始化表单提交为异步提交
+										var f = p.find('form');
+										var url = '${path}${adminPath}/bus/dessent/upload/'
+												+ id;
+										f.attr("action", url);
+										// 初始化表单提交为异步提交
+										parent.sy.progress.show();
+										f
+												.ajaxForm({
+													success : function(data) {
+														parent.sy.progress
+																.hide();
+														$('#formGrid')
+																.datagrid(
+																		'reload');
+														p.dialog('close');
+														parent.sy
+																.messagerShow({
+																	msg : "操作成功!",
+																	title : '提示'
+																});
+													},
+													error : function(
+															XMLHttpRequest,
+															textStatus,
+															errorThrown) {
+														parent.sy.progress
+																.hide();
+														var result = jQuery
+																.parseJSON(XMLHttpRequest.responseText);
+														top.$.messager
+																.alert(
+																		'操作失败',
+																		"操作失败["
+																				+ result.errorDesc
+																				+ "]");
+													}
+												});
+										f.submit();
+									}
+								}
+							}, {
+								text : "关闭",
+								iconCls : "icon-remove",
+								handler : function() {
+									p.dialog('close');
+								}
+							} ]
+				});
+
+	}
+
+	var GridFormatter = {
+		"OPERATION" : function(value, row, index) {
+			var status = row.N_STATUS;
+			if (status == 0) {
+				return '<a href="javascript:void(0)" onclick="doDownload(\''
+						+ row.ID
+						+ '\','
+						+ true
+						+ ')">导出异议</a> <a href="javascript:void(0)" onclick="addDessent(\''
+						+ row.ID + '\')">上传答复</a>';
+			}
+
+			return '<a href="javascript:void(0)" onclick="doDownload(\''
+					+ row.ID
+					+ '\','
+					+ true
+					+ ')">导出异议</a> <a href="javascript:void(0)" onclick="doDownload(\''
+					+ row.ID + '\',' + false + ')">导出答复</a>';
+		},
+		"STATUS" : function(value, row, index) {
+			var status = row.N_STATUS;
+			if (status == 0) {
+				//有未答复的
+				can_next = false;
+				return "<span style='color:red'>未答复</span>";
+			}
+			return "<span style='color:red'>已答复</span>";
+		}
+	};
+
+	function doDownload(id, flag) {
+		window.open('${path}${adminPath}/bus/dessent/download/' + id + '/'
+				+ flag);
+	}
+
+	/**结束开标**/
+	function finishCurrentFlow() {
+		if (can_next) {
+			firstEnvelopeFlowEnd();
+		} else {
+			parent.$.messager.confirm("提示", "尚未有未答复的异议，确认结束开标?", function(r) {
+				if (r) {
+					firstEnvelopeFlowEnd();
+				}
+			});
+		}
+	}
+
+	/**结束开标**/
+	function firstEnvelopeFlowEnd() {
+		var d = $(window.parent.document).find("#dlgframe").attr("src");
+		if(d){
+			parent.$('#dlg').dialog('destroy');
+			parent.$("#dlg").dialog("close");
+		}
+		//结束第一信封
+		$.ajax({
+			async : false,
+			cache : false,
+			url : "${path}${adminPath}/bus/dessent/bid/over",//请求的action路径  
+			// 设置请求方法
+			type : "GET",
+			// dataType : 'json',
+			contentType : 'application/json;charset=UTF-8',
+			// 成功回调
+			success : function(result) {
+				parent.finishFlow('${TENDER_PROJECT_FLOW_NODE.ID}',
+				'${TENDER_PROJECT_FLOW_NODE.V_NODE_NAME}');
+			},
+			// 失败回调
+			error : function(XMLHttpRequest, textStatus, errorThrown) {
+				var result = jQuery.parseJSON(XMLHttpRequest.responseText);
+				$.messager.alert('操作失败', "操作失败[" + result.errorDesc + "]");
+			}
+		});
+	}
+
+	//定时器
+	function countDown(begin, end) {
+		var startDate = new Date(begin);
+		var endDate = new Date(end);
+		//开始时间小于结束时间
+		//var en
+		//endDate.setDate(endDate.getDate()+1);
+		CountDown.openTimeCountByStartAndEndDate({
+			Ele : document.getElementById('count_down'),
+			StartDate : startDate,
+			EndDate : endDate,
+			Sign : 'flypie',
+			Divider : ':',
+			EndFunc : function() {
+				sy.progress.hide();
+				location.reload();
+			}
+		});
+	}
+</script>
+</head>
+<body>
+    <sz:if test="${TENDER_PROJECT_FLOW_NODE.N_STATUS!=3}">
+        <div style="text-align: right;" id="finish-bid-btn">
+            <a href="#" id="btn-add-time" id="btn-add-time" class="easyui-linkbutton" data-options="iconCls:'icon-add'" onclick="addTime();">延长异议</a><a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-ok'" onclick="finishCurrentFlow();">结束开标</a>
+        </div>
+        <div id="time-tip-div" style="font-size: 20px; text-align: center">
+            提出异议倒计时<span id="count_down" style="font-size: 20px;"></span>
+        </div>
+        <div id="time-over-div" style="font-size: 20px; text-align: center; color: red; display: none;">开标异议时间已结束</div>
+    </sz:if>
+    <sz:if test="${TENDER_PROJECT_FLOW_NODE.N_STATUS==3}">
+        <span id="count_down" style="display: none;"></span>
+        <div style="font-size: 20px; text-align: center; color: red; display: none;">开标异议已结束</div>
+    </sz:if>
+    <!-- 表格 -->
+    <table id="formGrid" style="width: auto; height: auto" class="easyui-datagrid" title="" rownumbers="true" fitColumns="true" fit="true" url="${path}${adminPath}/bus/dessent/list" pageList="[15,25,50,100,200]" pageSize="15" pagination="true" nowrap="false" data-options="method:'get'">
+        <thead>
+            <tr>
+                <th field="ID" align="center" hidden="true"></th>
+                <th field="V_DISSENT_TIME" align="center" halign="center" width="10%" data-options="">提出时间</th>
+                <th field="V_REVERT_TIME" align="center" halign="center" width="10%" data-options="">答复时间</th>
+                <th field="V_BIDDER_NAME" align="center" halign="center" width="15%" data-options="">提出人</th>
+                <th field="V_DESSENT_TITLE" align="center" halign="center" width="28%" data-options="">异议标题</th>
+                <th field="V_REVERT_NAME" align="center" halign="center" width=15% " data-options="">答复人</th>
+                <th field="N_STATUS" align="center" halign="center" width="10%" formatter="GridFormatter.STATUS">状态</th>
+                <th field="V_DISSENT_OPERATION" align="center" halign="center" width="10%" formatter="GridFormatter.OPERATION">操作</th>
+            </tr>
+        </thead>
+    </table>
+</body>
+</html>

@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="decrypt">
+
+    <!-- 获取投标人投递信息 -->
+    <select id="getBidderDeliveryInfo" parameterType="record" resultType="record">
+        <include refid="getBidderDeliveryInfo_Sql" />
+        ORDER BY T.V_BID_SECTION_ID ASC, T.V_FTID ASC
+    </select>
+
+    <!-- 获取普通公共用第一信封情况下路投标人投递信息 -->
+    <select id="getCommonHighwayBidderDeliveryInfo" parameterType="record" resultType="record">
+        SELECT T0.* FROM (
+        <include refid="getBidderDeliveryInfo_Sql" />
+        UNION
+        <include refid="getSharingFirstEnvelopeBidderDeliveryInfo" />
+        ) T0
+        ORDER BY T0.V_BID_SECTION_ID ASC, T0.V_FTID ASC
+    </select>
+
+    <!-- 获取投标人投递信息 -->
+    <sql id="getBidderDeliveryInfo_Sql">
+        <![CDATA[
+            SELECT T.ID,
+                   T.V_ORG_CODE,
+                   T.V_UNIFY_CODE,
+                   T.V_BIDDER_NAME,
+                   T.V_FOLDERPATHALL,
+                   T.V_FILEADDR,
+                   T.V_FTID,
+                   T.V_BID_SECTION_ID,
+                   T.V_DELIVER_TIME,
+                   T.V_DELIVER_NO,
+                   T.V_MAC,
+                   T1.V_BID_SECTION_CODE,
+                   T1.V_BID_SECTION_GROUP_CODE
+              FROM EKB_T_TBIMPORTBIDDING T
+              JOIN EKB_T_SECTION_INFO T1 ON (T.V_BID_SECTION_ID = T1.V_BID_SECTION_ID)
+             WHERE T.V_TPID = #{tpid}
+               AND T1.V_BID_OPEN_STATUS != '0'
+               AND T1.V_BID_OPEN_STATUS != '10-0'
+        ]]>
+        <if test="(unify_code !=null and unify_code !='') and (org_code !=null and org_code !='')">
+            AND (V_UNIFY_CODE = #{unify_code} OR V_ORG_CODE = #{org_code})
+        </if>
+        <if test="(unify_code ==null or unify_code =='') and (org_code !=null and org_code !='')">
+            AND V_ORG_CODE = #{org_code}
+        </if>
+        <if test="(unify_code !=null and unify_code !='') and (org_code ==null or org_code =='')">
+            AND V_UNIFY_CODE = #{unify_code}
+        </if>
+    </sql>
+
+    <!-- 获取共用第一信封投标人投递信息 -->
+    <sql id="getSharingFirstEnvelopeBidderDeliveryInfo">
+        <![CDATA[
+            SELECT T.ID,
+                   T.V_ORG_CODE,
+                   T.V_UNIFY_CODE,
+                   T.V_BIDDER_NAME,
+                   T.V_FOLDERPATHALL,
+                   T.V_FILEADDR,
+                   T.V_FTID,
+                   T.V_BID_SECTION_ID,
+                   T.V_DELIVER_TIME,
+                   T.V_DELIVER_NO,
+                   T1.V_BID_SECTION_CODE,
+                   T1.V_BID_SECTION_GROUP_CODE
+              FROM EKB_T_TBIMPORTBIDDING T
+              JOIN EKB_T_SECTION_INFO T1 ON (T.V_BID_SECTION_GROUP_CODE = T1.V_BID_SECTION_GROUP_CODE AND T.V_TPID = T1.V_TPID)
+             WHERE T.V_TPID = #{tpid}
+               AND T1.V_BID_OPEN_STATUS != '0'
+               AND T1.V_BID_OPEN_STATUS != '10-0'
+               AND T.V_FTID = '611'
+        ]]>
+        <if test="(unify_code !=null and unify_code !='') and (org_code !=null and org_code !='')">
+            AND (V_UNIFY_CODE = #{unify_code} OR V_ORG_CODE = #{org_code})
+        </if>
+        <if test="(unify_code ==null or unify_code =='') and (org_code !=null and org_code !='')">
+            AND V_ORG_CODE = #{org_code}
+        </if>
+        <if test="(unify_code !=null and unify_code !='') and (org_code ==null or org_code =='')">
+            AND V_UNIFY_CODE = #{unify_code}
+        </if>
+    </sql>
+
+    <!-- 获取投标人解密情况列表 -->
+    <select id="getBidderDecryptInfo" parameterType="record" resultType="record">
+        <![CDATA[
+            SELECT T.*, IFNULL(DT.N_STATUS, -1) AS N_DECRYPT_STATUS
+              FROM (SELECT TD.ID,
+                           T.V_BIDDER_NAME,
+                           T.V_BIDDER_ORG_CODE AS V_ORG_CODE,
+                           S.V_BID_SECTION_GROUP_CODE,
+                           S.V_BID_SECTION_NAME,
+                           TD.V_TIPSNAME
+                      FROM EKB_T_TBIMPORTBIDDING TD
+                      JOIN EKB_T_SECTION_INFO S ON (TD.V_TPID = S.V_TPID AND TD.V_BID_SECTION_ID = S.V_BID_SECTION_ID)
+                      JOIN EKB_T_TENDER_LIST T ON (TD.V_TPID = T.V_TPID AND TD.V_ORG_CODE = T.V_BIDDER_ORG_CODE)
+                     WHERE TD.V_TPID = #{tpid}
+                    UNION
+                    SELECT TD.ID,
+                           T.V_BIDDER_NAME,
+                           T.V_BIDDER_ORG_CODE AS V_ORG_CODE,
+                           S.V_BID_SECTION_GROUP_CODE,
+                           S.V_BID_SECTION_NAME,
+                           TD.V_TIPSNAME
+                      FROM EKB_T_TBIMPORTBIDDING TD
+                      JOIN EKB_T_SECTION_INFO S ON (TD.V_TPID = S.V_TPID AND TD.V_BID_SECTION_ID = S.V_BID_SECTION_ID)
+                      JOIN EKB_T_DECRYPT_INFO T ON (TD.V_TPID = T.V_TPID AND TD.V_ORG_CODE = T.V_BIDDER_ORG_CODE)
+                     WHERE TD.V_TPID = #{tpid}
+                    UNION
+                    SELECT TD.ID,
+                           T.V_BIDDER_NAME,
+                           T.V_BIDDER_ORG_CODE AS V_ORG_CODE,
+                           S.V_BID_SECTION_GROUP_CODE,
+                           S.V_BID_SECTION_NAME,
+                           TD.V_TIPSNAME
+                      FROM EKB_T_TBIMPORTBIDDING TD
+                      JOIN EKB_T_SECTION_INFO S ON (TD.V_TPID = S.V_TPID AND TD.V_BID_SECTION_GROUP_CODE = S.V_BID_SECTION_GROUP_CODE AND TD.V_BID_SECTION_ID IS NULL)
+                      JOIN EKB_T_DECRYPT_INFO T ON (TD.V_TPID = T.V_TPID AND TD.V_ORG_CODE = T.V_BIDDER_ORG_CODE)
+                     WHERE TD.V_TPID = #{tpid}) T
+              JOIN EKB_T_DECRYPT_TEMP DT ON (T.ID = DT.V_TBID)
+        ]]>
+        <trim prefix="WHERE" prefixOverrides="AND|OR">
+            <if test="org_code !=null and org_code !=''">
+                AND V_ORG_CODE = #{org_code}
+            </if>
+        </trim>
+        ORDER BY V_BID_SECTION_GROUP_CODE, V_BID_SECTION_NAME, V_BIDDER_NAME, V_TIPSNAME
+    </select>
+
+    <!-- 获取投递家数 -->
+    <select id="getDeliveryCount" parameterType="record" resultType="int">
+        <![CDATA[
+            SELECT COUNT(1)
+              FROM (SELECT V_ORG_CODE
+                      FROM EKB_T_TBIMPORTBIDDING
+                     WHERE V_TPID = #{tpid}
+                     GROUP BY V_ORG_CODE) TEMP
+        ]]>
+    </select>
+
+    <!-- 获取解密成功的家数 -->
+    <select id="getDecryptSuccessCount" parameterType="record" resultType="int">
+        <![CDATA[
+            SELECT COUNT(1)
+              FROM (SELECT V_ORG_CODE
+                      FROM EKB_T_TBIMPORTBIDDING TD
+                      JOIN EKB_T_DECRYPT_TEMP D ON (TD.ID = D.V_TBID)
+                     WHERE TD.V_TPID = #{tpid}
+                       AND D.N_STATUS = 1
+                     GROUP BY TD.V_ORG_CODE) TEMP
+        ]]>
+    </select>
+
+    <!-- 获取投标人信息列表 -->
+    <select id="getBidderInfo" parameterType="record" resultType="record">
+        <![CDATA[
+            SELECT B.V_BIDDER_ORG_CODE,V_BIDDER_NAME,V_JSON_OBJ
+              FROM ${tableName} B
+             WHERE B.V_TPID = #{tpid}
+             GROUP BY B.V_BIDDER_ORG_CODE
+        ]]>
+    </select>
+    
+    
+    <!-- 获取解密状态 -->
+    <select id="getDecryptStatusInfo" parameterType="string" resultType="record">
+        <![CDATA[
+            SELECT TD.V_BID_SECTION_ID,
+                   TD.V_BID_SECTION_GROUP_CODE,
+                   TD.V_ORG_CODE,
+                   DT.N_STATUS
+              FROM EKB_T_TBIMPORTBIDDING TD
+              JOIN EKB_T_DECRYPT_TEMP DT ON (TD.ID = DT.V_TBID)
+             WHERE TD.V_TPID = #{tpid}
+        ]]>
+    </select>
+    
+    <!-- 标段组情况下的解密信息汇总列表 -->
+    <select id="getDecryptSummary_Group" parameterType="string" resultType="record">
+        <![CDATA[
+            SELECT T.V_BID_SECTION_GROUP_CODE,
+                   GROUP_CONCAT(T.V_BID_SECTION_NAME ORDER BY T.V_BID_SECTION_NAME) AS V_BID_SECTION_NAME,
+                   T.N_BIDDER_NUMBER,
+                   TEMP.N_DECRYPT_SUCCESS_NUMBER
+              FROM EKB_T_SECTION_INFO T
+              LEFT JOIN (SELECT T.V_BID_SECTION_GROUP_CODE,
+                                COUNT(T.V_BID_SECTION_GROUP_CODE) AS N_DECRYPT_SUCCESS_NUMBER
+                           FROM (SELECT TD.V_BID_SECTION_GROUP_CODE,
+                                        COUNT(TD.V_ORG_CODE) AS N_PAESED_FILE_NUMBER,
+                                        SUM(DT.N_STATUS) AS N_DECRYPT_SUCCESS_NUMBER
+                                   FROM EKB_T_TBIMPORTBIDDING TD
+                                   JOIN EKB_T_DECRYPT_TEMP DT ON (TD.ID = DT.V_TBID)
+                                  WHERE TD.V_TPID = #{_parameter}
+                                  GROUP BY TD.V_BID_SECTION_GROUP_CODE, TD.V_ORG_CODE) T
+                          WHERE T.N_PAESED_FILE_NUMBER = T.N_DECRYPT_SUCCESS_NUMBER
+                          GROUP BY T.V_BID_SECTION_GROUP_CODE) TEMP ON (T.V_BID_SECTION_GROUP_CODE = TEMP.V_BID_SECTION_GROUP_CODE)
+             WHERE T.V_TPID = #{_parameter}
+               AND T.V_BID_OPEN_STATUS != '0'
+               AND T.V_BID_OPEN_STATUS != '10-0'
+             GROUP BY T.V_BID_SECTION_GROUP_CODE
+        ]]>
+    </select>
+    
+    <!-- 非标段组情况下的解密信息汇总列表 -->
+    <select id="getDecryptSummary" parameterType="string" resultType="record">
+        <![CDATA[
+            SELECT T.V_BID_SECTION_ID,
+                   T.V_BID_SECTION_GROUP_CODE,
+                   T.V_BID_SECTION_NAME,
+                   T.N_BIDDER_NUMBER,
+                   TEMP.N_DECRYPT_SUCCESS_NUMBER
+              FROM EKB_T_SECTION_INFO T
+              LEFT JOIN (SELECT T.V_BID_SECTION_ID,
+                                COUNT(T.V_BID_SECTION_ID) AS N_DECRYPT_SUCCESS_NUMBER
+                           FROM (SELECT TD.V_BID_SECTION_ID,
+                                        COUNT(TD.V_ORG_CODE) AS N_PAESED_FILE_NUMBER,
+                                        SUM(DT.N_STATUS) AS N_DECRYPT_SUCCESS_NUMBER
+                                   FROM EKB_T_TBIMPORTBIDDING TD
+                                   JOIN EKB_T_DECRYPT_TEMP DT ON (TD.ID = DT.V_TBID)
+                                  WHERE TD.V_TPID = #{_parameter}
+                                  GROUP BY TD.V_BID_SECTION_ID, TD.V_ORG_CODE) T
+                          WHERE T.N_PAESED_FILE_NUMBER = T.N_DECRYPT_SUCCESS_NUMBER
+                          GROUP BY T.V_BID_SECTION_ID) TEMP ON (T.V_BID_SECTION_ID = TEMP.V_BID_SECTION_ID)
+             WHERE T.V_TPID = #{_parameter}
+               AND T.V_BID_OPEN_STATUS != '0'
+               AND T.V_BID_OPEN_STATUS != '10-0'
+             ORDER BY T.V_BID_SECTION_CODE ASC
+        ]]>
+    </select>
+    
+</mapper>  

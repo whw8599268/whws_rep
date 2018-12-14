@@ -1,0 +1,108 @@
+
+<sz:forEach items="${KINFOS1}" var="kinfo,stat">
+    <table style="text-align: center;">
+        <thead>
+            <tr>
+                <td colspan="2">K值整数位抽取数值分配球号</td>
+            </tr>
+            <tr>
+                <td>抽取数值</td>
+                <td>抽取球号</td>
+            </tr>
+        </thead>
+        <tbody>
+            <sz:forEach items="${kinfo.K_INFO.K_VALUES}" var="k_value,sta">
+                <tr>
+                    <td>${k_value.VALUE}</td>
+                    <td>${k_value.NO}</td>
+                </tr>
+            </sz:forEach>
+        </tbody>
+    </table>
+    <div style="font-size: 25px;">抽取球号：${kinfo.YAOHAO_NO}</div>
+    <div style="font-size: 25px; margin-bottom: 30px;">
+        代表数值：<span style="font-size: 25px;">${kinfo.K_VALUE}</span>
+    </div>
+</sz:forEach>
+<sz:forEach items="${KINFOS2}" var="kinfo,stat">
+    <table style="text-align: center;">
+        <thead>
+            <tr>
+                <td colspan="2">K值小数位点后第一位数值抽取数值分配球号</td>
+            </tr>
+            <tr>
+                <td>抽取数值</td>
+                <td>抽取球号</td>
+            </tr>
+        </thead>
+        <tbody>
+            <sz:forEach items="${kinfo.K_INFO.K_VALUES}" var="k_value,sta">
+                <tr>
+                    <td>${k_value.VALUE}</td>
+                    <td>${k_value.NO}</td>
+                </tr>
+            </sz:forEach>
+        </tbody>
+    </table>
+    <div style="font-size: 25px;">抽取球号：${kinfo.YAOHAO_NO}</div>
+    <div style="font-size: 25px; margin-bottom: 30px;">
+        代表数值：<span style="font-size: 25px;">${kinfo.K_VALUE}</span>
+    </div>
+</sz:forEach>
+<sz:forEach items="${KINFOS3}" var="kinfo,stat">
+    <table style="text-align: center;">
+        <thead>
+            <tr>
+                <td colspan="2">K值小数位点后第二位数值抽取数值分配球号</td>
+            </tr>
+            <tr>
+                <td>抽取数值</td>
+                <td>抽取球号</td>
+            </tr>
+        </thead>
+        <tbody>
+            <sz:forEach items="${kinfo.K_INFO.K_VALUES}" var="k_value,sta">
+                <tr>
+                    <td>${k_value.VALUE}</td>
+                    <td>${k_value.NO}</td>
+                </tr>
+            </sz:forEach>
+        </tbody>
+    </table>
+    <div style="font-size: 25px;">抽取球号：${kinfo.YAOHAO_NO}</div>
+    <div style="font-size: 25px; margin-bottom: 30px;">
+        代表数值：<span style="font-size: 25px;">${kinfo.K_VALUE}</span>
+    </div>
+</sz:forEach>
+<sz:forEach items="${KINFOS}" var="kinfo,stat">
+    <table style="text-align: center;">
+        <thead>
+            <tr>
+                <td>抽取内容</td>
+                <td>抽取球号对应的数值</td>
+                <td>抽取球号</td>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>K值整数位</td>
+                <td>${kinfo.K1}</td>
+                <td>${kinfo.K1_NO}</td>
+            </tr>
+            <tr>
+                <td>K值小数位点后第一位数值</td>
+                <td>${kinfo.K2}</td>
+                <td>${kinfo.K2_NO}</td>
+            </tr>
+            <tr>
+                <td>K值小数位点后第二位数值</td>
+                <td>${kinfo.K3}</td>
+                <td>${kinfo.K3_NO}</td>
+            </tr>
+            <tr>
+                <td>K值（%）</td>
+                <td colspan="2">${kinfo.RESULT}</td>
+            </tr>
+        </tbody>
+    </table>
+</sz:forEach>

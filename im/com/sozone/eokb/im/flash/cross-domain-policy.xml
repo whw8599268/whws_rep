@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Flash Socket通信的安全策略配置 -->
+<cross-domain-policy>
+    <site-control permitted-cross-domain-policies="all" />
+    <allow-access-from domain="*" to-ports="*" />
+</cross-domain-policy>

@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<aeolus-jobs-config xmlns="http://www.fzsozone.com/aeolus/schema/timer" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:schemaLocation="http://www.fzsozone.com/aeolus/schema/timer http://www.fzsozone.com/aeolus/schema/timer/aeolus.timer-1.2.0.xsd">
+    <!-- 调度程序工厂类定义 -->
+    <scheduler-factory class="org.quartz.impl.StdSchedulerFactory" />
+    <!-- 定时任务定义 -->
+    <jobs>
+
+        <!-- 获取高速公路开标项目信息 -->
+        <job id="timed-fjsgsgl-bid-open-list" class="com.sozone.eokb.job.SyncObtaninTenderProjectDataJob">
+            <parameters>
+                <parameter name="TENDER_PROJECT_TYPE" value="10" />
+                <!-- 发短信用 -->
+                <parameter name="TENDER_PROJECT_TYPE_NAME" value="x地区-高速公路" />
+            </parameters>
+        </job>
+
+        <!-- 获取普通公路开标项目信息 -->
+        <job id="timed-fjsptgl-bid-open-list" class="com.sozone.eokb.job.SyncObtaninTenderProjectDataJob">
+            <parameters>
+                <parameter name="TENDER_PROJECT_TYPE" value="20" />
+                <!-- 发短信用 -->
+                <parameter name="TENDER_PROJECT_TYPE_NAME" value="x地区-普通公路" />
+            </parameters>
+        </job>
+
+        <!-- 获取港航开标项目信息 -->
+        <job id="timed-fjssygc-bid-open-list" class="com.sozone.eokb.job.SyncObtaninTenderProjectDataJob">
+            <parameters>
+                <parameter name="TENDER_PROJECT_TYPE" value="30" />
+                <!-- 发短信用 -->
+                <parameter name="TENDER_PROJECT_TYPE_NAME" value="x地区-港航" />
+            </parameters>
+        </job>
+
+        <!-- 房建 -->
+        <job id="timed-xmfj-bid-open-list" class="com.sozone.eokb.job.SyncObtaninTenderProjectDataJob">
+            <parameters>
+                <parameter name="TENDER_PROJECT_TYPE" value="A01" />
+                <!-- 发短信用 -->
+                <parameter name="TENDER_PROJECT_TYPE_NAME" value="x地区-房建" />
+            </parameters>
+        </job>
+
+        <!-- 市政 -->
+        <job id="timed-xmsz-bid-open-list" class="com.sozone.eokb.job.SyncObtaninTenderProjectDataJob">
+            <parameters>
+                <parameter name="TENDER_PROJECT_TYPE" value="A02" />
+                <!-- 发短信用 -->
+                <parameter name="TENDER_PROJECT_TYPE_NAME" value="x地区-市政" />
+            </parameters>
+        </job>
+
+        <!-- 同步信用分 -->
+        <job id="get-cerdit-score" class="com.sozone.eokb.job.GetCreditScoreJob">
+            <parameters>
+                <parameter name="TYPE" value="房建,市政" />
+                <!-- 发短信用 -->
+                <parameter name="AREA_NAME" value="x地区" />
+            </parameters>
+        </job>
+        
+        <!-- 同步工程监理信用分 -->
+        <job id="get-gcjl-cerdit-score" class="com.sozone.eokb.job.GetGCJLCreditScoreJob">
+            <parameters>
+                <parameter name="TYPE" value="工程监理企业信用评价" />
+                <!-- 发短信用 -->
+                <parameter name="AREA_NAME" value="x地区" />
+            </parameters>
+        </job>
+    </jobs>
+    <!-- 触发器定义 -->
+    <triggers>
+        <!-- 高速公路开标项目信息定时设置 -->
+        <trigger cron-expression="0 0 19 * * ?" ref="timed-fjsgsgl-bid-open-list" />
+        <!-- 普通公路开标项目信息定时设置 -->
+        <trigger cron-expression="0 30 19 * * ?" ref="timed-fjsptgl-bid-open-list" />
+        <!-- 港航开标项目信息定时设置 -->
+        <trigger cron-expression="0 20 19 * * ?" ref="timed-fjssygc-bid-open-list" />
+        <!-- 房建开标项目信息定时设置 -->
+        <trigger cron-expression="0 10 19 * * ?" ref="timed-xmfj-bid-open-list" />
+        <!-- 市政航开标项目信息定时设置 -->
+        <trigger cron-expression="0 0 19 * * ?" ref="timed-xmsz-bid-open-list" />
+        <!-- 同步信用分，只用于房建市政（只能是当天） -->
+        <trigger cron-expression="0 00 2 * * ?" ref="get-cerdit-score" />
+        <!-- 同步工程监理信用分，只用于工程监理（只能是当天） -->
+        <trigger cron-expression="0 00 3 * * ?" ref="get-gcjl-cerdit-score" />
+    </triggers>
+</aeolus-jobs-config>

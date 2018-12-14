@@ -1,0 +1,143 @@
+<script type="text/javascript">
+	SZUtilsExtEasyUIListPage.datagrid.pagination();
+
+	/**
+	 * 查询
+	 */
+	function doSearch() {
+		// 使用Form2Json插件处理,同时过滤掉空数据
+		var searchParam = $('#searchForm').form2json({
+			allowEmptySingleVal : false
+		});
+		$('#formGrid').datagrid('load', searchParam);
+	}
+
+	/**
+	 * 清空
+	 */
+	function doClear() {
+		$('#searchForm').form('reset');
+		$('#formGrid').datagrid('load', {});
+	}
+
+	/**
+	 * 修改
+	 */
+	function doEdit() {
+		var rows = $('#formGrid').treegrid('getSelections');
+		if (rows.length == 0) {
+			parent.$.messager.alert("提示", "请选择要修改的数据！");
+			return;
+		}
+		if (rows.length > 1) {
+			parent.$.messager.alert("提示", "只允许对单条数据进行编辑！");
+			return;
+		}
+		var row = rows[0];
+		var p = parent.sy
+				.dialog({
+					title : '&nbsp;编辑',
+					iconCls : "application_osx_add",
+					href : '${path}${adminPath}/view/eokb/bus/project_tool/bidder.edit.html',
+					width : 380,
+					height : 300,
+					buttons : [
+							{
+								text : '保存',
+								iconCls : "icon-save",
+								handler : function() {
+									var f = p.find('form');
+									if (f.form('validate')) {
+										//保存操作
+										var flow = f.form2json({
+											allowEmptySingleVal : false
+										});
+										//alert(JSON.stringify(func));
+										parent.sy.progress.show();
+										// 发生Ajax请求
+										$
+												.ajax({
+													url : '${path}${adminPath}/bus/projecttool/bidder/modify',
+													// 设置请求方法
+													type : 'POST',
+													//dataType : 'json',
+													contentType : 'application/json;charset=UTF-8',
+													data : JSON.stringify(flow),
+													// 成功回调
+													success : function(result) {
+														parent.sy.progress
+																.hide();
+														$('#formGrid')
+																.datagrid(
+																		'reload');
+														parent.sy
+																.messagerShow({
+																	msg : "操作成功!",
+																	title : '提示'
+																});
+														p.dialog('close');
+													},
+													// 失败回调
+													error : function(
+															XMLHttpRequest,
+															textStatus,
+															errorThrown) {
+														parent.sy.progress
+																.hide();
+														var result = jQuery
+																.parseJSON(XMLHttpRequest.responseText);
+														top.$.messager
+																.alert(
+																		'操作失败',
+																		"操作失败["
+																				+ result.errorDesc
+																				+ "]");
+													}
+												});
+									}
+								}
+							}, {
+								text : "关闭",
+								iconCls : "icon-remove",
+								handler : function() {
+									p.dialog('close');
+								}
+							} ],
+					onLoad : function() {
+						var f = p.find('form');
+						//window.console.log(JSON.stringify(row));
+						f.form('reset');
+						f.form('load', row);
+					}
+				});
+	}
+
+	// 转换成文本域
+	function toTextTArea(val) {
+		return '<textarea style="width:100%;">' + val + '</textarea>';
+
+	}
+
+	function showInfo(val) {
+		return '<a onclick="doEdit()">' + val + '</a>';
+	}
+</script>
+<table id="formGrid" style="width: auto; height: auto" class="easyui-datagrid" title="" toolbar="#searchForm-toolbar" singleSelect="true" rownumbers="true" singleSelect="false" fitColumns="true" fit="true" url="${path}${adminPath}/bus/projecttool/getBidder/${param.tpID}/${param.is_group}" pagination="true" pageList="[50,100,150,200]" pageSize="50" data-options="nowrap:false,method:'get'">
+    <thead>
+        <tr>
+            <th data-options="field:'ID',checkbox:true"></th>
+            <th field="V_BIDDER_NAME" align="left" width="45" data-options="formatter:showInfo">投标人名称</th>
+            <th field="V_BIDDER_NO" align="left" width="20">投标人编号</th>
+            <th field="N_PRICE" align="left" width="20">投标报价(元)</th>
+            <th field="V_JSON_OBJ" align="left" width="50" data-options="formatter:toTextTArea">其他信息</th>
+        </tr>
+    </thead>
+</table>
+<!-- 搜索工具栏 -->
+<div id="searchForm-toolbar" style="padding: 5px; height: auto">
+    <div>
+        <form id="searchForm">
+            <label>投标人名称</label> <input class="easyui-textbox" style="width: 200px" id="V_BIDDER_NAME" name="V_BIDDER_NAME" type="text"> <label>投标人编号</label> <input class="easyui-textbox" style="width: 100px" id="V_BIDDER_NO" name="V_BIDDER_NO" type="text"> <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-search'" onclick="doSearch()">搜索</a> <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-clear'" onclick="doClear()">清空搜索条件</a>
+        </form>
+    </div>
+</div>

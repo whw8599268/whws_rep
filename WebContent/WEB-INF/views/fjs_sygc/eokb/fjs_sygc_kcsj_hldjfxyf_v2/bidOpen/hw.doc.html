@@ -1,0 +1,48 @@
+<div class="easyui-tabs" data-options="plain:true">
+    <sz:forEach items="${TENDER_PROJECT_HW_LIST}" var="hw,stat">
+        <caption>标段：${hw.SECTION_INFO.V_BID_SECTION_NAME}</caption>
+        <p style="width: 20%; margin-left: 10%; font-size: 18px; color: #ff7300; font-weight: bold;">最高限价（元）：${fmt.format("###,##0.00",hw.SECTION_INFO.N_CONTROL_PRICE)}</p>
+        <form id="${hw.SECTION_INFO.V_BID_SECTION_ID}-METHOD-FORM">
+            <input type="hidden" id="${hw.SECTION_INFO.V_BID_SECTION_ID}-V_BID_SECTION_ID" name="V_BID_SECTION_ID" value="${hw.SECTION_INFO.V_BID_SECTION_ID}"> <input type="hidden" id="${hw.SECTION_INFO.V_BID_SECTION_ID}-V_BID_SECTION_NAME" name="V_BID_SECTION_NAME" value="${hw.SECTION_INFO.V_BID_SECTION_NAME}">
+            <div>
+                <div style="width: 30%; float: left; margin-left: 10%;">
+                    <table class="sztable" width="100%" style="text-align: center;">
+                        <thead>
+                            <tr>
+                                <td width="33%">最高限价权重系数μ</td>
+                                <td width="33%">数值（%）</td>
+                                <td width="33%">球号</td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <sz:forEach items="${hw.WEIGHT_INFO.LIST_VALUS}" var="lv,step">
+                                <tr>
+                                    <td>μ${step.index+1}</td>
+                                    <td><span id="${hw.SECTION_INFO.V_BID_SECTION_ID}-${step.index}-text">${lv.VALUE}</span></td>
+                                    <td>${lv.NO}</td>
+                                </tr>
+                            </sz:forEach>
+                        </tbody>
+                    </table>
+                </div>
+                <div style="width: 30%; float: left; margin-left: 5%;">
+                    <div style="font-size: 18px; color: #ff7300; font-weight: bold;">投标家数： ${hw.BIDDER_NUM}</div>
+                    <div style="font-size: 18px; color: #ff7300; font-weight: bold;">
+                        计算基准价方法：
+                        <sz:if test="${hw.METHOD == 1}">方法一</sz:if>
+                        <sz:if test="${hw.METHOD == 2}">方法二</sz:if>
+                    </div>
+                    <sz:if test="${hw.METHOD == 2}">
+                        <div style="font-size: 18px; color: #ff7300; font-weight: bold;">抽取球号：${hw.YAOHAO_NO}</div>
+                        <div style="font-size: 18px; color: #ff7300; font-weight: bold;">
+                            代表系数：<span id="${hw.SECTION_INFO.V_BID_SECTION_ID}-METHOD_TIP" style="font-size: 18px; color: #ff7300; font-weight: bold;">${hw.WEIGHT_VALUE}</span>%
+                        </div>
+                    </sz:if>
+                    <sz:if test="${hw.METHOD == 1}">
+                        <input type="hidden" id="${hw.SECTION_INFO.V_BID_SECTION_ID}-YAOHAO_RESULT_VALUE" name="YAOHAO_RESULT" value="-1">
+                    </sz:if>
+                </div>
+            </div>
+        </form>
+    </sz:forEach>
+</div>

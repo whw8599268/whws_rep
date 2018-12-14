@@ -1,0 +1,448 @@
+<!DOCTYPE HTML>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<%includeJSP("/static/include/inc.jsp",{}){}%>
+<script type="text/javascript">
+	//添加到中间tab
+	function addTab(menuid , tabTitle,url,icon){
+		var n = new Node(menuid , tabTitle , url , icon);
+		clickTab(menuid);
+		centerTabs_add(n);//增加tab
+	}
+	//点击添加样式
+	function clickTab(menuid){
+		$("#menu li").removeClass("menuClick");
+		$("#sub_menu_"+menuid).addClass("menuClick");
+	}
+	/**
+	 * 新增标签页，输入的参数为Function对象的JSON数据
+	 */
+	function addTabContent(data) {
+		var n = new Node(data.FUNC_ID, data.FUNC_NAME, data.HTTP_URL,
+				data.FUNC_ICON);
+		centerTabs_add(n);
+	}
+	var Node = function(menuid, tabTitle, url, icon) {
+		this.menuid = menuid;
+		this.tabTitle = tabTitle;
+		this.url = '${path}${adminPath}/' + url;
+		this.icon = icon;
+	};
+	var _centerTabs; //中部tabs
+	var _centerTabsMenu; //中部tabs菜单
+	$(function() {
+		//初始化中部tabs菜单
+		_centerTabsMenu = $('#center-tabs-menus').menu(
+				{
+					onClick : function(item) {
+						var _currTabTitle = $(this).data('tabTitle'); //获取当前右键tab的标题
+						var _currMenuType = $(item.target).attr('type'); //获取当前右键类型
+	
+						//刷新
+						if (_currMenuType == 'refresh') {
+							centerTabs_Refresh(_currTabTitle);
+							return;
+						}
+	
+						//关闭
+						if (_currMenuType == 'close') {
+							centerTabs_Close(_currTabTitle);
+							return;
+						}
+	
+						//获取所有tab
+						var _allTabs = _centerTabs.tabs('tabs');
+						var _closeTabsTitle = []; //定义数组
+						//循环
+						$.each(_allTabs, function() {
+							var opt = $(this).panel('options');
+							if (opt.closable && opt.title != _currTabTitle
+									&& _currMenuType === 'closeOther') {
+								_closeTabsTitle.push(opt.title);
+							} else if (opt.closable
+									&& _currMenuType === 'closeAll') {
+								_closeTabsTitle.push(opt.title);
+							}
+						});
+	
+						for ( var i = 0; i < _closeTabsTitle.length; i++) {
+							_centerTabs.tabs('close', _closeTabsTitle[i]);
+						}
+	
+					}
+				});
+	
+		//初始化中部tabs
+		_centerTabs = $('#content').tabs({
+			fit : true,
+			border : false,
+			onContextMenu : function(e, title) {
+				e.preventDefault();
+				_centerTabsMenu.menu('show', {
+					left : e.pageX,
+					top : e.pageY
+				}).data('tabTitle', title);
+			}
+		});
+	});
+	
+	//刷新tab
+	function centerTabs_Refresh(tabTitle) {
+		var _tab = _centerTabs.tabs('getTab', tabTitle); //获取tab
+		_centerTabs.tabs('update', {
+			tab : _tab,
+			options : _tab.panel('options')
+		});
+	}
+	
+	//关闭tab
+	function centerTabs_Close(tabTitle) {
+		var _tab = _centerTabs.tabs('getTab', tabTitle); //获取tab
+		if (_tab.panel('options').closable) { //判断是否能关闭
+			_centerTabs.tabs('close', tabTitle);
+		}
+	}
+	
+	//关闭tab
+	function centerTabs_Close_Form(tabTitle) {
+		if (_centerTabs.tabs('exists', tabTitle)) {
+			var _tab = _centerTabs.tabs('getTab', tabTitle); //获取tab
+			if (_tab.panel('options').closable) { //判断是否能关闭
+				_centerTabs.tabs('close', tabTitle);
+			}
+		}
+	}
+	
+	//添加tab
+	function centerTabs_add(node) {
+		//非空判断
+		if (node == null || node.tabTitle == null) {
+			return;
+		}
+	
+		var _index = isExists(node.menuid);
+		//先判断tab是否存在
+		if (_index != -1) {
+			_centerTabs.tabs('select', _index);
+			centerTabs_Refresh(node.tabTitle);
+			return;
+		} else {
+	
+			if (_centerTabs.tabs('tabs').length > 12) {
+				//$.messager.alert("提示", "最多允许打开12个窗口!");
+				//return;
+			}
+	
+			var _url = 'error.jsp'; //设置默认跳转到错误页面
+			if (node.url && node.url.length > 0) {
+				_url = node.url; //获取url			
+			} else {
+				return;
+			}
+	
+			//开启等待提示
+			$.messager.progress({
+				text : '页面加载中....',
+				interval : 100
+			});
+			//关闭等待提示
+			window.setTimeout(function() {
+				try {
+					$.messager.progress('close');
+				} catch (e) {
+				}
+			}, 500);
+	
+			//添加tab
+			_centerTabs
+					.tabs(
+							'add',
+							{
+								title : node.tabTitle,
+								id : node.menuid,
+								closable : true,//关闭按钮
+								/**
+								tools : [ {
+									iconCls : 'icon-mini-refresh',
+									handler : function() {
+										centerTabs_Refresh(node.tabTitle);
+									}
+								} ],//刷新按钮
+								**/
+								iconCls : node.icon,
+								content : '<iframe src="'
+										+ _url
+										+ '" frameborder="0"  style="border:0;width:100%;height:99.5%;"></iframe>'
+								//href:_url,
+							});
+	
+		}
+	}
+	
+	/**
+	 * 根据节点ID判断是否存在，如果存在返回索引，否则返回-1
+	 */
+	function isExists(tabId) {
+		var tabs = _centerTabs.tabs('tabs');
+		for ( var i = 0; i < tabs.length; i++) {
+			var tmpId = tabs[i].panel('options').id;
+			if (tmpId != null && tmpId == tabId) {
+				return i;
+			}
+		}
+		return -1;
+	}
+	$(function(){
+		//初始化菜单
+		$.ajax({
+			async : true,
+			cache : false,
+			type : 'get',
+			dataType : "json",
+			url : "${path}${adminPath}/auth/allfuncs",//请求的action路径  
+			error : function(XMLHttpRequest, textStatus, errorThrown) {//请求失败处理函数  
+				var result = jQuery.parseJSON(XMLHttpRequest.responseText);
+				$.messager.alert('异步获取数据出现异常', "异步获取数据出现异常["
+						+ result.errorDesc + "]");
+			},
+			success : function(data) { //请求成功后处理函数。  
+				var index = 0;
+				$.each(data, function(key, val) {
+						
+						if (val.IS_LEAF==0){
+							var html = '';
+							var funcID = val.FUNC_ID;
+							html += '<div title="'+val.FUNC_NAME+'">';
+							html += '<ul id="accordion_submenu" class="easyui-datalist" data-options="border:false,fit:true">';
+							$.each(data, function(childkey, child) {
+								if (child.IS_LEAF==1 && child.PARENT_ID==funcID){
+									html += '<li style="padding-left:30px;height:27px;" class="sub_menu" id="sub_menu_'+child.FUNC_ID+'" onclick="addTab(\''+child.FUNC_ID+'\' , \''+child.FUNC_NAME+'\',\''+child.HTTP_URL+'\')">'+child.FUNC_NAME+'</li>';
+								}
+							});
+							
+							html += '</ul>';
+							html += '</div>';
+							$('#menu').append(html);
+						}
+						
+				});
+				$('#menu').accordion({    
+					border:false,fit:false
+				});  
+				
+				$("#menu li").on("mouseover",function(){
+					$(this).addClass("menuOver");
+				}).on("mouseout",function(){
+					$(this).removeClass("menuOver");
+				});
+			}
+		});
+		
+			 var clientheight = $(window).height()-100;//可见高度
+			 //$("#content").height(clientheight-10);
+			 //$(".main-lf").height(clientheight-10);
+		
+	})
+	
+</script>
+</head>
+
+<body>
+	<div id="master-layout">
+        <div data-options="region:'north',border:false,bodyCls:'theme-header-layout'" style="height:90px;">
+        	<div class="theme-navigate">
+                <div class="left">
+                	<!-- 
+                	<img style="height:80px;" src="${path}${adminPath}/view/frame/images/logo.png" />
+                	 -->
+                </div>
+                <div class="right">
+                	<% var user = authz.getCurrentUser();%>
+                	<!-- <a href="#" class="easyui-linkbutton left-control-switch"><i class="fa fa-bars fa-lg"></i></a> -->
+                    <a href="#" class="easyui-menubutton theme-navigate-user-button" data-options="menu:'.theme-navigate-user-panel'">${user.V_NAME}</a>
+                    <!-- 
+                    <select id="themeSel" class="easyui-combobox theme-navigate-combobox"
+                    data-options="    
+                    onSelect: function(rec){    
+			            setGlobalTheme(rec.value);
+			        }"
+                     style="width:100px;">   
+                        <option value="">选择主题</option>
+                        <option value="default">默认主题</option>   
+                        <option value="gray">银白色</option>   
+                    </select>
+                     -->
+                    <select id="fontsizeSel" class="easyui-combobox theme-navigate-combobox"
+                    data-options="    
+                    onSelect: function(rec){    
+			            setGlobalFontSize(rec.value);
+			        }"
+                     style="width:120px;height:36px;color:#000;">   
+                        <option value="">选择字号</option>
+                        <option>13</option>   
+                        <option>14</option>   
+                        <option>15</option> 
+                        <option>16</option> 
+                        <option>18</option>
+                        <option>19</option>
+                    </select>
+                    
+                    <!-- 
+                    <a href="#" class="easyui-linkbutton" >消息<span class="badge color-default">15</span></a>
+                     -->
+                    <!-- 用户选项卡 -->
+                    <div class="theme-navigate-user-panel">
+                       <dl>
+                       		<dd>
+                                <b class="badge-prompt">${user.V_NAME}</b>
+                                <span>${user.V_DEPT_NAME}</span>
+                            </dd>
+                            <dt>
+                            	<a class="theme-navigate-user-modify" onclick="addTab('9944d7cadd9a433ab84529bcbdd60239' , '修改密码','view/manage/user/modify.password.html')" href="javascript:;">修改密码</a>
+                                <a class="theme-navigate-user-logout" href="${path}${adminPath}/authc/logout">注销</a>
+                            </dt>
+                       </dl>
+                    </div>
+                    <!-- 用户选项卡 -->
+                	
+                	<!-- 
+                    <a href="#" class="easyui-menubutton theme-navigate-more-button" data-options="menu:'#more',hasDownArrow:false"></a>
+                    <div id="more" class="theme-navigate-more-panel">
+                    	<div>联系我们</div>
+                        <div>参与改进计划</div>
+                        <div>检测更新</div>
+                        <div>关于</div>
+                    </div>
+                     -->
+                </div>
+            </div>
+        
+        </div>
+         <!--横线-->
+       <div style="height:8px;width:100%;background-color: #3e637a;position:absolute;top :90px;z-index: 5;"></div>
+        <!--开始左侧菜单-->
+        <div data-options="region:'west',border:false,bodyCls:'theme-left-layout'" style="width:200px;">
+
+
+            <!--正常菜单--> 
+            <div class="theme-left-normal">
+                <!--theme-left-switch 如果不需要缩进按钮，删除该对象即可-->    
+                <div class="left-control-switch theme-left-switch"><i class="fa fa-chevron-left fa-lg"></i></div>
+
+                <!--start class="easyui-layout"-->
+                <div class="easyui-layout" data-options="border:false,fit:true"> 
+                    <!--start region:'north'-->
+                    <div data-options="region:'north',border:false" style="height:100px;overflow: hidden;">
+                        <!--start theme-left-user-panel-->
+                        <div class="theme-left-user-panel">
+                            <dl>
+                                <dt>
+                                    <img src="${path}/static/res/jquery-easyui/themes/insdep/images/portrait86x86.png" width="43" height="43">
+                                </dt>
+                                <dd>
+                                    <b class="badge-prompt">${user.V_NAME}</b>
+                                    <span>${user.V_DEPT_NAME}</span>
+                                    <!-- 
+                                    <p>安全等级：<i class="text-success">高</i></p>
+                                     -->
+                                </dd>
+
+                            </dl>
+                        </div>
+                        <!--end theme-left-user-panel-->
+                    </div>   
+                    <!--end region:'north'-->
+
+                    <!--start region:'center'-->
+                    <div data-options="region:'center',border:false">
+
+						
+                        <!--start easyui-accordion--> 
+                        <div id="menu" >   
+
+                        </div>
+                        <!--end easyui-accordion--> 
+
+                    </div>
+                    <!--end region:'center'-->
+                </div>  
+                <!--end class="easyui-layout"-->
+
+            </div>
+            <!--最小化菜单--> 
+            <div class="theme-left-minimal">
+	            <div style="top:50%;">
+	                <ul class="easyui-datalist" data-options="border:false,fit:true" style="text-align: center;">
+	                	<!-- 
+	                    <li><i class="fa fa-home fa-2x"></i><p>主题</p></li>
+	                    <li><i class="fa fa-book fa-2x"></i><p>组件</p></li>
+	                    <li><i class="fa fa-pencil fa-2x"></i><p>编辑</p></li>
+	                    <li><i class="fa fa-cog fa-2x"></i><p>设置</p></li>
+	                     -->
+	                    <li><a class="left-control-switch"><i class="fa fa-chevron-right fa-2x"></i><p>打开</p></a></li>
+	                </ul>
+	            </div>
+            </div>
+
+        </div>
+        <!--结束左侧菜单--> 
+
+        <div data-options="region:'center',border:false"  id="control" style="padding:5px 20px 20px 20px; background:#fff;">
+             <!-- theme-tab-black-block  theme-tab-blue-line  -->
+            <div class="easyui-tabs theme-tab-black-line" id="content" data-options="fit:true,tabHeight:36">
+				<div title="首页" data-options="closable:false">
+					<sz:includeFile value="/default/manage/welcome.html" />
+				</div>
+			</div>
+             
+        </div>
+    </div>
+
+	<div id="center-tabs-menus" style="width: 120px; display: none;">
+		<div type="refresh">刷新</div>
+		<div class="menu-sep"></div>
+		<div type="close">关闭</div>
+		<div type="closeOther">关闭其他</div>
+		<div type="closeAll">关闭所有</div>
+	</div>
+
+    <script>
+    	$(function(){
+
+			/*布局部分*/
+			$('#master-layout').layout({
+				fit:true/*布局框架全屏*/
+			});   
+			
+
+            /*右侧菜单控制部分*/
+
+            var left_control_status=true;
+            var left_control_panel=$("#master-layout").layout("panel",'west');
+
+            $(".left-control-switch").on("click",function(){
+                if(left_control_status){
+                    left_control_panel.panel('resize',{width:70});
+                    left_control_status=false;
+                    $(".theme-left-normal").hide();
+                    $(".theme-left-minimal").show();
+                }else{
+                    left_control_panel.panel('resize',{width:200});
+                    left_control_status=true;
+                    $(".theme-left-normal").show();
+                    $(".theme-left-minimal").hide();
+                }
+                $("#master-layout").layout('resize', {width:'100%'})
+            });
+
+            /*右侧菜单控制结束*/
+			
+		});
+    </script>
+
+
+</body>
+
+</html>

@@ -1,0 +1,46 @@
+<div class="easyui-tabs" data-options="plain:true">
+    <sz:forEach items="${TENDER_PROJECT_SECTION_LIST}" var="section,stat">
+        <caption>标段：${section.V_BID_SECTION_NAME}</caption>
+        <div>
+            <span style="font-size: 18px; color: #ff7300; font-weight: bold;">最高限价：${fmt.format("###,##0",section.N_CONTROL_PRICE)}元&nbsp;&nbsp;&nbsp;&nbsp;最高限价的95%： ${fmt.format("###,##0",section.N_CONTROL_PRICE*0.95)}元&nbsp;&nbsp;&nbsp;&nbsp;最高限价的90%： ${fmt.format("###,##0",section.N_CONTROL_PRICE*0.9)}元</span>
+        </div>
+        <table class="sztable" width="100%" style="text-align: center;">
+            <thead>
+                <tr>
+                    <td width="5%">投标人编号</td>
+                    <td width="15%">投标人名称</td>
+                    <td width="15%">投标价</td>
+                    <td width="15%">有效报价平均值</td>
+                    <td width="15%">下浮系数（%）</td>
+                    <td width="15%">评标基准价（元）</td>
+                    <td width="20%">备注</td>
+                </tr>
+            </thead>
+            <tbody>
+                <sz:forEach items="${section.TENDER_LIST}" var="tender,step">
+                    <!-- 第一行 -->
+                    <sz:if test="${step.index == 0}">
+                        <tr>
+                            <td>${tender.V_BIDDER_NO}</td>
+                            <td>${tender.V_BIDDER_NAME}</td>
+                            <td>${fmt.format("###,##0",tender.N_PRICE)}</td>
+                            <td rowspan="${step.count}">${fmt.format("###,##0",section.EFFECTIVE_PRICE_AVG)}</td>
+                            <td rowspan="${step.count}">${section.COEFFCIENT_VALUE}</td>
+                            <td rowspan="${step.count}">${fmt.format("###,##0",section.N_EVALUATION_PRICE)}</td>
+                            <td rowspan="${step.count}">参与评标基准价计算的有效投标价家数为 ${step.count}家</br> <sz:if test="${section.EFFECTIVE_PRICE_AVG>section.N_CONTROL_PRICE*0.9 && section.EFFECTIVE_PRICE_AVG< section.N_CONTROL_PRICE*0.95 }">本标段最高限价90%＜平均值＜最高限价95%，</sz:if> <sz:if test="${section.EFFECTIVE_PRICE_AVG>section.N_CONTROL_PRICE*0.95}">本标段平均值≥最高限价95%，</sz:if>系数抽取范围：<sz:if test="${section.COEFFICIENT_NO==1}">2～5%</sz:if> <sz:if test="${section.COEFFICIENT_NO==2}">-1～2%</sz:if> <sz:if test="${section.COEFFICIENT_NO==3}">-4～-1%</sz:if></td>
+                        </tr>
+                    </sz:if>
+                    <!-- 非第一行 -->
+                    <sz:if test="${step.index != 0}">
+                        <tr>
+                            <td>${tender.V_BIDDER_NO}</td>
+                            <td>${tender.V_BIDDER_NAME}</td>
+                            <td>${fmt.format("###,##0",tender.N_PRICE)}</td>
+                        </tr>
+                    </sz:if>
+
+                </sz:forEach>
+            </tbody>
+        </table>
+    </sz:forEach>
+</div>

@@ -1,0 +1,44 @@
+
+<div class="main" style="height: 90%;">
+    <!-- 数据 -->
+    <div class="easyui-tabs" data-options="fit:true,plain:true">
+        <sz:forEach items="${SECTION_LIST}" var="section,stat">
+            <caption>标段：${section.BID_SECTION_NAME}</caption>
+            <div style="margin-bottom: 10px; color: blue;">
+                <span style="line-height: 18px; font-size: 18px;">最高限价（元）:&nbsp;&nbsp;${fmt.format("###,##0.00",section.N_CONTROL_PRICE)} &nbsp;&nbsp; 最低限价（元）:&nbsp;&nbsp;${section.N_CONTROL_MIN_PRICE==null?'无':fmt.format("###,##0.00",section.N_CONTROL_MIN_PRICE)}&nbsp;&nbsp; 暂列金额（元）:&nbsp;&nbsp;${section.N_PROJECT_PROVISIONAL_MONEY==null?'无':fmt.format("###,##0.00",section.N_PROJECT_PROVISIONAL_MONEY)}</span>
+            </div>
+            <table class="sztable" width="100%" style="text-align: center;">
+                <thead>
+                    <tr>
+                        <td width="5%">序号</td>
+                        <td width="30%">投标人名称</td>
+                        <td width="15%">投标报价（元）</td>
+                        <td width="15%">其他内容</td>
+                        <td width="15%">是否超过最高限价</td>
+                        <td width="15%">是否低于最低限价</td>
+                    </tr>
+                </thead>
+                <sz:forEach items="${section.TENDER_LIST}" var="vo,step">
+                    <tr>
+                        <td>${step.index+1}</td>
+                        <td>${vo.V_BIDDER_NAME}</td>
+                        <td>${fmt.format("###,##0.00",vo.N_PRICE)}</td>
+                        <td>${vo.qtnr}</td>
+                        <sz:if test="${vo.N_PRICE>section.N_CONTROL_PRICE!0}">
+                            <td><span style="color: red;">是</td>
+                        </sz:if>
+                        <sz:if test="${vo.N_PRICE<=section.N_CONTROL_PRICE!0}">
+                            <td>否</td>
+                        </sz:if>
+                        <sz:if test="${vo.N_PRICE>=(section.N_CONTROL_MIN_PRICE==null?0:section.N_CONTROL_MIN_PRICE)}">
+                            <td>否</td>
+                        </sz:if>
+                        <sz:if test="${vo.N_PRICE<(section.N_CONTROL_MIN_PRICE==null?0:section.N_CONTROL_MIN_PRICE)}">
+                            <td><span style="color: red;">是</span></td>
+                        </sz:if>
+                    </tr>
+                </sz:forEach>
+            </table>
+        </sz:forEach>
+    </div>
+</div>

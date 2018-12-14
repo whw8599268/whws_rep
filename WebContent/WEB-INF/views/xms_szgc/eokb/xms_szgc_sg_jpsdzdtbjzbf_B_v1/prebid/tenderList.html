@@ -1,0 +1,38 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title></title> <%includeJSP("/static/include/inc.jsp",{}){}%>
+<link href="${path}/static/css/table.css" rel="stylesheet" />
+</head>
+<body>
+    <sz:if test="${TENDER_PROJECT_FLOW_NODE.N_STATUS!=3}">
+        <div style="float: right;">
+            <a id="data-save-button" href="#" class="easyui-linkbutton" data-options="iconCls:'icon-ok'" onclick="finishCurrentFlow();">进入下一个环节</a>
+        </div>
+    </sz:if>
+    <!-- 表格 -->
+    <table id="formGrid" style="width: auto; height: auto;" class="easyui-datagrid" title="" rownumbers="true" fitColumns="true" fit="true" pageList="[1000,1200,1500,2000]" pageSize="1000" url="${path}${adminPath}/xms_szgc_sg_jpsdzdtbjzbf_B_v1/prebid/getTenderList" pagination="true" data-options="method:'get'">
+        <thead>
+            <tr>
+                <th field="V_BIDDER_NAME" align="left" width="230">投标人名称</th>
+                <th field="V_BIDDER_NO" align="left" width="230">投标人代表号</th>
+            </tr>
+        </thead>
+    </table>
+    <script type="text/javascript">
+					SZUtilsExtEasyUIListPage.datagrid.pagination();
+					$(function() {
+						$(window).height()
+					})
+					/**结束当前节点**/
+					function finishCurrentFlow() {
+
+						parent.finishCurrentFlowNodeNoInteractive(
+								'${TENDER_PROJECT_FLOW_NODE.ID}',
+								'${TENDER_PROJECT_FLOW_NODE.V_NODE_NAME}');
+					}
+				</script>
+</body>
+</html>

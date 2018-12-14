@@ -1,0 +1,38 @@
+<div>
+    <p style="font-size: 25px; text-align: center; font-weight: bold;">
+        <u style="font-size: 25px; text-align: center; font-weight: bold;">${PROJECT_NAME}</u>（项目名称）评标基准价计算记录表开标记录表
+    </p>
+    <p style="font-size: 18px; text-align: center;">
+        开标时间：<u style="font-size: 18px; text-align: center; font-weight: bold;"> ${TIME}</u>
+    </p>
+</div>
+<div class="main" style="height: 85%;">
+    <!-- 数据 -->
+    <div class="easyui-tabs" data-options="fit:true,plain:true">
+        <sz:forEach items="${SECTION_LIST}" var="section,stat">
+            <div style="margin-bottom: 10px;">
+                <span style="line-height: 18px; font-size: 18px;">评标基准价（元）:&nbsp;&nbsp;${fmt.format("###,##0",section.N_EVALUATION_PRICE)}</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span style="line-height: 18px; font-size: 18px;">最高限价（元）:&nbsp;&nbsp;${fmt.format("###,##0",section.N_CONTROL_PRICE)}</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            </div>
+            <table class="sztable" width="100%" style="text-align: center;">
+                <caption>标段：${section.BID_SECTION_NAME}</caption>
+                <tr>
+                    <td width="10%">投标人编号</td>
+                    <td width="30%">投标人名称</td>
+                    <td width="10%">投标报价（元）</td>
+                    <td width="30%">投标人确认</td>
+                </tr>
+                <sz:forEach items="${section.TENDER_LIST}" var="vo,step">
+                    <tr>
+                        <td>${vo.V_BIDDER_NO}</td>
+                        <td>${vo.V_BIDDER_NAME}</td>
+                        <td>${fmt.format("###,##0",vo.N_PRICE)}</td>
+                        <td>${vo.V_REMARK!}</td>
+                    </tr>
+                </sz:forEach>
+            </table>
+        </sz:forEach>
+    </div>
+</div>
+<div style="font-size: 18px; text-align: center; font-weight: bold; height: 100px; line-height: 100px;">
+    监管：&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;招标人：&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;招标代理：</span>
+</div>

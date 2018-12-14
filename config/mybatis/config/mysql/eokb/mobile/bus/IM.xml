@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="IM">
+
+	<!-- 获取最新的100条历史聊天消息,并按照发送时间升序排列 -->
+	<select id="getHistoricalChatDatas" parameterType="record"
+		resultType="record">
+        <![CDATA[
+            SELECT T.*
+			  FROM (SELECT ID,
+			               V_ROOM_ID,
+			               V_SENDER_ID,
+			               V_SENDER_NAME,
+			               V_SENDER_LOGO,
+			               V_RECIPIENT_ID,
+			               V_RECIPIENT_NAME,
+			               V_MESSAGE_CONTENT,
+			               N_MESSAGE_TYPE,
+			               N_SEND_TIME
+			          FROM EKB_T_IM_MSG
+			         WHERE (N_MESSAGE_TYPE = 0 AND
+			               (V_SENDER_ID = #{cuid} OR V_RECIPIENT_ID = #{cuid} OR
+			               V_RECIPIENT_ID IS NULL OR V_RECIPIENT_ID = '') AND
+			               V_ROOM_ID IN
+			               (SELECT ID FROM EKB_T_IM_ROOM WHERE V_TPID = #{tpid}))
+			         ORDER BY N_SEND_TIME DESC LIMIT 100) T
+			 ORDER BY T.N_SEND_TIME ASC
+        ]]>
+	</select>
+
+
+</mapper>  

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="StartUp">
+
+    <!-- 获取指定招标项目的每一个投标人的最后投递时间 -->
+    <select id="getTenderProjectMaxDeliveryTime" parameterType="string" resultType="record">
+        <![CDATA[
+            SELECT MAX(V_CREATETIME) AS MAXTIME, V_ORG_CODE
+              FROM EKB_T_TBIMPORTBIDDING
+             WHERE V_TPID = #{tpid}
+             GROUP BY V_ORG_CODE
+             ORDER BY MAXTIME ASC
+        ]]>
+    </select>
+
+    <!-- 获取指定招标项目下的每一个标段的投标人数量 -->
+    <select id="getSectionBidderNumber" parameterType="string" resultType="record">
+        <![CDATA[
+            SELECT TEMP.V_BID_SECTION_ID, COUNT(1) AS N_BIDDER_NUMBER
+              FROM (SELECT TD.V_BID_SECTION_ID, TD.V_ORG_CODE
+                      FROM EKB_T_TBIMPORTBIDDING TD
+                     WHERE TD.V_TPID = #{tpid}
+                       AND V_BID_SECTION_ID IS NOT NULL
+                     GROUP BY TD.V_BID_SECTION_ID, TD.V_ORG_CODE) TEMP
+             GROUP BY TEMP.V_BID_SECTION_ID
+        ]]>
+    </select>
+    
+    <!-- 标段组情况下的开标设置列表 -->
+    <select id="getBidOpenList_Group" parameterType="string" resultType="record">
+        <![CDATA[
+            SELECT T.V_BID_SECTION_GROUP_CODE,
+                   IFNULL(N_BIDDER_NUMBER, 0) AS N_BIDDER_NUMBER ,
+                   V_BID_OPEN_STATUS,
+                   GROUP_CONCAT(T.V_BID_SECTION_ID) V_BID_SECTION_IDS,
+                   GROUP_CONCAT(T.V_BID_SECTION_NAME ORDER BY T.V_BID_SECTION_NAME) V_BID_SECTION_NAMES
+              FROM EKB_T_SECTION_INFO T
+             WHERE T.V_TPID = #{tpid}
+             GROUP BY T.V_BID_SECTION_GROUP_CODE
+        ]]>
+    </select>
+    
+    <!-- 非标段组情况下的开标设置列表 -->
+    <select id="getBidOpenList" parameterType="string" resultType="record">
+        <![CDATA[
+            SELECT V_BID_SECTION_GROUP_CODE,
+                   IFNULL(N_BIDDER_NUMBER, 0) AS N_BIDDER_NUMBER,
+                   V_BID_OPEN_STATUS,
+                   V_BID_SECTION_ID AS V_BID_SECTION_IDS,
+                   V_BID_SECTION_NAME AS V_BID_SECTION_NAMES
+              FROM EKB_T_SECTION_INFO
+             WHERE V_TPID = #{tpid}
+             ORDER BY V_BID_SECTION_CODE ASC
+        ]]>
+    </select>
+
+</mapper>  

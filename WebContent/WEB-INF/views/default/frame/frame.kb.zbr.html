@@ -1,0 +1,671 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>${session.TENDER_PROJECT_INFO.V_TENDER_PROJECT_NAME}招标项目-在线开标会议室</title>
+<script src="${path}/static/res/jquery/jquery.min.js" type="text/javascript"></script>
+<script type="text/javascript" src="${path}/static/js/others/JSON.js"></script>
+<link href="${path}/static/res/jquery-easyui/themes/default/easyui.css" rel="stylesheet" />
+<link href="${path}/static/res/jquery-easyui/themes/icon.css" rel="stylesheet" />
+<link href="${path}/static/res/jquery-easyui/themes/myiconCss.css" rel="stylesheet" />
+<script src="${path}/static/res/jquery-easyui/jquery.easyui.min.js" type="text/javascript"></script>
+<script type="text/javascript" src="${path}/static/js/uitlsEasyUI/SZUtilsExtEasyUI.js"></script>
+<link href="${path}${adminPath}/view/frame/css/kbmain.css" rel="stylesheet" />
+<script type="text/javascript" src="${path}${adminPath}/view/frame/js/logout.js"></script>
+<script src="${path}${adminPath}/view/common/js/layer/layer.js" type="text/javascript"></script>
+
+<style type="text/css">
+.dialog-button {
+    padding: 5px;
+    text-align: center;
+}
+</style>
+<script>
+    $(function() {
+        $("#im-ifame").attr("src", "${path}${adminPath}/im/room/${session.TENDER_PROJECT_INFO.ID}?_T=" + new Date().getTime());
+        //setInterval("showNewInfo()",100000);
+        var zwLeftWidth = $(window).width() - 286 - 65;
+        var zwLeftHeight = $(window).height() - 64 - 20 - 60 - 25;
+        $(".mid-lf").width(zwLeftWidth);
+        $(".zw-top").width(zwLeftWidth);
+        $("#lc-frame").width(zwLeftWidth);
+        $("#lc-frame").height(zwLeftHeight);
+        $("#zw-frame").width(zwLeftWidth);
+        $("#zw-frame").height(zwLeftHeight);
+        $("#im-ifame").height(zwLeftHeight + 60);
+        $.messager.defaults = {
+            ok : "是",
+            cancel : "否"
+        };
+    });
+
+    function setIframeHeight(iframe) {
+        if (iframe) {
+            var iframeWin = iframe.contentWindow || iframe.contentDocument.parentWindow;
+            if (iframeWin.document.body) {
+                iframe.height = iframeWin.document.documentElement.scrollHeight || iframeWin.document.body.scrollHeight;
+                iframe.width = iframeWin.document.documentElement.scrollWidth || iframeWin.document.body.scrollWidth;
+            }
+        }
+    };
+    window.onload = function() {
+        setIframeHeight(document.getElementById('lc-frame'));
+        setIframeHeight(document.getElementById('zw-frame'));
+        document.getElementById("zw-frame").style.display = 'none';
+        showNewInfo();
+        refreshLC();
+    };
+    //流程和正文切换
+    function frameChange(frame_value, flag) {
+        if (frame_value == 'lc') {
+            var objzw = document.getElementById("zw");
+            objzw.style.backgroundImage = "url(${path}${adminPath}/view/frame/images/index_22.png)";
+            var objlc = document.getElementById("lc");
+            objlc.style.backgroundImage = "url(${path}${adminPath}/view/frame/images/index_20.png)";
+            document.getElementById("zw-frame").style.display = 'none';
+            document.getElementById("lc-frame").style.display = 'block';
+            refreshLC();
+        } else if (frame_value == 'zw') {
+            var objzw = document.getElementById("zw");
+            objzw.style.backgroundImage = "url(${path}${adminPath}/view/frame/images/index_20.png)";
+            var objlc = document.getElementById("lc");
+            objlc.style.backgroundImage = "url(${path}${adminPath}/view/frame/images/index_22.png)";
+            document.getElementById("zw-frame").style.display = 'block';
+            document.getElementById("lc-frame").style.display = 'none';
+            if (flag) {
+                document.getElementById('zw-frame').contentWindow.location.reload(true);
+            }
+        }
+    }
+    //新闻显示
+    $(document).ready(function() {
+        //绑定元素点击事件
+        $(".news").click(function() {
+            //判断对象是显示还是隐藏
+            if ($(this).children(".div1").is(":hidden")) {
+                //表示隐藏
+                if (!$(this).children(".div1").is(":animated")) {
+                    $(this).children(".xiala").css({
+                        'transform' : 'rotate(180deg)'
+                    });
+                    //如果当前没有进行动画，则添加新动画
+                    $(this).children(".div1").animate({
+                        height : 'show'
+                    }, 100)
+                    //siblings遍历div1的元素
+                    .end().siblings().find(".div1").hide(100);
+                }
+            } else {
+                //表示显示
+                if (!$(this).children(".div1").is(":animated")) {
+                    $(this).children(".xiala").css({
+                        'transform' : 'rotate(360deg)'
+                    });
+                    $(this).children(".div1").animate({
+                        height : 'hide'
+                    }, 100).end().siblings().find(".div1").hide(100);
+                }
+            }
+        });
+        //阻止事件冒泡，子元素不再继承父元素的点击事件
+        $('.div1').click(function(e) {
+            e.stopPropagation();
+        });
+    });
+    //定时刷新消息
+    function showNewInfo() {
+        $.ajax({
+            url : "${path}${adminPath}/notice/htmlInfo",
+            //设置请求方法
+            type : 'post',
+            //dataType : 'json',
+            cache : false,
+            //成功回调
+            success : function(result) {
+                result = JSON.parse(result);
+                if (result.noticeInfoTitle) {
+                    $("#noticeInfoTitle").html(result.noticeInfoTitle);
+                    $("#noticeInfo").html(result.noticeInfo);
+                }
+            },
+            //失败回调
+            error : function(XMLHttpRequest, textStatus, errorThrown) {
+                var result = jQuery.parseJSON(XMLHttpRequest.responseText);
+                $.messager.alert("失败", result.errorDesc);
+            }
+        });
+    }
+    function ccc() {
+        var param = {};
+        param.iframeID = "lc-frame";
+        param.funParam = "bidOpenStart";
+        $("#im-ifame")[0].contentWindow.sendCommondByIframe("changeIframeUrl", param);
+    }
+    //添加公告v_msg 公告内容 v_type 1系统公告 2 招标人公告
+    function addNotice(v_msg, v_type) {
+        $.ajax({
+            url : "${path}${adminPath}/notice/add",
+            //设置请求方法
+            type : 'post',
+            //dataType : 'json',
+            cache : false,
+            async : false,
+            data : {
+                "v_msg" : v_msg,
+                "v_type" : v_type
+            },
+            //成功回调
+            success : function(result) {
+                result = JSON.parse(result);
+                return result.success;
+            },
+            //失败回调
+            error : function(XMLHttpRequest, textStatus, errorThrown) {
+                var result = jQuery.parseJSON(XMLHttpRequest.responseText);
+                $.messager.alert("创建失败", result.errorDesc);
+                return false;
+            }
+        });
+    }
+    //刷新流程
+    function refreshLC() {
+        $.ajax({
+            url : "${path}${adminPath}/jflh/kb/modelCheck/refreshLC",
+            //设置请求方法
+            type : 'post',
+            //dataType : 'json',
+            cache : false,
+            //成功回调
+            success : function(result) {
+                result = JSON.parse(result);
+                var list = result.list;
+                for ( var i = 0; i < list.length; i++) {
+                    var b = list[i];
+                    var model_type = b.V_MODEL_TYPE;
+                    var status = b.V_STATUS;
+                    var statusClass = "";
+                    //var statusUrl="";
+                    var statusMenu = "";
+                    var statuText = "";
+                    var lcjd = "";
+                    if (status == '2') {
+                        statusClass = "zt";
+                        //statusUrl="${path}${adminPath}/view/frame/images/ywc.png";
+                        statusMenu = "sub-menu";
+                        statuText = "<img src=\"${path}${adminPath}/view/frame/images/ywc.png\" width=\"14\" height=\"14\" />已完成";
+                    } else {
+                        statusClass = "zt1";
+                        //statusUrl="${path}${adminPath}/view/frame/images/wwc.png";
+                        statusMenu = "sub-menu1";
+                        statuText = "<img src=\"${path}${adminPath}/view/frame/images/wwc.png\" width=\"14\" height=\"14\" />未完成";
+                    }
+                    $("#lc-frame").contents().find("#" + model_type).removeClass().addClass(statusMenu);
+                    $("#lc-frame").contents().find("#" + model_type).find("span").first().removeClass().addClass(statusClass);
+                    $("#lc-frame").contents().find("#" + model_type).find("span").first().html(statuText);
+                    //$("#lc-frame").contents().find("#"+model_type).find("img").first().attr('src',statusUrl); 
+                }
+            },
+            //失败回调
+            error : function(XMLHttpRequest, textStatus, errorThrown) {
+                var result = jQuery.parseJSON(XMLHttpRequest.responseText);
+                $.messager.alert("创建失败", result.errorDesc);
+                return false;
+            }
+        });
+    }
+    //打开流程
+    function showOpenLToIM(context, flag) {
+        //context="目前xxxxx模块已开始进行确认环节，请各投标人在xxx时间前完成确认操作，超时未确认的默认为确认！<a href=\"javascript:void(0)\" onclick=\"top.toLC('DYXF_credit')\">进入流程</a>";
+        /**/
+        var param = {};
+        param.iframeID = "lc-frame";
+        param.oneParam = context;
+        param.all = flag;
+        param.fun = "showOpenLC";
+        $("#im-ifame")[0].contentWindow.sendCommondByIframe(param);
+        //showOpenLC(context);
+    }
+
+    //获取上一步骤状态值
+    function preStatus(pageName, _type) {
+        $.ajax({
+            url : "${path}${adminPath}/jflh/kb/modelCheck/preStatus/" + _type,
+            // 设置请求方法
+            type : "GET",
+            // dataType : 'json',
+            contentType : 'application/json;charset=UTF-8',
+            cache : false,
+            // 成功回调
+            success : function(result) {
+                if (result == "2") {
+                    $("#zw-frame", parent.document.body).attr("src", "${path}${adminPath}/view/eokb/" + pageName);
+                } else {
+                    $("#zw-frame", parent.document.body).attr("src", "${path}${adminPath}/view/eokb/bus/checkModel/checkModel.commom.html");
+                }
+            },
+            // 失败回调
+            error : function(XMLHttpRequest, textStatus, errorThrown) {
+                var result = jQuery.parseJSON(XMLHttpRequest.responseText);
+                $.messager.alert('操作失败', "操作失败[" + result.errorDesc + "]");
+            }
+        });
+    }
+
+    //获取第一信封完成情况
+    function preSecond(pageName, _type) {
+        $.ajax({
+            cache : false,
+            url : "${path}${adminPath}/second/envelope/status",
+            // 设置类型
+            // dataType : 'json',
+            // 设置请求方法
+            type : "GET",
+            // 成功回调
+            success : function(result) {
+                if (result == "true") {
+                    preStatus(pageName, _type);
+                } else {
+                    $("#zw-frame", parent.document.body).attr("src", "${path}${adminPath}/view/eokb/fjs_gsgl_ljsg_hldjf_v1/firstEnvelope/firstEnvelope.over.html");
+                }
+            },
+            // 失败回调
+            error : function(XMLHttpRequest, textStatus, errorThrown) {
+                var result = jQuery.parseJSON(XMLHttpRequest.responseText);
+                $.messager.alert('操作失败', "操作失败[" + result.errorDesc + "]");
+            }
+        });
+    }
+
+    //招标人跳转
+    function zbrRole(info_value) {
+        if (info_value == 'BIDOPEN_Start') {
+            preStatus("fjs_gsgl_ljsg_hldjf_v1/bidOpenStart/bidOpenStart.list.html", "BIDOPEN_Start");
+        }
+        if (info_value == 'TBWJJM') {
+            $("#zw-frame", parent.document.body).attr("src", "${path}${adminPath}/view/eokb/bus/decrypt/decryptBidderAction.html");
+        }
+        if (info_value == 'RECORD') {
+            $("#zw-frame", parent.document.body).attr("src", "${path}${adminPath}/view/eokb/fjs_gsgl_ljsg_hldjf_v1/bidOpenRecord/bidOpenRecord.list.html");
+        }
+        if (info_value == 'DYXF_credit') {
+            preStatus("fjs_gsgl_ljsg_hldjf_v1/firstEnvelope/firstEnvelope.credit.list.html", "DYXF_credit");
+        }
+
+        if (info_value == 'DYXF_electronics') {
+            preStatus("fjs_gsgl_ljsg_hldjf_v1/firstEnvelope/firstEnvelope.electronics.list.html", "DYXF_electronics");
+            //$("#zw-frame",parent.document.body).attr("src","${path}${adminPath}/view/eokb/fjs_gsgl_ljsg_hldjf_v1/firstEnvelope/firstEnvelope.electronics.list.html");
+        }
+
+        if (info_value == 'DYXF_offer') {
+            preStatus("fjs_gsgl_ljsg_hldjf_v1/firstEnvelope/firstEnvelope.preview.list.html", "DYXF_offer");
+            //$("#zw-frame",parent.document.body).attr("src","${path}${adminPath}/view/eokb/fjs_gsgl_ljsg_hldjf_v1/firstEnvelope/firstEnvelope.preview.list.html");
+        }
+
+        if (info_value == 'DYXF_rs') {
+            preStatus("fjs_gsgl_ljsg_hldjf_v1/firstEnvelope/firstEnvelope.review.result.list.html", "DYXF_rs");
+            //$("#zw-frame",parent.document.body).attr("src","${path}${adminPath}/view/eokb/fjs_gsgl_ljsg_hldjf_v1/firstEnvelope/firstEnvelope.review.result.list.html");
+        }
+
+        if (info_value == 'DEXF_offer') {
+            preSecond("fjs_gsgl_ljsg_hldjf_v1/secondEnvelope/secondEnvelope.rc.list.html", "DEXF_offer");
+            //$("#zw-frame",parent.document.body).attr("src","${path}${adminPath}/view/eokb/fjs_gsgl_ljsg_hldjf_v1/secondEnvelope/secondEnvelope.rc.list.html");
+        }
+
+        if (info_value == 'DEXF_price') {
+            preSecond("fjs_gsgl_ljsg_hldjf_v1/secondEnvelope/secondEnvelope.rs.list.html", "DEXF_price");
+            //var pageName = "secondEnvelope.rs.list.html";
+            //preSecond(pageName)
+            //$("#zw-frame",parent.document.body).attr("src","${path}${adminPath}/view/eokb/fjs_gsgl_ljsg_hldjf_v1/secondEnvelope/secondEnvelope.rs.list.html");
+        }
+    }
+
+    //投标人跳转
+    function tbrRole(info_value) {
+        if (info_value == 'BIDOPEN_Start') {
+            preStatus("fjs_gsgl_ljsg_hldjf_v1/bidOpenStart/bidOpenStart.list.html", "BIDOPEN_Start");
+        }
+        if (info_value == 'TBWJJM') {
+            $("#zw-frame", parent.document.body).attr("src", "${path}${adminPath}/view/eokb/bus/decrypt/decryptBidderAction.html");
+        }
+        if (info_value == 'RECORD') {
+            $("#zw-frame", parent.document.body).attr("src", "${path}${adminPath}/view/eokb/fjs_gsgl_ljsg_hldjf_v1/bidOpenRecord/bidOpenRecord.list.html");
+        }
+        if (info_value == 'DYXF_credit') {
+            preStatus("fjs_gsgl_ljsg_hldjf_v1/firstEnvelope/firstEnvelope.credit.list.html", "DYXF_credit");
+        }
+
+        if (info_value == 'DYXF_electronics') {
+            preStatus("fjs_gsgl_ljsg_hldjf_v1/firstEnvelope/firstEnvelope.electronics.list.html", "DYXF_electronics");
+            //$("#zw-frame",parent.document.body).attr("src","${path}${adminPath}/view/eokb/fjs_gsgl_ljsg_hldjf_v1/firstEnvelope/firstEnvelope.electronics.list.html");
+        }
+
+        if (info_value == 'DYXF_offer') {
+            preStatus("fjs_gsgl_ljsg_hldjf_v1/firstEnvelope/firstEnvelope.preview.list.readOnly.html", "DYXF_offer");
+            //$("#zw-frame",parent.document.body).attr("src","${path}${adminPath}/view/eokb/fjs_gsgl_ljsg_hldjf_v1/firstEnvelope/firstEnvelope.preview.list.html");
+        }
+
+        if (info_value == 'DYXF_rs') {
+            preStatus("fjs_gsgl_ljsg_hldjf_v1/firstEnvelope/firstEnvelope.review.result.list.readOnly.html", "DYXF_rs");
+            //$("#zw-frame",parent.document.body).attr("src","${path}${adminPath}/view/eokb/fjs_gsgl_ljsg_hldjf_v1/firstEnvelope/firstEnvelope.review.result.list.html");
+        }
+
+        if (info_value == 'DEXF_offer') {
+            preSecond("fjs_gsgl_ljsg_hldjf_v1/secondEnvelope/secondEnvelope.rc.list.html", "DEXF_offer");
+            //$("#zw-frame",parent.document.body).attr("src","${path}${adminPath}/view/eokb/fjs_gsgl_ljsg_hldjf_v1/secondEnvelope/secondEnvelope.rc.list.html");
+        }
+
+        if (info_value == 'DEXF_price') {
+            preSecond("fjs_gsgl_ljsg_hldjf_v1/secondEnvelope/secondEnvelope.rs.list.html", "DEXF_price");
+            //var pageName = "secondEnvelope.rs.list.html";
+            //preSecond(pageName)
+            //$("#zw-frame",parent.document.body).attr("src","${path}${adminPath}/view/eokb/fjs_gsgl_ljsg_hldjf_v1/secondEnvelope/secondEnvelope.rs.list.html");
+        }
+    }
+
+    //切换流程信息
+    function lcinfoChange(info_value) {
+        var role_code = '${session.roleCode}';
+        var f = $('#lc-frame').contents().find("#" + info_value).text();
+        f = f.replace("未完成", "")
+        f = f.replace("已完成", "")
+        $('.zw-wz').html(f);
+        if (role_code == "0") {
+            if (info_value == "BIDOPEN_Start") {
+                parent.sy.progress.show();
+                verifyOpenTiem(info_value);
+                return;
+            } else {
+                zbrRole(info_value);
+            }
+        } else {
+            tbrRole(info_value);
+        }
+        //$("#zw", parent.document.body).click();
+        frameChange("zw", false);
+    }
+    //跳转流程页面
+    function toLC(model_type) {
+        var param = {};
+        param.iframeID = "lc-frame";
+        param.oneParam = model_type;
+        param.all = true;
+        param.fun = "lcinfoChange";
+        top.$("#im-ifame")[0].contentWindow.sendCommondByIframe(param);
+        $('#openLCID').dialog('close');
+    }
+
+    //弹出流程消息  
+    function showOpenLC(context) {
+        //context="目前xxxxx模块已开始进行确认环节，请各投标人在xxx时间前完成确认操作，超时未确认的默认为确认！<a href=\"javascript:void(0)\" onclick=\"toLC('DYXF_credit')\">进入流程</a>";
+        var p = top.$("<div align=\"center\" id=\"openLCID\"></br><span style=\"font-weight:bold;font-size: 14px;line-height: 30px;word-wrap:break-word;\">" + context + "</span></div>").dialog({
+            title : '&nbsp;系统提示',
+            iconCls : "application_osx_add",
+            width : 450,
+            height : 200
+        });
+        p.dialog("open");
+    }
+
+    function checkModelUpdateStatus(model, modelNext, value) {
+        //0
+        //TODO 什么都不做
+        //1
+        //TODO 发送系统公告、给投标人发送系统中间提示
+        //2
+        //TODO 发送系统公告，进入xx模块；代理本身切换成下一个模块
+        /* var _group = "${session.TENDER_PROJECT_INFO.N_IS_SECTION_GROUP}";
+        if (_group == 0 && modelNext == "DYXF_credit") {
+        	model = "DYXF_electronics"
+        	modelNext = "DYXF_offer";
+        } */
+
+        parent.$.messager.confirm("提示", "确认当前信息无误?", function(r) {
+            if (r) {
+
+                //结束第一信封
+                if (model == "DYXF_offer") {
+                    $.ajax({
+                        async : false,
+                        cache : false,
+                        url : "${path}${adminPath}/first/envelope/first/end",//请求的action路径  
+                        // 设置请求方法
+                        type : "GET",
+                        // dataType : 'json',
+                        contentType : 'application/json;charset=UTF-8',
+                        // 成功回调
+                        success : function(result) {
+                        },
+                        // 失败回调
+                        error : function(XMLHttpRequest, textStatus, errorThrown) {
+                            var result = jQuery.parseJSON(XMLHttpRequest.responseText);
+                            $.messager.alert('操作失败', "操作失败[" + result.errorDesc + "]");
+                        }
+                    });
+                }
+
+                //结束评审
+                if (model == "DEXF_price") {
+                    $.ajax({
+                        async : false,
+                        cache : false,
+                        url : "${path}${adminPath}/first/envelope/firstRs/end",//请求的action路径  
+                        // 设置请求方法
+                        type : "GET",
+                        // dataType : 'json',
+                        contentType : 'application/json;charset=UTF-8',
+                        // 成功回调
+                        success : function(result) {
+                        },
+                        // 失败回调
+                        error : function(XMLHttpRequest, textStatus, errorThrown) {
+                            var result = jQuery.parseJSON(XMLHttpRequest.responseText);
+                            $.messager.alert('操作失败', "操作失败[" + result.errorDesc + "]");
+                        }
+                    });
+                }
+
+                var _type = model;
+                $.ajax({
+
+                    url : "${path}${adminPath}/jflh/kb/modelCheck/update/overStatus",
+                    // 设置请求方法
+                    type : "POST",
+                    data : {
+                        type : _type
+                    },
+                    cache : false,
+                    // dataType : 'json',
+                    // contentType : 'application/json;charset=UTF-8',
+                    // 成功回调
+                    success : function(result) {
+                        addNotice(value, "1");
+                        showNewInfo();
+                        //checkModelUpdateStatus();
+                        lcinfoChange(modelNext);
+
+                        if (model == "TBWJJM") {
+                            if (modelNext == 'DYXF_offer') {
+                                var msg = '<div style="padding:5px;background:#639CF9;color:#fff;font-family:微软雅黑;font-weight:bold;"><p style="line-height:25px;">第一信封开标结果已启动！</p><p style="line-height:25px;">请各投标人进入第一信封开标结果！</p><a style="color:#fff;" href="javascript:void(0);" onclick="closeTipFlowInstruct(\'DYXF_offer\')">进入第一信封开标结果</a></div>';
+                            } else {
+                                var msg = '<div style="padding:5px;background:#639CF9;color:#fff;font-family:微软雅黑;font-weight:bold;"><p style="line-height:25px;">投标人所投标段组及信用组已启动！</p><p style="line-height:25px;">请各投标人进入投标人所投标段组及信用组！</p><a style="color:#fff;" href="javascript:void(0);" onclick="closeTipFlowInstruct(\'DYXF_credit\')">进入投标人所投标段组及信用组</a></div>';
+                            }
+                        } else if (model == "DYXF_offer") {
+                            var msg = '<div style="padding:5px;background:#639CF9;color:#fff;font-family:微软雅黑;font-weight:bold;"><p style="line-height:25px;">第一信封评审结果已启动！</p><p style="line-height:25px;">请各投标人进入第一信封评审结果！</p><a style="color:#fff;" href="javascript:void(0);" onclick="closeTipFlowInstruct(\'DYXF_rs\')">进入第一信封评审结果</a></div>';
+                        } else if (model == "DYXF_rs") {
+                            var msg = '<div style="padding:5px;background:#639CF9;color:#fff;font-family:微软雅黑;font-weight:bold;"><p style="line-height:25px;">第二信封文件解密结果已启动！</p><p style="line-height:25px;">请各投标人进入第二信封文件解密结果！</p><a style="color:#fff;" href="javascript:void(0);" onclick="closeTipFlowInstruct(\'DEXF_offer\')">进入第二信封文件解密结果</a></div>';
+                        } else if (model == "BIDOPEN_Start") {
+                            var msg = '<div style="padding:5px;background:#639CF9;color:#fff;font-family:微软雅黑;font-weight:bold;"><p style="line-height:25px;">开标已启动！</p><p style="line-height:25px;">请各投标人开始解密投标文件！</p><a style="color:#fff;" href="javascript:void(0);" onclick="closeTipFlowInstruct(\'TBWJJM\')">进入解密</a></div>'
+                        } else if (model == "DEXF_offer") {
+                            var msg = '<div style="padding:5px;background:#639CF9;color:#fff;font-family:微软雅黑;font-weight:bold;"><p style="line-height:25px;">开标记录表已启动！</p><p style="line-height:25px;">请各投标人进入开标记录表！</p><a style="color:#fff;" href="javascript:void(0);" onclick="closeTipFlowInstruct(\'RECORD\')">进入开标记录表</a></div>';
+                        }
+
+                        sendReflushNews();
+                        sendFlowInstruct(msg);
+                    },
+                    // 失败回调
+                    error : function(XMLHttpRequest, textStatus, errorThrown) {
+                        var result = jQuery.parseJSON(XMLHttpRequest.responseText);
+                        $.messager.alert('操作失败', "操作失败[" + result.errorDesc + "]");
+                    }
+                });
+            }
+        });
+    }
+
+    //验证是否到开标时间
+    function verifyOpenTiem(info_value) {
+        $.ajax({
+            async : true,
+            cache : false,
+            type : 'get',
+            url : "${path}${adminPath}/bus/startup/verifyOpenTiem",
+            error : function(XMLHttpRequest, textStatus, errorThrown) {
+                var result = jQuery.parseJSON(XMLHttpRequest.responseText);
+                $.messager.alert('异步获取数据出现异常', "异步获取数据出现异常[" + result.errorDesc + "]");
+            },
+            success : function(result) { //请求成功后处理函数。  
+                if (result) {
+                    //导入投标人信息
+                    doImpBidderInfo();
+                    //导入关联企业信息
+                    doImpAssEnteInfo();
+                    zbrRole(info_value);
+                    frameChange("zw", false);
+                } else {
+                    top.$.messager.alert('提示', "开标时间未到!");
+                }
+            }
+        });
+    }
+    //导入投标人信息
+    function doImpBidderInfo() {
+        $.ajax({
+            url : '${path}${adminPath}/bus/startup/getBidderInfo',
+            // 设置请求方法
+            type : 'GET',
+            async : false,
+            // dataType : 'json',
+            contentType : 'application/json;charset=UTF-8',
+            // 成功回调
+            success : function(result) {
+                //刷新列表
+            },
+            // 失败回调
+            error : function(XMLHttpRequest, textStatus, errorThrown) {
+                var result = jQuery.parseJSON(XMLHttpRequest.responseText);
+                top.$.messager.alert('操作失败', "操作失败[" + result.errorDesc + "]");
+            }
+        });
+    }
+    //导入关联企业
+    function doImpAssEnteInfo() {
+        $.ajax({
+            url : '${path}${adminPath}/bus/startup/getAssEnteInfo',
+            cache : false,
+            // 设置请求方法
+            type : 'GET',
+            // dataType : 'json',
+            contentType : 'application/json;charset=UTF-8',
+            // 成功回调
+            success : function(result) {
+                //刷新列表
+                parent.sy.progress.hide();
+            },
+            // 失败回调
+            error : function(XMLHttpRequest, textStatus, errorThrown) {
+                var result = jQuery.parseJSON(XMLHttpRequest.responseText);
+                top.$.messager.alert('操作失败', "操作失败[" + result.errorDesc + "]");
+                parent.sy.progress.hide();
+            }
+        });
+    }
+
+    /**反馈**/
+    function tickling(result) {
+        layer.msg(result.msg, {
+            time : 2000, //20s后自动关闭
+        });
+        //刷新区域
+        lcinfoChange(result.flushID);
+    }
+
+    /***发送流程指令**/
+    function sendFlowInstruct(msg) {
+        var param = {};
+        param.iframeID = "lc-frame";
+        param.oneParam = msg;
+        param.all = true;
+        param.fun = "tipFlowInstruct";
+        top.$("#im-ifame")[0].contentWindow.sendCommondByIframe(param);
+    }
+
+    /***发送刷新公告指令**/
+    function sendReflushNews() {
+        var param = {};
+        param.iframeID = "lc-frame";
+        param.all = true;
+        param.fun = "showNewInfo";
+        top.$("#im-ifame")[0].contentWindow.sendCommondByIframe(param);
+    }
+</script>
+</head>
+
+<body>
+    <div class="header">
+        <div class="head-lf">
+            <% var user = authz.getCurrentUser();%><span class="gcmc">工程名称：${session.TENDER_PROJECT_INFO.V_TENDER_PROJECT_NAME}</span> <span class="zbdl">招标代理：${user.V_NAME}</span>
+        </div>
+        <div class="head-rg">
+            <div class="user">
+                <span class="head-img"><img src="${path}${adminPath}/view/frame/images/tbr.png" width="25" height="19" /></span> <span class="user-wz">${session.roleCode=='0'?'招标人':'投标人'}:${user.V_NAME}</span>
+            </div>
+            <!-- <div class="shu"></div>
+     <div class="live">
+       <span class="head-img"><img src="${path}${adminPath}/view/frame/images/live.png" width="${path}${adminPath}/view/frame/images/ght="19" /></span>
+       <span class="lw-wz">直播现场</span> 
+    </div>-->
+            <div class="shu"></div>
+            <div class="exit">
+                <span class="head-img"><img src="${path}${adminPath}/view/frame/images/exit.png" width="25" height="19" /></span> <span class="lw-wz"><a style="color: #fff; text-decoration: none" href="javascript:void(0)" onclick="logout()">退出系统</a></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="main">
+        <div class="main-bg">
+            <div class="restore-window">
+                <span class="res-img"></span> <span class="res-wz">还原窗口</span>
+            </div>
+            <div class="main-middle">
+                <div class="mid-lf">
+                    <div class="zw-top">
+                        <div class="lc" id="lc" style="background-image: url(${path}${adminPath}/view/frame/images/index_20.png);" onclick="frameChange('lc',true)">
+                            <span class="lc-img"><img src="${path}${adminPath}/view/frame/images/lc.png" width="27" height="30" /></span>
+                            <div class="lc-wz">流程</div>
+                        </div>
+                        <div class="lc" id="zw" style="background-image: url(${path}${adminPath}/view/frame/images/index_22.png); width: 300px;" onclick="frameChange('zw',true)">
+                            <span class="lc-img"><img src="${path}${adminPath}/view/frame/images/zw.png" width="27" height="30" /></span>
+                            <div class="zw-wz">正文</div>
+                        </div>
+                        <div class="news">
+                            <!-- <span class="news-img"><img src="images/news.png" width="27" height="26" /></span>
+              <span class="news-bt">系统消息</span>
+              <span class="news-wz">用户提醒温馨提示用户提醒温馨提示用户提醒提示用户提醒馨提示用户提醒提示用户提醒馨提示用户提醒馨提示用户提醒提示用户提醒</span>
+              <span class="xl"></span>  -->
+                            <span class="news-img"><img src="${path}${adminPath}/view/frame/images/news.png" width="27" height="26" /></span>
+                            <p class="news-wz" id="noticeInfoTitle">暂无信息</p>
+                            <img class="xiala" style="margin-top: 24px; cursor: pointer;" src="${path}${adminPath}/view/frame/images/index_31.png" />
+                            <div class="div1" id="noticeInfo"></div>
+                        </div>
+                    </div>
+                    <!-- 流程FRAME -->
+                    <iframe src="${path}${adminPath}/view/frame/frame.flow.fjs_gsgl_ljsg_hldjf_v1.html" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" hspeace="0" vspace="0" id="lc-frame" width="100%" height="100%"></iframe>
+                    <!-- 正文FRAME -->
+                    <iframe src="${path}${adminPath}/view/frame/blank.html" frameborder="0" scrolling=yes marginheight="0" marginwidth="0" hspeace="0" vspace="0" id="zw-frame" width="100%" height="100%"></iframe>
+                </div>
+                <iframe id="im-ifame" src="" frameborder="0" style="border: 0; float: right; width: 290px;"></iframe>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

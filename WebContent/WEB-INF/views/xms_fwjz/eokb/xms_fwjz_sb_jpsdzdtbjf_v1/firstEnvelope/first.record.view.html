@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>开标记录表</title> <%includeJSP("/static/include/inc.jsp",{}){}%>
+<link href="${path}/static/css/table.css" rel="stylesheet" />
+<style>
+html,body {
+	height: 100%;
+	padding: 0;
+	margin: 0;
+}
+
+td {
+	border: 1px solid #B5D6E6;
+}
+</style>
+<script type="text/javascript">
+	/**保存**/
+	function doSave() {
+		parent.$.messager
+				.confirm(
+						"提示",
+						"保存后将无法修改，确认信息无误?",
+						function(r) {
+							if (r) {
+								var sections = new Array();
+								$("form").each(function() {
+									var param = $(this).form2json({
+										allowEmptySingleVal : false
+									});
+									sections.push(param);
+								});
+								sy.progress.show();
+								// 发生Ajax请求
+								$
+										.ajax({
+											url : '${path}${adminPath}/xms_fwjz_sb_jpsdzdtbjf_v1/firstenvelope/saveBidders',
+											// 设置请求方法
+											type : 'POST',
+											async : false,
+											//dataType : 'json',
+											//contentType : 'application/json;charset=UTF-8',
+											data : {
+												"bidders" : JSON
+														.stringify(sections)
+											},
+											// 成功回调
+											success : function(result) {
+												sy.progress.hide();
+												location.reload();
+											},
+											// 失败回调
+											error : function(XMLHttpRequest,
+													textStatus, errorThrown) {
+												parent.sy.progress.hide();
+												var result = jQuery
+														.parseJSON(XMLHttpRequest.responseText);
+												top.$.messager
+														.alert(
+																'操作失败',
+																"操作失败["
+																		+ result.errorDesc
+																		+ "]");
+											}
+										});
+							}
+						});
+	}
+</script>
+</head>
+<body>
+    <sz:if test="${REMARKFLAG && !SessionUtils.isBidder()}">
+        <div style="text-align: center;">
+            <a id="data-save-button" href="#" class="easyui-linkbutton" style="width: 90px; height: 40px" data-options="iconCls:'icon-save'" onclick="doSave();">保存</a>
+        </div>
+    </sz:if>
+    <div>
+        <p style="font-size: 25px; text-align: center; font-weight: bold;">开标记录表</p>
+        <p style="font-size: 18px; text-align: center;">
+            开标时间：<u style="font-size: 18px; text-align: center; font-weight: bold;"> ${TIME}</u>
+        </p>
+    </div>
+    <div class="easyui-tabs" data-options="plain:true">
+        <sz:forEach items="${SECTION_LIST}" var="section,stat">
+            <form>
+                <table class="sztable" width="100%" style="text-align: center;">
+                    <thead>
+                        <tr>
+                            <td width="5%">序号</td>
+                            <td width="15%">投标人</td>
+                            <td width="10%">密封情况</td>
+                            <td width="10%">投标保证金（元）</td>
+                            <td width="10%">投标报价 （元）</td>
+                            <td width="10%">交货期</td>
+                            <td width="10%">联系方式</td>
+                            <td width="10%">备注</td>
+                            <td width="20%">投标人代表签名</td>
+                        </tr>
+                    </thead>
+                    <sz:forEach items="${section.TENDER_LIST}" var="vo,step">
+                        <tr>
+                            <td>${step.index+1}</td>
+                            <td>${vo.tbrmc}</td>
+                            <td>加密</td>
+                            <td>${vo.bzjje}</td>
+                            <td>${vo.tbbj}</td>
+                            <td>${vo.jhq!}${vo.gongqi!}</td>
+                            <td>${vo.bidder_phone!}</td>
+                            <td><sz:if test="${REMARKFLAG && !SessionUtils.isBidder()}">
+                                    <input name="${vo.ID}" value="${vo.firstRemark==null?' ':vo.firstRemark}" />
+                                </sz:if> <sz:if test="${!REMARKFLAG}">
+                            ${vo.firstRemark!}
+                            </sz:if></td>
+                            <td></td>
+                        </tr>
+                    </sz:forEach>
+                    <tr>
+                        <td colspan=4>最高投标限价（元）</td>
+                        <td colspan=4>${fmt.format("###,##0.00",section.N_CONTROL_PRICE)}</td>
+                    </tr>
+                </table>
+                <div style="margin-top: 20px;"></div>
+            </form>
+        </sz:forEach>
+    </div>
+    <div style="font-size: 14px; text-align: center; font-weight: bold; line-height: 50px; margin-top: 50px;">
+        <p>
+            <span style="width: 30%; display: inline-block;">招标人代表：________________</span><span style="width: 30%; display: inline-block;">记录人：________________</span><span style="width: 30%; display: inline-block;">监标人：________________</span>
+        </p>
+        <p align="right" style="font-size: 16px;">
+            <u style="font-size: 16px;"> ${YEAR!} </u>年<u style="font-size: 16px;"> ${MONTH!} </u>月<u style="font-size: 16px;"> ${DAY!} </u>日
+        </p>
+    </div>
+</body>
+</html>

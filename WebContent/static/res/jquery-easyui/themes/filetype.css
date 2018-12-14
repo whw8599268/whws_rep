@@ -1,0 +1,336 @@
+.fileType_unknown{
+	width:16px;height:16px;background:url('fileIcon/unknown.png') no-repeat center center;
+}
+.fileType_aac{
+	width:16px;height:16px;background:url('fileIcon/aac.png') no-repeat center center;
+}
+.fileType_ace{
+	width:16px;height:16px;background:url('fileIcon/ace.png') no-repeat center center;
+}
+.fileType_ai{
+	width:16px;height:16px;background:url('fileIcon/ai.png') no-repeat center center;
+}
+.fileType_ain{
+	width:16px;height:16px;background:url('fileIcon/ain.png') no-repeat center center;
+}
+.fileType_bat{
+	width:16px;height:16px;background:url('fileIcon/bat.png') no-repeat center center;
+}
+.fileType_sql{
+	width:16px;height:16px;background:url('fileIcon/sql.png') no-repeat center center;
+}
+.fileType_amr{
+	width:16px;height:16px;background:url('fileIcon/amr.png') no-repeat center center;
+}
+.fileType_app{
+	width:16px;height:16px;background:url('fileIcon/app.png') no-repeat center center;
+}
+.fileType_arj{
+	width:16px;height:16px;background:url('fileIcon/arj.png') no-repeat center center;
+}
+.fileType_asf{
+	width:16px;height:16px;background:url('fileIcon/asf.png') no-repeat center center;
+}
+.fileType_asp{
+	width:16px;height:16px;background:url('fileIcon/asp.png') no-repeat center center;
+}
+.fileType_aspx{
+	width:16px;height:16px;background:url('fileIcon/aspx.png') no-repeat center center;
+}
+.fileType_av{
+	width:16px;height:16px;background:url('fileIcon/av.png') no-repeat center center;
+}
+.fileType_avi{
+	width:16px;height:16px;background:url('fileIcon/avi.png') no-repeat center center;
+}
+.fileType_bin{
+	width:16px;height:16px;background:url('fileIcon/bin.png') no-repeat center center;
+}
+.fileType_bmp{
+	width:16px;height:16px;background:url('fileIcon/bmp.png') no-repeat center center;
+}
+.fileType_cab{
+	width:16px;height:16px;background:url('fileIcon/cab.png') no-repeat center center;
+}
+.fileType_cad{
+	width:16px;height:16px;background:url('fileIcon/cad.png') no-repeat center center;
+}
+.fileType_cat{
+	width:16px;height:16px;background:url('fileIcon/cat.png') no-repeat center center;
+}
+.fileType_cdr{
+	width:16px;height:16px;background:url('fileIcon/cdr.png') no-repeat center center;
+}
+.fileType_chm{
+	width:16px;height:16px;background:url('fileIcon/chm.png') no-repeat center center;
+}
+.fileType_com{
+	width:16px;height:16px;background:url('fileIcon/com.png') no-repeat center center;
+}
+.fileType_css{
+	width:16px;height:16px;background:url('fileIcon/css.png') no-repeat center center;
+}
+.fileType_cur{
+	width:16px;height:16px;background:url('fileIcon/cur.png') no-repeat center center;
+}
+.fileType_dat{
+	width:16px;height:16px;background:url('fileIcon/dat.png') no-repeat center center;
+}
+.fileType_db{
+	width:16px;height:16px;background:url('fileIcon/db.png') no-repeat center center;
+}
+.fileType_dll{
+	width:16px;height:16px;background:url('fileIcon/dll.png') no-repeat center center;
+}
+.fileType_dmv{
+	width:16px;height:16px;background:url('fileIcon/dmv.png') no-repeat center center;
+}
+.fileType_doc{
+	width:16px;height:16px;background:url('fileIcon/doc.png') no-repeat center center;
+}
+.fileType_docx{
+	width:16px;height:16px;background:url('fileIcon/doc.png') no-repeat center center;
+}
+.fileType_dot{
+	width:16px;height:16px;background:url('fileIcon/dot.png') no-repeat center center;
+}
+.fileType_dps{
+	width:16px;height:16px;background:url('fileIcon/dps.png') no-repeat center center;
+}
+.fileType_dpt{
+	width:16px;height:16px;background:url('fileIcon/dpt.png') no-repeat center center;
+}
+.fileType_dwg{
+	width:16px;height:16px;background:url('fileIcon/dwg.png') no-repeat center center;
+}
+.fileType_dxf{
+	width:16px;height:16px;background:url('fileIcon/dxf.png') no-repeat center center;
+}
+.fileType_emf{
+	width:16px;height:16px;background:url('fileIcon/emf.png') no-repeat center center;
+}
+.fileType_eps{
+	width:16px;height:16px;background:url('fileIcon/eps.png') no-repeat center center;
+}
+.fileType_et{
+	width:16px;height:16px;background:url('fileIcon/et.png') no-repeat center center;
+}
+.fileType_ett{
+	width:16px;height:16px;background:url('fileIcon/ett.png') no-repeat center center;
+}
+.fileType_exe{
+	width:16px;height:16px;background:url('fileIcon/exe.png') no-repeat center center;
+}
+.fileType_fla{
+	width:16px;height:16px;background:url('fileIcon/fla.png') no-repeat center center;
+}
+.fileType_ftp{
+	width:16px;height:16px;background:url('fileIcon/ftp.png') no-repeat center center;
+}
+.fileType_gif{
+	width:16px;height:16px;background:url('fileIcon/gif.png') no-repeat center center;
+}
+.fileType_hlp{
+	width:16px;height:16px;background:url('fileIcon/hlp.png') no-repeat center center;
+}
+.fileType_htm{
+	width:16px;height:16px;background:url('fileIcon/htm.png') no-repeat center center;
+}
+.fileType_html{
+	width:16px;height:16px;background:url('fileIcon/html.png') no-repeat center center;
+}
+.fileType_icl{
+	width:16px;height:16px;background:url('fileIcon/icl.png') no-repeat center center;
+}
+.fileType_ico{
+	width:16px;height:16px;background:url('fileIcon/ico.png') no-repeat center center;
+}
+.fileType_img{
+	width:16px;height:16px;background:url('fileIcon/img.png') no-repeat center center;
+}
+.fileType_inf{
+	width:16px;height:16px;background:url('fileIcon/inf.png') no-repeat center center;
+}
+.fileType_ini{
+	width:16px;height:16px;background:url('fileIcon/ini.png') no-repeat center center;
+}
+.fileType_iso{
+	width:16px;height:16px;background:url('fileIcon/iso.png') no-repeat center center;
+}
+.fileType_jpeg{
+	width:16px;height:16px;background:url('fileIcon/jpeg.png') no-repeat center center;
+}
+.fileType_jpg{
+	width:16px;height:16px;background:url('fileIcon/jpg.png') no-repeat center center;
+}
+.fileType_js{
+	width:16px;height:16px;background:url('fileIcon/js.png') no-repeat center center;
+}
+.fileType_json{
+	width:16px;height:16px;background:url('fileIcon/json.png') no-repeat center center;
+}
+.fileType_jsp{
+	width:16px;height:16px;background:url('fileIcon/jsp.png') no-repeat center center;
+}
+.fileType_m3u{
+	width:16px;height:16px;background:url('fileIcon/m3u.png') no-repeat center center;
+}
+.fileType_max{
+	width:16px;height:16px;background:url('fileIcon/max.png') no-repeat center center;
+}
+.fileType_mdb{
+	width:16px;height:16px;background:url('fileIcon/mdb.png') no-repeat center center;
+}
+.fileType_mde{
+	width:16px;height:16px;background:url('fileIcon/mde.png') no-repeat center center;
+}
+.fileType_mht{
+	width:16px;height:16px;background:url('fileIcon/mht.png') no-repeat center center;
+}
+.fileType_mid{
+	width:16px;height:16px;background:url('fileIcon/mid.png') no-repeat center center;
+}
+.fileType_midi{
+	width:16px;height:16px;background:url('fileIcon/midi.png') no-repeat center center;
+}
+.fileType_mov{
+	width:16px;height:16px;background:url('fileIcon/mov.png') no-repeat center center;
+}
+.fileType_mp3{
+	width:16px;height:16px;background:url('fileIcon/mp3.png') no-repeat center center;
+}
+.fileType_mp4{
+	width:16px;height:16px;background:url('fileIcon/mp4.png') no-repeat center center;
+}
+.fileType_mpeg{
+	width:16px;height:16px;background:url('fileIcon/mpeg.png') no-repeat center center;
+}
+.fileType_mpg{
+	width:16px;height:16px;background:url('fileIcon/mpg.png') no-repeat center center;
+}
+.fileType_msi{
+	width:16px;height:16px;background:url('fileIcon/msi.png') no-repeat center center;
+}
+.fileType_nrg{
+	width:16px;height:16px;background:url('fileIcon/nrg.png') no-repeat center center;
+}
+.fileType_ocx{
+	width:16px;height:16px;background:url('fileIcon/ocx.png') no-repeat center center;
+}
+.fileType_ogg{
+	width:16px;height:16px;background:url('fileIcon/ogg.png') no-repeat center center;
+}
+.fileType_ogm{
+	width:16px;height:16px;background:url('fileIcon/ogm.png') no-repeat center center;
+}
+.fileType_pdf{
+	width:16px;height:16px;background:url('fileIcon/pdf.png') no-repeat center center;
+}
+.fileType_png{
+	width:16px;height:16px;background:url('fileIcon/png.png') no-repeat center center;
+}
+.fileType_pot{
+	width:16px;height:16px;background:url('fileIcon/pot.png') no-repeat center center;
+}
+.fileType_ppt{
+	width:16px;height:16px;background:url('fileIcon/ppt.png') no-repeat center center;
+}
+.fileType_psd{
+	width:16px;height:16px;background:url('fileIcon/psd.png') no-repeat center center;
+}
+.fileType_pub{
+	width:16px;height:16px;background:url('fileIcon/pub.png') no-repeat center center;
+}
+.fileType_qt{
+	width:16px;height:16px;background:url('fileIcon/qt.png') no-repeat center center;
+}
+.fileType_ra{
+	width:16px;height:16px;background:url('fileIcon/ra.png') no-repeat center center;
+}
+.fileType_ram{
+	width:16px;height:16px;background:url('fileIcon/ram.png') no-repeat center center;
+}
+.fileType_rar{
+	width:16px;height:16px;background:url('fileIcon/rar.png') no-repeat center center;
+}
+.fileType_rm{
+	width:16px;height:16px;background:url('fileIcon/rm.png') no-repeat center center;
+}
+.fileType_rmvb{
+	width:16px;height:16px;background:url('fileIcon/rmvb.png') no-repeat center center;
+}
+.fileType_rtf{
+	width:16px;height:16px;background:url('fileIcon/rtf.png') no-repeat center center;
+}
+.fileType_swf{
+	width:16px;height:16px;background:url('fileIcon/swf.png') no-repeat center center;
+}
+.fileType_tar{
+	width:16px;height:16px;background:url('fileIcon/tar.png') no-repeat center center;
+}
+.fileType_tif{
+	width:16px;height:16px;background:url('fileIcon/tif.png') no-repeat center center;
+}
+.fileType_tiff{
+	width:16px;height:16px;background:url('fileIcon/tiff.png') no-repeat center center;
+}
+.fileType_txt{
+	width:16px;height:16px;background:url('fileIcon/txt.png') no-repeat center center;
+}
+.fileType_url{
+	width:16px;height:16px;background:url('fileIcon/url.png') no-repeat center center;
+}
+.fileType_vbs{
+	width:16px;height:16px;background:url('fileIcon/vbs.png') no-repeat center center;
+}
+.fileType_vsd{
+	width:16px;height:16px;background:url('fileIcon/vsd.png') no-repeat center center;
+}
+.fileType_vss{
+	width:16px;height:16px;background:url('fileIcon/vss.png') no-repeat center center;
+}
+.fileType_vst{
+	width:16px;height:16px;background:url('fileIcon/vst.png') no-repeat center center;
+}
+.fileType_wav{
+	width:16px;height:16px;background:url('fileIcon/wav.png') no-repeat center center;
+}
+.fileType_wave{
+	width:16px;height:16px;background:url('fileIcon/wave.png') no-repeat center center;
+}
+.fileType_wm{
+	width:16px;height:16px;background:url('fileIcon/wm.png') no-repeat center center;
+}
+.fileType_wma{
+	width:16px;height:16px;background:url('fileIcon/wma.png') no-repeat center center;
+}
+.fileType_wmd{
+	width:16px;height:16px;background:url('fileIcon/wmd.png') no-repeat center center;
+}
+.fileType_wmf{
+	width:16px;height:16px;background:url('fileIcon/wmf.png') no-repeat center center;
+}
+.fileType_wmv{
+	width:16px;height:16px;background:url('fileIcon/wmv.png') no-repeat center center;
+}
+.fileType_wps{
+	width:16px;height:16px;background:url('fileIcon/wps.png') no-repeat center center;
+}
+.fileType_wpt{
+	width:16px;height:16px;background:url('fileIcon/wpt.png') no-repeat center center;
+}
+.fileType_xls{
+	width:16px;height:16px;background:url('fileIcon/xls.png') no-repeat center center;
+}
+.fileType_xlsx{
+	width:16px;height:16px;background:url('fileIcon/xls.png') no-repeat center center;
+}
+.fileType_xlt{
+	width:16px;height:16px;background:url('fileIcon/xlt.png') no-repeat center center;
+}
+.fileType_xml{
+	width:16px;height:16px;background:url('fileIcon/xml.png') no-repeat center center;
+}
+.fileType_zip{
+	width:16px;height:16px;background:url('fileIcon/zip.png') no-repeat center center;
+}

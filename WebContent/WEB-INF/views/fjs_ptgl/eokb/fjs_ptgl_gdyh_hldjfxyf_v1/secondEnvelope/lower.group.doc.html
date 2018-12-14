@@ -1,0 +1,53 @@
+<div class="easyui-tabs" data-options="plain:true">
+    <sz:forEach items="${SECTION_GROUP_NAMES}" var="sectionName,stat">
+        <caption>标段组：${sectionName}</caption>
+        <!-- 标段 -->
+        <sz:forEach items="${SECTION_GROUP_MAP[sectionName]}" var="lc,stat">
+            <div class="easyui-panel" title="标段:${lc.SECTION_INFO.V_BID_SECTION_NAME}" style="padding: 10px;">
+                <div>
+                    <div style="width: 30%; float: left;">
+                        <div style="font-size: 18px; color: #ff7300; font-weight: bold;">通过第一数字信封评审的投标家数：${lc.TOTAL_BIDDER}家</div>
+                        <div style="font-size: 18px; color: #ff7300; font-weight: bold;">有效投标家数：${lc.TOTAL_EFFECTIVE_BIDDER}家</div>
+                        <div style="font-size: 18px; color: #ff7300; font-weight: bold;">
+                            计算基准价方法：
+                            <sz:if test="${lc.METHOD == -1}">小于15家算法</sz:if>
+                            <sz:if test="${lc.METHOD == 1}">方法一</sz:if>
+                            <sz:if test="${lc.METHOD == 2}">方法二</sz:if>
+                            <sz:if test="${lc.METHOD == 3}">方法三</sz:if>
+                        </div>
+                        <div style="font-size: 18px; color: #ff7300; font-weight: bold;">
+                            系数抽取范围：
+                            <sz:if test="${lc.COEFFICIENT_INFO.COEFFICIENT_NO==1}">2～5%</sz:if>
+                            <sz:if test="${lc.COEFFICIENT_INFO.COEFFICIENT_NO==2}">-1～2%</sz:if>
+                            <sz:if test="${lc.COEFFICIENT_INFO.COEFFICIENT_NO==3}">-4～-1%</sz:if>
+                        </div>
+                        <div style="font-size: 18px; color: #ff7300; font-weight: bold;">抽取球号： ${lc.YAOHAO_NO}</div>
+                        <div style="font-size: 18px; color: #ff7300; font-weight: bold;">
+                            代表系数：<span id="${lc.SECTION_INFO.V_BID_SECTION_ID}-METHOD_TIP" style="font-size: 18px; color: #ff7300; font-weight: bold;">${lc.COEFFCIENT_VALUE}</span>%
+                        </div>
+                    </div>
+                    <!-- 小于15家的方法 -->
+                    <div style="width: 20%; float: left;">
+                        <table class="sztable" width="100%" style="text-align: center;">
+                            <thead>
+                                <tr>
+                                    <td width="50%">系数</td>
+                                    <td width="50%">球号</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <sz:forEach items="${lc.COEFFICIENT_INFO.LIST_VALUS}" var="lv,step">
+                                    <tr>
+                                        <td>${lv.VALUE}</td>
+                                        <td>${lv.NO}</td>
+                                    </tr>
+                                </sz:forEach>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div style="width: 100%; height: 10px;"></div>
+        </sz:forEach>
+    </sz:forEach>
+</div>

@@ -1,0 +1,63 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>修改节点状态工具</title> <%includeJSP("/static/include/inc.jsp",{}){}%>
+</head>
+<body>
+    <div id="main-div">
+        <div style="text-align: center; margin-top: 300px;" data-options="buttons: '#modify-buttons'">
+            <p>
+                请输入项目名称：<input class="easyui-textbox" data-options="required:true" type="text" id="projectName" value="" />
+            </p>
+            <p>
+                请输入节点名称：<input class="easyui-textbox" data-options="required:true" type="text" id="nodeName" value="" />
+            </p>
+            <p>
+                请选择状态：<select id="nodeStatus">
+                    <option value="3">已完成</option>
+                    <option value="2">进行中</option>
+                    <option value="1">未开始</option>
+                </select>
+            </p>
+        </div>
+        <div id="modify-buttons" style="height: 30px; text-align: center; margin: 5px;">
+            <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-ok" id="save-data" onclick="modifyNoteStatus()">提交</a>
+        </div>
+    </div>
+</body>
+<script type="text/javascript">
+	$(function(){
+		// 投标人没有权限
+		if(${SessionUtils.isBidder()}){
+			$("#main-div").hide();
+		}
+	})
+
+	function modifyNoteStatus() {
+		var projectName = $("#projectName").val();
+		var nodeName = $("#nodeName").val();
+		var nodeStatus = $("#nodeStatus").val();
+		$
+				.ajax({
+					type : 'POST',
+					//dataType : "json",
+					data : {
+						"projectName" : projectName,
+						"nodeName" : nodeName,
+						"nodeStatus" : nodeStatus
+					},
+					url : "${path}${adminPath}/bus/nodeTool/modify",//请求的action路径  
+					error : function(XMLHttpRequest, textStatus, errorThrown) {//请求失败处理函数  
+						var result = jQuery
+								.parseJSON(XMLHttpRequest.responseText);
+						$.messager.alert('提示', result.errorDesc);
+					},
+					success : function(result) { //请求成功后处理函数。  
+						$.messager.alert('提示', "修改成功");
+					}
+				});
+
+	}
+</script>
+</html>

@@ -1,0 +1,154 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>开标记录</title> <%includeJSP("/static/include/inc.jsp",{}){}%>
+<link href="${path}/static/css/table.css" rel="stylesheet" />
+</head>
+<script type="text/javascript">
+	function doOpen() {
+		window
+				.open('${path}${adminPath}/fjs_ptgl_gdyh_hldjfxyf_v1/secondenvelope/secondRecord');
+	}
+	function doDownload(filename, comment) {
+		var _url = '${path}${adminPath}/bus/records/download/' + filename + '/'
+				+ comment;
+		window.open(_url);
+	}
+
+	function doDownloadSSP(filename, comment) {
+		var _url = '${path}${adminPath}/bus/records/existFile/' + filename
+				+ '/' + comment;
+		$.ajax({
+			url : _url,
+			//设置请求方法
+			type : 'get',
+			//dataType : 'json',
+			cache : false,
+			async : false,
+			//成功回调
+			success : function(result) {
+				if (result) {
+					_url = '${path}${adminPath}/bus/records/downloadssp/'
+							+ filename + '/' + comment;
+					window.open(_url);
+				} else {
+					$.messager.alert("提示", "未找到对应的盖章文件，请先上传！");
+				}
+
+			},
+			//失败回调
+			error : function(XMLHttpRequest, textStatus, errorThrown) {
+				var _result = jQuery.parseJSON(XMLHttpRequest.responseText);
+				$.messager.alert("失败", result.errorDesc);
+			}
+		});
+
+	}
+
+	function uploadFile(fileName) {
+		var p = parent.sy
+				.dialog({
+					title : '&nbsp;上传文件',
+					// iconCls: "icon-man",
+					href : '${path}${adminPath}/view/eokb/bus/dessent/upload.zbr.html',
+					width : 350,
+					height : 180,
+					buttons : [
+							{
+								text : "上传",
+								iconCls : "icon-save",
+								handler : function() {
+									//文件验证
+									var file = p.find("#FILE_LIST_ONE");
+									var filename = file.val();
+									if (!filename) {
+										top.$.messager.alert("提示", "请上传文件!");
+										return;
+									}
+									var f = p.find('form');
+									if (f.form('validate')) {
+										// 初始化表单提交为异步提交
+										var f = p.find('form');
+										var url = '${path}${adminPath}/bus/records/upload/'
+												+ fileName;
+										f.attr("action", url);
+										// 初始化表单提交为异步提交
+										parent.sy.progress.show();
+										f
+												.ajaxForm({
+													success : function(data) {
+														parent.sy.progress
+																.hide();
+														$('#formGrid')
+																.datagrid(
+																		'reload');
+														p.dialog('close');
+														parent.sy
+																.messagerShow({
+																	msg : "操作成功!",
+																	title : '提示'
+																});
+													},
+													error : function(
+															XMLHttpRequest,
+															textStatus,
+															errorThrown) {
+														parent.sy.progress
+																.hide();
+														var result = jQuery
+																.parseJSON(XMLHttpRequest.responseText);
+														top.$.messager
+																.alert(
+																		'操作失败',
+																		"操作失败["
+																				+ result.errorDesc
+																				+ "]");
+													}
+												});
+										f.submit();
+									}
+								}
+							}, {
+								text : "关闭",
+								iconCls : "icon-remove",
+								handler : function() {
+									p.dialog('close');
+								}
+							} ]
+				});
+
+	}
+</script>
+
+<style type="text/css">
+.sztable td {
+	line-height: 20px;
+	text-align: left;
+	padding: 4px 10px 3px 10px;
+	height: 18px;
+	border: 1px solid #ccc;
+	font-size: 20px;
+}
+</style>
+<body>
+    <sz:if test="${TENDER_PROJECT_FLOW_NODE.N_STATUS!=3}">
+        <div style="text-align: right;">
+            <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-ok'" onclick="parent.finishCurrentFlowNode('${TENDER_PROJECT_FLOW_NODE.ID}',
+			'${TENDER_PROJECT_FLOW_NODE.V_NODE_NAME}');">进入下一环节</a>
+        </div>
+    </sz:if>
+    <table class="sztable" width="600px" align="center" style="margin-top: 40px;">
+        <thead>
+            <tr>
+                <td>名称</td>
+                <td rowspan="2" colspan="2" style="text-align: center;">操作</td>
+            </tr>
+        </thead>
+        <tr>
+            <td>开标记录表（第二 信封）</td>
+            <td colspan="2" style="text-align: center;"><a href="javascript:void(0)" onclick="doOpen()">查看</a> <a href="javascript:void(0)" onclick="doDownload('secondRecord','开标记录表（第二信封）')">导出</a>&nbsp;<a href="javascript:void(0)" onclick="uploadFile('secondRecord')">导入</a>&nbsp;<a href="javascript:void(0)" onclick="doDownloadSSP('secondRecord','开标记录表（第二信封）')">导出盖章文件</a></td>
+        </tr>
+    </table>
+</body>
+</html>

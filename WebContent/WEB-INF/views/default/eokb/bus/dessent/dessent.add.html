@@ -1,0 +1,148 @@
+<!doctype html>
+<html>
+
+<head>
+<meta charset="UTF-8">
+<%includeJSP( "/static/include/inc.jsp",{}){}%>
+<link href="${path}/static/css/table.css" rel="stylesheet" />
+</head>
+
+<body>
+    <div style="font-size: 25px; font-weight: bold; padding: 10px; background-color: #EDF4FF;">
+        添加开标异议<span id="sp-mes-tip" style="margin-left: 200px; font-size: 18px; color: red;">本页共3处输入项，未填写3处</span><a id="btn" href="#" class="easyui-linkbutton" style="float: right; magrin-right: 20px;" data-options="iconCls:'icon-save'" onclick="save();">保存</a>
+    </div>
+    <table class="sztable" width="100%" height=90% style="text-align: center;">
+        <tr height=20%>
+            <td width=20% style="background-color: #EDF4FF;"><span style="font-size: 20px;">异议人名称</span><span style="font-size: 20px; color: red;">*</span></td>
+            <td><input class="easyui-textbox" id="ipt-bidder-name" data-options="multiline:true,required:true" value="" style="width: 90%; height: 90%" maxlength="3"></td>
+        </tr>
+        <tr height=40%>
+            <td width=20% style="background-color: #EDF4FF;"><span style="font-size: 20px;">异议内容</span><span style="font-size: 20px; color: red;">*</span></td>
+            <td><input class="easyui-textbox" id="ipt-dissent-content" data-options="multiline:true,required:true" value="" style="width: 90%; height: 90%" maxlength="500" /></td>
+        </tr>
+        <tr height=40%>
+            <td width=20% style="background-color: #EDF4FF;"><span style="font-size: 20px;">答复内容</span><span style="font-size: 20px; color: red;">*</span></td>
+            <td><input class="easyui-textbox" id="ipt-dissent-revert" data-options="multiline:true,required:true" value="" style="width: 90%; height: 90%" maxlength="500" /></td>
+        </tr>
+    </table>
+    <script type="text/javascript">
+					$(function() {
+						$('#ipt-bidder-name').textbox({
+							onChange : function(val) {
+								if (val.length > 30) {
+									$.messager.alert("提示", "您输入的内容过长")
+									$("#ipt-bidder-name").textbox('setValue')
+								}
+								changeTip();
+							},
+						});
+						$('#ipt-dissent-content').textbox(
+								{
+									onChange : function() {
+										if (val.length > 500) {
+											$.messager.alert("提示", "您输入的内容过长")
+											$("#ipt-dissent-content").textbox(
+													'setValue')
+										}
+										changeTip();
+									}
+								});
+						$('#ipt-dissent-revert').textbox(
+								{
+									onChange : function() {
+										if (val.length > 500) {
+											$.messager.alert("提示", "您输入的内容过长")
+											$("#ipt-dissent-revert").textbox(
+													'setValue')
+										}
+										changeTip();
+									}
+								});
+					})
+
+					function changeTip() {
+
+						var bidderName = $("#ipt-bidder-name").val();
+						var dissentContent = $("#ipt-dissent-content").val();
+						var dissentRevert = $("#ipt-dissent-revert").val();
+						var index = 0;
+						if (typeof (bidderName) == "undefined"
+								|| null == bidderName || "" == bidderName) {
+							index++;
+						}
+						if (typeof (dissentContent) == "undefined"
+								|| null == dissentContent
+								|| "" == dissentContent) {
+							index++;
+						}
+						if (typeof (dissentRevert) == "undefined"
+								|| null == dissentRevert || "" == dissentRevert) {
+							index++;
+						}
+						if (index === 0) {
+							$("#sp-mes-tip").hide();
+							return;
+						} else {
+							$("#sp-mes-tip").show();
+						}
+						var content = "本页共3处输入项，未填写" + index + "处 "
+						$("#sp-mes-tip").html(content);
+
+					}
+
+					function save() {
+						var bidderName = $("#ipt-bidder-name").val();
+						var dissentContent = $("#ipt-dissent-content").val();
+						var dissentRevert = $("#ipt-dissent-revert").val();
+
+						if (typeof (bidderName) == "undefined"
+								|| null == bidderName || "" == bidderName) {
+							$.messager.alert("提示", "请输入异议人名称!");
+							return;
+						}
+						if (typeof (dissentContent) == "undefined"
+								|| null == bidderName || "" == bidderName) {
+							$.messager.alert("提示", "请输入异议内容!");
+							return;
+						}
+						if (typeof (dissentRevert) == "undefined"
+								|| null == bidderName || "" == bidderName) {
+							$.messager.alert("提示", "请输入异议答复内容!");
+							return;
+						}
+
+						$
+								.ajax({
+									url : '${path}${adminPath}/bus/dessent/save',
+									// 设置请求方法
+									type : 'POST',
+									//dataType : 'json',
+									//contentType : 'application/json;charset=UTF-8',
+									data : {
+										"bidderName" : bidderName,
+										"dissentContent" : dissentContent,
+										"dissentRevert" : dissentRevert
+									},
+									// 成功回调
+									success : function(result) {
+										location.reload();
+									},
+									// 失败回调
+									error : function(XMLHttpRequest,
+											textStatus, errorThrown) {
+										parent.sy.progress.hide();
+										var result = jQuery
+												.parseJSON(XMLHttpRequest.responseText);
+										top.$.messager.alert('操作失败', "操作失败["
+												+ result.errorDesc + "]");
+									}
+								});
+
+					}
+				</script>
+</body>
+</html>
+
+
+
+

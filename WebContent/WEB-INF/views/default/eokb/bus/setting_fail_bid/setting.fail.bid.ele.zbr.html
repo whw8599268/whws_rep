@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<%includeJSP("/static/include/inc.jsp",{}){}%>
+<title>招标人流标设置页面</title>
+</head>
+<script type="text/javascript">
+	/**
+	 * 设置标段或标段组显示列表
+	 */
+	$(function() {
+		//parent.macAddressInfo();
+		$('#formGrid').datagrid({
+			pagination : false,
+			loadFilter : resultFilter,
+			onBeforeLoad : onBeforeList,
+			fitColumns : true,
+			rownumbers : false,
+			fit : true,
+			url : '${path}${adminPath}/bus/sfbid/ele',
+			method : 'get',
+			columns : [ [ {
+				field : 'V_BID_SECTION_NAMES',
+				title : '标段名称',
+				width : 45,
+				halign : 'center',
+				align : 'left'
+			}, {
+				field : 'V_BID_SECTION_IDS',
+				title : '标段ID',
+				width : 45,
+				align : 'center',
+				hidden : true
+			}, {
+				field : 'N_BIDDER_COUNT',
+				title : '解密成功数量',
+				width : 25,
+				align : 'center'
+			}, {
+				field : 'V_BID_OPEN_STATUS',
+				title : '是否流标',
+				width : 25,
+				align : 'center',
+				formatter : GridFormatter.V_BID_OPEN_STATUS
+			} ] ],
+			onLoadSuccess : function() {
+				if (numMsg != '') {
+					parent.layer.open({
+						shade : false,
+						icon : 7,
+						content : numMsg + "投标人少于三家，根据《中华人民共和国招标投标法》，应当重新招标。",
+						zIndex : parent.layer.zIndex, //重点1
+						success : function(layero) {
+							parent.layer.setTop(layero); //重点2
+						}
+					});
+				}
+			}
+		});
+	});
+
+	var numMsg = '';
+	var isFirst = true;
+	var GridFormatter = {
+		"V_BID_OPEN_STATUS" : function(val, row, index) {
+			var _html = "";
+			//alert(val);
+			_html += "<input id='" + row.V_BID_SECTION_IDS
+					+ "' name='V_BID_SECTION_IDS'  type='checkbox' value='"
+					+ row.V_BID_SECTION_IDS + "' ";
+			if (val == '10-2') {
+				_html += ' checked="checked" ';
+			}
+			_html += " />流标";
+
+			// 判断该标段投递数量小于三家，需要弹出提醒
+			if (row.N_VALID_BIDDER_COUNT < 3) {
+				if (isFirst) {
+					numMsg += '标段：' + row.V_BID_SECTION_NAMES;
+					isFirst = false;
+				} else {
+					numMsg += '，' + row.V_BID_SECTION_NAMES;
+				}
+			}
+
+			return _html;
+		}
+	};
+
+	/**保存**/
+	function doSave() {
+		var param = $('#bid-status-form').form2json({
+			allowEmptySingleVal : false
+		});
+		$.ajax({
+			url : '${path}${adminPath}/bus/sfbid/ele',
+			// 设置请求方法
+			type : 'POST',
+			data : JSON.stringify(param),
+			//dataType : 'json',
+			contentType : 'application/json;charset=UTF-8',
+			// 成功回调
+			success : function(resutl) {
+				parent.layer.open({
+					shade : false,
+					icon : 1,
+					content : '操作成功',
+					zIndex : parent.layer.zIndex, //重点1
+					success : function(layero) {
+						parent.layer.setTop(layero); //重点2
+					}
+				});
+			},
+			// 失败回调
+			error : function(XMLHttpRequest, textStatus, errorThrown) {
+				parent.sy.progress.hide();
+				var result = jQuery.parseJSON(XMLHttpRequest.responseText);
+				top.$.messager.alert('操作失败', "操作失败[" + result.errorDesc + "]");
+			}
+		});
+	}
+
+	/**保存**/
+	function doSavePrice() {
+		var sections = new Array();
+		p.find("#price-form").each(function() {
+			var param = $(this).form2json({
+				allowEmptySingleVal : false
+			});
+			sections.push(param);
+		});
+
+		sy.progress.show();
+		// 发生Ajax请求
+		$.ajax({
+			url : '${path}${adminPath}/bus/controlprice/savePricesForGsgl',
+			// 设置请求方法
+			type : 'POST',
+			//dataType : 'json',
+			//contentType : 'application/json;charset=UTF-8',
+			data : {
+				"info" : JSON.stringify(sections)
+			},
+			// 成功回调
+			success : function(result) {
+				sy.progress.hide();
+			},
+			// 失败回调
+			error : function(XMLHttpRequest, textStatus, errorThrown) {
+				parent.sy.progress.hide();
+				var result = jQuery.parseJSON(XMLHttpRequest.responseText);
+				top.$.messager.alert('操作失败', "操作失败[" + result.errorDesc + "]");
+			}
+		});
+	}
+</script>
+<body>
+    <div class="easyui-panel" data-options="fit:true" style="width: 100%; height: 95%; border: 0;">
+        <div style="text-align: right;">
+            <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-save'" onclick="doSave();">保存数据</a>
+        </div>
+        <form id="bid-status-form" style="width: 100%; height: 95%">
+            <table id="formGrid"></table>
+        </form>
+    </div>
+</body>
+</html>

@@ -1,0 +1,297 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title></title> <%includeJSP("/static/include/inc.jsp",{}){}%>
+<script type="text/javascript">
+		var documentHeight = window.screen.height-150;
+		var documentWidth = window.screen.width;
+		SZUtilsExtEasyUIListPage.datagrid.pagination();	
+		//初始化
+		$(function(){
+		});
+		
+		/**
+		 * 查询
+		 */
+		function doSearch(){
+			// 使用Form2Json插件处理,同时过滤掉空数据
+			var searchParam = $('#searchForm').form2json({
+				allowEmptySingleVal : false
+			});
+			$('#formGrid').datagrid('load',searchParam);
+		}
+		
+		/**
+		 * 清空
+		 */
+		function doClear(){
+			$('#searchForm').form('reset');
+			$('#formGrid').datagrid('load',{});
+		}
+		
+		/**
+		 * 添加
+		 */
+		<sz:if test="${authz.canCallUri('POST','/flow')}">
+		function doAdd() {
+			var p = parent.sy.dialog({
+				title : '&nbsp;添加',
+				iconCls : "application_osx_add",
+				href : '${path}${adminPath}/view/flow/flow.add.html',
+				width : 380,
+				height : 270,
+				buttons : [
+						{
+							text : '保存',
+							iconCls : "icon-save",
+							handler : function() {
+								var f = p.find('form');
+								if (f.form('validate')) {
+									//保存操作
+									var flow = f.form2json({
+										allowEmptySingleVal : false
+									});
+									//alert(JSON.stringify(func));
+									parent.sy.progress.show();
+									// 发生Ajax请求
+									$.ajax({
+											url : '${path}${adminPath}/flow',
+											// 设置请求方法
+											type : 'POST',
+											//dataType : 'json',
+											contentType : 'application/json;charset=UTF-8',
+											data : JSON.stringify(flow),
+											// 成功回调
+											success : function(result) {
+												parent.sy.progress.hide();
+												$('#formGrid').datagrid('reload');
+												parent.sy.messagerShow({msg : "操作成功!",title : '提示'});
+												p.dialog('close');
+											},
+											// 失败回调
+											error : function(XMLHttpRequest,textStatus,errorThrown) {
+												parent.sy.progress.hide();
+												var result = jQuery.parseJSON(XMLHttpRequest.responseText);
+												top.$.messager.alert('操作失败',"操作失败[" + result.errorDesc + "]");
+											}
+										});
+								}
+							}
+						}, {
+							text : "取消",
+							iconCls : "icon-remove",
+							handler : function() {
+								p.dialog('close');
+							}
+						} ],
+				onLoad : function() {
+
+				}
+			});
+		}
+		</sz:if>
+		
+		/**
+		 * 修改
+		 */
+		<sz:if test="${authz.canCallUri('POST','/flow/modify')}">
+		function doEdit() {
+			var rows = $('#formGrid').treegrid('getSelections');
+			if (rows.length == 0) {
+				parent.$.messager.alert("提示", "请选择要修改的数据！");
+				return;
+			}
+			if (rows.length > 1) {
+				parent.$.messager.alert("提示", "只允许对单条数据进行编辑！");
+				return;
+			}
+			var row = rows[0];
+			var p = parent.sy.dialog({
+				title : '&nbsp;编辑',
+				iconCls : "application_osx_add",
+				href : '${path}${adminPath}/view/flow/flow.edit.html',
+				width : 380,
+				height : 270,
+				buttons : [
+					{
+						text : '保存',
+						iconCls : "icon-save",
+						handler : function() {
+							var f = p.find('form');
+							if (f.form('validate')) {
+								//保存操作
+								var flow = f.form2json({
+									allowEmptySingleVal : false
+								});
+								//alert(JSON.stringify(func));
+								parent.sy.progress.show();
+								// 发生Ajax请求
+								$.ajax({
+										url : '${path}${adminPath}/flow/modify',
+										// 设置请求方法
+										type : 'POST',
+										//dataType : 'json',
+										contentType : 'application/json;charset=UTF-8',
+										data : JSON.stringify(flow),
+										// 成功回调
+										success : function(result) {
+											parent.sy.progress.hide();
+											$('#formGrid').datagrid('reload');
+											parent.sy.messagerShow({msg : "操作成功!",title : '提示'});
+											p.dialog('close');
+										},
+										// 失败回调
+										error : function(XMLHttpRequest,textStatus,errorThrown) {
+											parent.sy.progress.hide();
+											var result = jQuery.parseJSON(XMLHttpRequest.responseText);
+											top.$.messager.alert('操作失败',"操作失败[" + result.errorDesc + "]");
+										}
+									});
+							}
+						}
+					}, {
+						text : "关闭",
+						iconCls : "icon-remove",
+						handler : function() {
+							p.dialog('close');
+						}
+					} ],
+				onLoad : function() {
+					var f = p.find('form');
+					//window.console.log(JSON.stringify(row));
+					f.form('reset');
+					f.form('load', row);
+				}
+			});
+		}
+		</sz:if>
+		
+		/**
+		 * 删除
+		 */
+		<sz:if test="${authz.canCallUri('POST','/flow/remove/*')}">
+		function doDel() {
+			var rows = $('#formGrid').datagrid('getSelections');
+			var ids = "";
+			var msg = "确认要删除选择的数据吗?";
+			var url = '${path}${adminPath}/flow/remove/';
+			if (rows.length > 0) {
+				parent.$.messager.confirm("提示!", msg, function(res) {
+					if (res) {
+						for ( var i = 0; i < rows.length; i++) {
+							var id=rows[i].ID;
+							ids += id;
+							if (i != rows.length - 1) {
+								ids += ",";
+							}
+						}
+						parent.sy.progress.show();
+						$.ajax({
+							url : url + ids,
+							// 设置类型
+							//dataType : 'json',
+							// 设置请求方法
+							type : "POST",
+							// 成功回调
+							success : function(result) {
+								parent.sy.progress.hide();
+								$('#formGrid').datagrid('reload');
+								parent.sy.messagerShow({msg : "操作成功!",title : '提示'});
+							},
+							// 失败回调
+							error : function(XMLHttpRequest,textStatus,errorThrown) {
+								parent.sy.progress.hide();
+								var result = jQuery.parseJSON(XMLHttpRequest.responseText);
+								top.$.messager.alert('操作失败',"操作失败[" + result.errorDesc + "]");
+							}
+						});
+					}
+				});
+			} else {
+				top.$.messager.alert("提示", "请选择要修改的对象!");
+			}
+		}
+		</sz:if>
+		
+		
+		var GridFormatter = {
+		        "N_IS_SECTION_GROUP" : function(val, row, index) {
+                    if (false)
+                        return val;
+                    else if (val == "1")
+                        return "是";
+                    else if (val == "0")
+                        return "<font color='red'>否</font>";
+                    else
+                        return "未知[" + val + "]";
+                    return val;
+                }
+		};
+		
+		/**打开流程节点管理视图**/
+		function openFlowNodeView() {
+			var rows = $('#formGrid').treegrid('getSelections');
+			if (rows.length == 0) {
+				parent.$.messager.alert("提示", "请选择要修改的数据！");
+				return;
+			}
+			if (rows.length > 1) {
+				parent.$.messager.alert("提示", "只允许对单条数据进行编辑！");
+				return;
+			}
+			var flowID = rows[0].ID;
+			var p = parent.sy.window({
+			    title: '&nbsp;流程节点管理',
+		 	    // iconCls: "icon-man",
+		 	    href:'${path}${adminPath}/fnode/view/'+flowID,
+		 	    width: documentWidth-50,
+		 	    height: documentHeight-50,
+				modal : true,
+				closable : true,
+				minimizable : false
+			});
+		}
+		
+	</script>
+</head>
+<body>
+    <!-- 表格 -->
+    <table id="formGrid" style="width: auto; height: auto" class="easyui-datagrid" title="" toolbar="#searchForm-toolbar" rownumbers="true" fitColumns="true" fit="true" url="${path}${adminPath}/flow" pagination="true" pageList="[50,100,150,200]" pageSize="50" data-options="method:'get',singleSelect:'true'">
+        <thead>
+            <tr>
+                <th data-options="field:'ID',checkbox:true"></th>
+                <th field="V_FLOW_CODE" align="left" width="100">流程编号</th>
+                <th field="V_FLOW_NAME" align="left" width="100">流程名称</th>
+                <th field="V_BEM_CODE" align="left" width="50">评标办法编号</th>
+                <th field="N_IS_SECTION_GROUP" align="left" width="50" formatter="GridFormatter.N_IS_SECTION_GROUP">是否有标段组</th>
+                <th field="V_VERSION" align="left" width="100">版本号</th>
+            </tr>
+        </thead>
+    </table>
+    <!-- 搜索工具栏 -->
+    <div id="searchForm-toolbar" style="padding: 5px; height: auto">
+        <div>
+            <form id="searchForm">
+                <label>流程编号：</label> <input class="easyui-textbox" style="width: 120px" id="V_FLOW_CODE" name="V_FLOW_CODE" type="text"> <label>流程名称：</label> <input class="easyui-textbox" style="width: 120px" id="V_FLOW_NAME" name="V_FLOW_NAME" type="text"> <label>评标办法编号：</label> <input class="easyui-textbox" style="width: 120px" id="V_BEM_CODE" name="V_BEM_CODE" type="text">
+                <sz:if test="${authz.canCallUri('GET','/flow')}">
+                    <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-search'" onclick="doSearch()">搜索</a>
+                    <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-clear'" onclick="doClear()">清空搜索条件</a>
+                </sz:if>
+            </form>
+        </div>
+        <div>
+            <sz:if test="${authz.canCallUri('POST','/flow')}">
+                <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-add'" title="新增" onclick="doAdd()">新增</a>
+            </sz:if>
+            <sz:if test="${authz.canCallUri('POST','/flow/modify')}">
+                <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-edit'" title="修改" onclick="doEdit()">修改</a>
+            </sz:if>
+            <sz:if test="${authz.canCallUri('POST','/flow/remove/*')}">
+                <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-remove'" title="删除" onclick="doDel()">删除</a>
+            </sz:if>
+            <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-edit'" title="管理流程节点" onclick="openFlowNodeView()">管理流程节点</a>
+        </div>
+    </div>
+</body>
+</html>

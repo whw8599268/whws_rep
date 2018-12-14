@@ -1,0 +1,89 @@
+.sztablequery {
+	border: #DDDDDD 1px solid;
+	border-collapse: collapse;
+}
+
+.sztablequery tbody td {
+	border: #DDDDDD 1px solid;
+	height: 28px;
+}
+
+.sztable {
+	border: #B5D6E6 1px solid;
+	border-collapse: collapse;
+	background-color: #fff;
+	/**font-size: 12px;取消字体设置  统一设置字体大小**/
+}
+
+td {
+	word-break: break-all;
+}
+/*
+background-color:#D1D1D1;
+background-color:#E0ECFF;
+*/
+.sztable thead {
+	border: #B5D6E6 1px solid;
+	height: 28px;
+	color: #0E2D5F;
+	background-color: #E0ECFF;
+	font-weight: bold;
+}
+
+.sztable tbody td {
+	border: #B5D6E6 1px solid;
+	height: 28px;
+}
+
+.sztabletext {
+	background: #f1f1f1;
+	text-align: right;
+}
+
+.sz_tabletext {
+	background: #f1f1f1;
+	text-align: center;
+}
+
+/* 閫夐」鍗�*/
+.tab_box {
+	width: 99%;
+	margin: 10px 4px 8px;
+	border-collapse: collapse;
+}
+
+.tab_box td {
+	border-bottom: 1px solid #60676e;
+	padding: 0 5px;
+}
+
+.tab_box td a,.tab_box td a span {
+	height: 26px; /**font-size:12px;**/
+	text-align: center;
+	line-height: 26px;
+	color: #60676e;
+	display: block;
+	float: left;
+	padding-left: 10px;
+	margin-right: 4px;
+	overflow: hidden;
+	cursor: pointer;
+	text-decoration: none;
+	background: url(../images/tabs_off.gif) left top no-repeat;
+}
+
+.tab_box td a span {
+	margin-right: 0;
+	padding-left: 0;
+	padding-right: 10px;
+	background-position: right top;
+}
+
+.tab_box td a:hover,.tab_box td aa:hover span {
+	text-decoration: none;
+}
+
+.tab_box td a.linkOn,.tab_box td a.linkOn span {
+	color: #fff;
+	background-image: url(../images/tabs_no.gif);
+}

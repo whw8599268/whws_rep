@@ -1,0 +1,59 @@
+此次JS整理，定版本为v1.0.0
+对基础工程WebContent/static/js下文件（除syJson.js外）进行整理
+1、additional-methods.js
+2、base64.js
+3、jquery.dyform.js
+4、json2.js
+5、md5.js
+6、syExtEasyUI.js
+7、syJson.js
+8、syUtil.js
+9、SzUtil_Array.js
+10、SzUtil_Constants.js
+11、SzUtil_File.js
+12、SzUtil_FJCA.js
+13、SzUtil_StringMD5.js
+14、SzUtil_StringUUID.js
+15、uuid.js
+
+===将与工程业务有关的工具存放于当前文件下，含
+	** 对EasyUI的修改与扩展，全部方法附属sy的对象。
+	** sy工具方法 sy.window、sy.dialog
+1、SZUtilsExtEasyUI.js
+	** 工程附件的前端JS方法
+2、SZUtilsFile.js
+
+===将与工程业务无关的工具存放于utils文件下，含
+1、SZUtils.js
+2、SZUtilsArray.js
+3、SZUtilsBase64.js
+4、SZUtilsConstants.js
+5、SZUtilsDate.js
+6、SZUtilsFJCA.js
+7、SZUtilsjQuery.js
+8、SZUtilsJSON.js
+9、SZUtilsSerialize.js
+10、SZUtilsStringMD5.js
+11、SZUtilsStringUUID.js
+12、SZUtilsTable.js
+
+
+===将工具所依赖的第三方JS等文件存放于other文件下含
+1、JSON.js
+2、UUID.js
+
+
+对于功能不确定的JS文件以及JS方法：
+1、js/syJson.js
+2、js_zl/utils/SZUtils.js
+SZUtils.htmlencode = function(htmlStr) {
+	var div = document.createElement('div');
+	div.appendChild(document.createTextNode(htmlStr));
+	return div.innerHTML;
+};
+SZUtils.htmldecode = function(s) {
+	var div = document.createElement('div');
+	div.innerHTML = s;
+	return div.innerText || div.textContent;
+};
+	

@@ -1,0 +1,40 @@
+<div>
+    <p style="font-size: 25px; text-align: center; font-weight: bold;">
+        <u style="font-size: 25px; text-align: center; font-weight: bold;">${PROJECT_NAME}</u>（项目名称）开标记录表
+    </p>
+    <p style="font-size: 18px; text-align: center;">
+        开标时间：<u style="font-size: 18px; text-align: center; font-weight: bold;"> ${TIME}</u>
+    </p>
+</div>
+<div class="easyui-tabs" data-options="plain:true">
+    <sz:forEach items="${SECTION_LIST}" var="section,stat">
+        <form>
+            <table class="sztable" width="100%" style="text-align: center;">
+                <thead>
+                    <tr>
+                        <sz:forEach items="${section.TABLETITLE}" var="title,sta">
+                            <td>${title}</td>
+                        </sz:forEach>
+                        <td>备注</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    <sz:forEach items="${section.TENDER_LIST}" var="tender,sta">
+                        <tr>
+                            <sz:forEach items="${tender.TABLECONTENT}" var="content,st">
+                                <td>${content}</td>
+                            </sz:forEach>
+                            <td>${tender.firstRemark!}</td>
+                        </tr>
+                    </sz:forEach>
+                </tbody>
+            </table>
+            <div style="margin-top: 20px;"></div>
+        </form>
+    </sz:forEach>
+</div>
+<div style="font-size: 18px; text-align: center; font-weight: bold; height: 100px; line-height: 100px;">
+    <p>
+        招标人电子盖章（或签字）：<span style="margin-left: 20em;">招标代理机构电子盖章（或签字）：</span><span style="margin-left: 20em;">公证处电子盖章（或签字）：</span>
+    </p>
+</div>

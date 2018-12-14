@@ -1,0 +1,416 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>通过电子摇号后确定的各标段的投标人（适用于标段组）</title> <%includeJSP("/static/include/inc.jsp",{}){}%>
+<link href="${path}/static/css/table.css" rel="stylesheet" />
+<script src="${path}${adminPath}/view/im/js/CountDown.js" type="text/javascript"></script>
+<script src="${path}${adminPath}/view/metting_room/js/handlebars-v4.0.10.js" type="text/javascript"></script>
+<style>
+td {
+	border: 1px solid #B5D6E6;
+	word-break: break-all;
+}
+</style>
+<script id="tip-template" type="text/x-handlebars-template">
+<div class="xtgg_div">
+	<p class="xtgg_p">推送时间：#{date}</p>
+    <p class="xtgg_p">[${TENDER_PROJECT_FLOW_NODE.V_NODE_NAME}]进入数据确认环节!</p>
+    <p class="xtgg_p">请各投标人进入[${TENDER_PROJECT_FLOW_NODE.V_NODE_NAME}]环节!</p>
+    <p class="xtgg_p"><a style="color:#fff;" href="javascript:void(0);" onclick="openContentPage('${path}${adminPath}/tpflow/node/${TENDER_PROJECT_FLOW_NODE.ID}','${TENDER_PROJECT_FLOW_NODE.V_NODE_NAME}')">点击进入</a></p>
+</div>
+</script>
+<script id="sjfp-tip-template" type="text/x-handlebars-template">
+    <div class="xtgg_div">
+		<p class="xtgg_p">推送时间：#{date}</p>
+        <p class="xtgg_p">随机分配成功</p>
+        <p class="xtgg_p"><a style="color: #fff;" href="javascript:void(0);" onclick="openContentPage('${path}${adminPath}/tpflow/node/${TENDER_PROJECT_FLOW_NODE.ID}','${TENDER_PROJECT_FLOW_NODE.V_NODE_NAME}')">点击查看</a></p>
+    </div>
+</script>
+<script id="section-modify-tip-template" type="text/x-handlebars-template">
+    <div class="xtgg_div">
+        <p class="xtgg_p">推送时间：#{date}</p>
+        <p class="xtgg_p">标段已修改</p>
+        <p class="xtgg_p"><a style="color: #fff;" href="javascript:void(0);" onclick="openContentPage('${path}${adminPath}/tpflow/node/${TENDER_PROJECT_FLOW_NODE.ID}','${TENDER_PROJECT_FLOW_NODE.V_NODE_NAME}')">点击查看</a></p>
+    </div>
+</script>
+<script type="text/javascript">
+    var modelType = "DYXF_electronics";
+    var theme = "gsgl";
+    var projectCode = "fjs_gsgl_tjsgjl_hldjf_v2";
+    var envelope = "firstEnvelope";
+	$(function() {
+		getConfirmStatus();
+	});
+
+	//确认时间
+	function showTime(_time) {
+		$("#con-time-zbr").css("display", "block");
+		$("#time-zbr").html(_time);
+	}
+
+	//获取确认状态值
+	function getConfirmStatus() {
+		$
+				.ajax({
+					async : true,
+					cache : false,
+					type : 'get',
+					dataType : "json",
+					//data : data,
+					url : "${path}${adminPath}/bus/modelCheck/status/"+modelType,//请求的action路径  
+					error : function(XMLHttpRequest, textStatus, errorThrown) {//请求失败处理函数  
+						var result = jQuery
+								.parseJSON(XMLHttpRequest.responseText);
+						$.messager.alert('异步获取数据出现异常', "异步获取数据出现异常["
+								+ result.errorDesc + "]");
+					},
+					success : function(rs) { //请求成功后处理函数。 
+						//没确人过
+						if (!rs.success) {
+							return;
+						}
+						var result = rs.result;
+						//未确认
+						if (rs.success && result.V_STATUS == '0') {
+							return;
+						}
+						$("#first-envelope-data-confirm-button").hide();
+						var endTime = result.N_CONFIRM_TIME;
+						var beginTime = result.NOW_TIME;
+						var _date = new Date(endTime);
+						showTime(_date.format('hh:mm:ss'));
+						countDown(beginTime, endTime);
+					}
+				});
+	}
+
+	//随机分配
+	function doElectronics() {
+		$.messager.progress({
+			title : '提示',
+			msg : '随机分配中，请稍候……',
+			text : ''
+		});
+		$
+				.ajax({
+					async : true,
+					cache : false,
+					type : 'get',
+					//dataType : "json",
+					//data : data,
+					url : "${path}${adminPath}/fjs_gsgl_tjsgjl_hldjf_v2/firstenvelope/doElectronics",//请求的action路径  
+					error : function(XMLHttpRequest, textStatus, errorThrown) {//请求失败处理函数  
+						$.messager.progress('close');
+						var result = jQuery
+								.parseJSON(XMLHttpRequest.responseText);
+						$.messager.alert('异步获取数据出现异常', "异步获取数据出现异常["
+								+ result.errorDesc + "]");
+					},
+					success : function(result) { //请求成功后处理函数。  
+						$.messager.progress('close');
+						$.messager.alert('提示', "随机分配成功");
+						var html = getTemplateHtml("sjfp-tip-template");
+						parent.sendFlowCommandToBidder(html);
+						location.reload();
+					}
+				});
+	}
+	
+	/**获取模板中的Html内容**/
+	function getTemplateHtml(tempid) {
+		// 用jquery获取模板
+		var source = $("#" + tempid).html();
+		// 预编译模板
+		var template = Handlebars.compile(source);
+		return template(new Object());
+	}
+	
+
+	//定时器
+	function countDown(begin, end) {
+		var startDate = new Date(begin);
+		var endDate = new Date(end);
+		//开始时间小于结束时间
+		if(startDate<endDate){
+			//var en
+			//endDate.setDate(endDate.getDate()+1);
+			CountDown.openTimeCountByStartAndEndDate({
+				Ele : document.getElementById('count_down'),
+				StartDate : startDate,
+				EndDate : endDate,
+				Sign : 'flypie',
+				Divider : ':',
+				EndFunc : function() {
+					//刷新投标人页面
+					parent.sendFlowFlushPage();
+					location.reload();
+				}
+			});
+		}
+	}
+	
+	/**结束当前节点**/
+	function finishCurrentFlow() {
+		var _value = $("#list_size").val();
+		if(_value==1){
+			$.messager.alert('提示', '尚未随机分配');
+			return;
+		}
+		if(!${alreadyLaunched}){
+			$.messager.alert('操作提示', "请您先发起确认后再点击进入下一环节");
+			return;
+		}
+		parent.endConfirm(modelType);
+		//刷新投标人页面
+		parent.sendFlowFlushPage();
+		parent.finishCurrentFlowNode('${TENDER_PROJECT_FLOW_NODE.ID}',
+				'${TENDER_PROJECT_FLOW_NODE.V_NODE_NAME}');
+		
+		//生成doc文件
+		parent.createDoc(theme,projectCode, envelope,
+				modelType);
+	}
+
+	//数据确认
+	function dataConfirm() {
+		var _value = $("#list_size").val();
+		if(_value==1){
+			$.messager.alert('提示', '尚未随机分配');
+			return
+		}
+		var minTime=5;
+		parent.layer.prompt({title: '请输入确认分钟数，最低'+minTime+'分钟', formType: 0}, function(time, index){
+			parent.layer.close(index); 
+			var isNum = parent.isPositiveNum(time);
+			  if(!isNum){
+				  parent.layer.alert("请输入整数", {icon: 2});
+				  return;
+			  }
+			  if(time<minTime){
+				  parent.layer.alert('输入的 时间于'+minTime+'分钟', {icon: 2});
+				  return;
+			  }
+			  $
+				.ajax({
+					url : "${path}${adminPath}/bus/modelCheck/updateStatus",
+					// 设置请求方法
+					type : "POST",
+					cache : false,
+					async : false,
+					data : {
+						"type" : modelType,
+						"confirm_time" : time
+					},
+					// dataType : 'json',
+					// contentType : 'application/json;charset=UTF-8',
+					// 成功回调
+					success : function(result) {
+						parent.addNotice("#{date}：电子摇号确定各标段的投标人的数据确认环节已开始", '1');
+						var html = getTemplateHtml("tip-template");
+						parent.sendFlowCommandToBidder(html);
+						location.reload();
+					},
+					// 失败回调
+					error : function(XMLHttpRequest, textStatus, errorThrown) {
+						var result = jQuery
+								.parseJSON(XMLHttpRequest.responseText);
+						$.messager.alert('操作失败', "操作失败[" + result.errorDesc
+								+ "]");
+					}
+				});
+			  
+			});
+	}
+	// 修改标段
+	function modifyResult() {
+		 var p2 =parent.sy
+				.dialog({
+					title : '修改分配结果',
+					width : 400,
+					height : 300,
+					href : '${path}${adminPath}/view/eokb/fjs_gsgl_tjsgjl_hldjf_v2/firstEnvelope/section.modify.html',
+					closed : false,
+					cache : false,
+					modal : true,
+					buttons : [ {
+						text : "确定",
+						iconCls : "icon-ok",
+						handler : function() {
+							var sectionName = p2.find("#section_name").val();
+							var sectionGroup = p2.find("#section_group").val();
+							var bidderCode =p2.find("#bidder_code").combobox("getValues");
+							
+							$.ajax({
+								url : "${path}${adminPath}/fjs_gsgl_tjsgjl_hldjf_v2/firstenvelope/modifySection",
+								// 设置请求方法
+								type : "POST",
+								cache : false,
+								async : false,
+								data : {
+									"sectionGroup" : sectionGroup,
+									"sectionName" : sectionName,
+									"bidderCode" : bidderCode
+								},
+								// dataType : 'json',
+								// contentType : 'application/json;charset=UTF-8',
+								// 成功回调
+								success : function(result) {
+									p2.dialog('close');
+									$.messager.alert('提示', "分配结果修改成功！");
+									parent.reComfirm(modelType);
+									var html = getTemplateHtml("#section-modify-tip-template");
+									parent.sendFlowCommandToBidder(html);
+									location.reload();
+								},
+								// 失败回调
+								error : function(XMLHttpRequest, textStatus, errorThrown) {
+									var result = jQuery.parseJSON(XMLHttpRequest.responseText);
+									$.messager.alert('提示', result.errorCode);
+								}
+							});
+							
+							p2.dialog('close');
+						}
+					}, {
+						text : "取消",
+						iconCls : "icon-remove",
+						handler : function() {
+							p2.dialog('close');
+						}
+					} ],
+
+					onLoad : function() {
+
+					}
+				});
+	}
+	
+	
+	// 查看摇号分配过程
+	function showElectronics(groupCode){
+		var p = parent.sy
+		.dialog({
+			title : '&nbsp;查看摇号分配过程',
+			// iconCls: "icon-man",
+			href : '${path}${adminPath}/bus/electronics/process/'+groupCode,
+			width : 1000,
+			height : 600,
+			modal: false
+		});
+	}
+	
+	// 查看摇号分配规则
+	function  showElectronicsRule(){
+		var p = parent.sy
+		.dialog({
+			title : '&nbsp;查看摇号分配规则',
+			// iconCls: "icon-man",
+			href : '${path}${adminPath}/view/eokb/bus/electronics/electronics.rule.html',
+			width : 950,
+			height : 600
+		});
+	}
+	
+
+	//流标设置
+	function doFileBid() {
+	    parent.layer.open({
+	        type: 2,
+	        title: '流标设置',
+	        shadeClose: true,
+	        shade: false,
+	        maxmin: true, //开启最大化最小化按钮
+	        area: ['893px', '600px'],
+	        content: '${path}${adminPath}/view/eokb/bus/setting_fail_bid/setting.fail.bid.ele.zbr.html',
+	        end:function(){
+	        	location.reload();
+	        }
+	      });
+	}
+</script>
+</head>
+<body>
+    <sz:if test="${TENDER_PROJECT_FLOW_NODE.N_STATUS!=3}">
+        <div style="text-align: right;">
+            <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-search'" onclick="showElectronicsRule()">查看分配规则</a><a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-save'" onclick="doElectronics()">随机分配</a> <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-save'" onclick="modifyResult()">修改分配结果</a><a id="first-envelope-data-confirm-button" href="#" class="easyui-linkbutton" data-options="iconCls:'icon-save'" onclick="dataConfirm()">发起确认</a> <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-save'" onclick="doFileBid()">流标设置</a><a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-ok'" onclick="finishCurrentFlow();">进入下一环节</a>
+        </div>
+        <div style="font-size: 25px; text-align: center; color: red; display: none;" id="con-time-zbr">
+            投标人会在<span style="font-size: 25px; text-align: center; color: red;" id="time-zbr"></span>时间点前完成信息确认。请点击<a onclick="location.reload();" style="color: blue; text-decoration: underline; cursor: pointer; font-size: 25px">刷新</a><span style="font-size: 25px; text-align: center; color: red;">查看确认情况</span>
+        </div>
+        <sz:if test="${SECTION_LIST[0].TENDER_LIST==null || SECTION_LIST[0].TENDER_LIST.~size==0}">
+            <div style="font-size: 25px; text-align: center; color: red;">请点击随机分配按钮进行分配！</div>
+            <input id="list_size" value="1" type="hidden" />
+        </sz:if>
+    </sz:if>
+    <span id="count_down" style="display: none;"></span>
+    <div class="easyui-tabs" data-options="plain:true">
+        <sz:forEach items="${SECTION_LIST}" var="section,stat">
+            <div title="标段组：${section.BID_SECTION_GROUP_CODE}" style="padding: 10px;">
+                <sz:if test="${section.TENDER_LIST!=null && section.TENDER_LIST.~size!=0}">
+                    <div align="right">
+                        <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-search'" onclick="showElectronics('${section.BID_SECTION_GROUP_CODE}')">查看分配过程</a>
+                    </div>
+                </sz:if>
+                <table class="sztable" width="100%" style="text-align: center;">
+                    <thead>
+                        <tr>
+                            <td width="15%" rowspan='2'>标段</td>
+                            <td width="8%" rowspan='2'>投标人编号</td>
+                            <td width="30%" rowspan='2'>投标人名称</td>
+                            <td width="20%" colspan='3'>投标人信用等级及使用情况</td>
+                            <td width="20%" rowspan='2'>投标人确认</td>
+                        </tr>
+                        <tr>
+                            <td width="10%">等级</td>
+                            <td width="10%">A级、AA级信用分是否失效</td>
+                            <td width="10%">评标使用的等级</td>
+                        </tr>
+                    </thead>
+                    <sz:forEach items="${section.TENDER_LIST}" var="vo,step">
+
+                        <tr>
+                            <!-- 记录数不为空说明要出现列,否则列不出现 -->
+                            <sz:if test="${vo._COUNT!=null}">
+                                <!-- 如果记录数是1 -->
+                                <sz:if test="${vo._COUNT==1}">
+                                    <td>${vo.V_BID_SECTION_NAME}</td>
+                                </sz:if>
+                                <!-- 如果记录数大于1 -->
+                                <sz:if test="${vo._COUNT>1}">
+                                    <td rowspan="${vo._COUNT}">${vo.V_BID_SECTION_NAME}</td>
+                                </sz:if>
+                            </sz:if>
+
+                            <td>${vo.V_BIDDER_NO}</td>
+                            <td>${vo.V_BIDDER_NAME}</td>
+                            <td>${vo.tbTbrCR}</td>
+                            <sz:if test="${vo.cbIsAEffect=='1'}">
+                                <td>是</td>
+                            </sz:if>
+                            <sz:if test="${vo.cbIsAEffect!='1'}">
+                                <td>否</td>
+                            </sz:if>
+                            <td>${vo.tbRatingsInEvl}</td>
+                            <!-- 已发起确认 -->
+                            <sz:if test="${section.ALREADY_LAUNCHED}">
+                                <!-- 如果为空-->
+                                <sz:if test="${vo.V_STATUS == null}">
+                                    <td></td>
+                                </sz:if>
+                                <sz:if test="${vo.V_STATUS != null}">
+                                    <td>${vo.V_REMARK!}</td>
+                                </sz:if>
+                            </sz:if>
+                            <!-- 未发起确认 -->
+                            <sz:if test="${!section.ALREADY_LAUNCHED}">
+                                <td></td>
+                            </sz:if>
+                        </tr>
+                    </sz:forEach>
+                </table>
+            </div>
+        </sz:forEach>
+    </div>
+</body>
+</html>

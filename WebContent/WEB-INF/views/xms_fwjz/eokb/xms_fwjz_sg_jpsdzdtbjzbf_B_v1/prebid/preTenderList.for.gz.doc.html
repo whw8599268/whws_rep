@@ -1,0 +1,38 @@
+<div>
+    <p style="font-size: 25px; text-align: center; font-weight: bold;">
+        <u style="font-size: 25px; text-align: center; font-weight: bold;">${PROJECT_NAME}</u>（项目名称）入围投标人名单
+    </p>
+    <p style="font-size: 18px; text-align: center;">
+        开标时间：<u style="font-size: 18px; text-align: center; font-weight: bold;"> ${TIME}</u>
+    </p>
+</div>
+<div class="easyui-tabs" data-options="plain:true,fit:true">
+    <sz:forEach items="${SECTIONS}" var="section,stat">
+        <!-- 表格 -->
+        <table class="sztable" width="100%" style="text-align: center;">
+            <tr>
+                <td width="20%">投标人名称</td>
+                <td width="10%">投标人代表号</td>
+                <td width="20%">投标报价（元）</td>
+                <td width="20%">评标基准价（元）</td>
+                <td width="20%">评标基准价取值范围（元）</td>
+                <td width="10%">报价文件得分</td>
+            </tr>
+            <sz:forEach items="${section.TENDER_LIST}" var="vo,step">
+                <tr>
+                    <td>${vo.V_BIDDER_NAME}</td>
+                    <td>${vo.V_BIDDER_NO}</td>
+                    <td>${vo.N_PRICE}</td>
+                    <td>${vo.BENCHMARK}</td>
+                    <td>${vo.SCOPE}</td>
+                    <td>${vo.SCORE}</td>
+                </tr>
+            </sz:forEach>
+        </table>
+    </sz:forEach>
+</div>
+<div style="font-size: 18px; text-align: center; font-weight: bold; height: 100px; line-height: 100px;">
+    <p>
+        招标人电子盖章（或签字）：<span style="margin-left: 20em;">招标代理机构电子盖章（或签字）：</span><span style="margin-left: 20em;">公证处电子盖章（或签字）：</span>
+    </p>
+</div>

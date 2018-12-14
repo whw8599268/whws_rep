@@ -1,0 +1,41 @@
+<div class="easyui-tabs" data-options="plain:true">
+    <sz:forEach items="${SECTION_LIST}" var="group,stat">
+        <caption>标段组：${group.BID_SECTION_GROUP_CODE}</caption>
+        <sz:forEach items="${group.TENDER_LIST}" var="section,stat">
+            <div class="easyui-panel" title="标段：${section.V_BID_SECTION_NAME}" style="padding: 10px;">
+                <table class="sztable" width="100%" id="roll-bal-table" style="text-align: center;">
+                    <thead>
+                        <tr>
+                            <td width="10%">序号</td>
+                            <td width="20%">球号</td>
+                            <td width="35%">投标人名称</td>
+                            <!--<td width="35%">投标人确认情况</td> -->
+                        </tr>
+                    </thead>
+                    <sz:forEach items="${section.BIDDERS}" var="vo,step">
+                        <tr>
+                            <td>${step.index+1}</td>
+                            <td>${vo.V_BIDDER_NO}</td>
+                            <td>${vo.V_BIDDER_NAME}</td>
+                            <!-- 已发起确认 -->
+                            <sz:if test="${section.ALREADY_LAUNCHED}">
+                                <!-- 如果为空
+                                <sz:if test="${vo.V_STATUS == null}">
+                                    <td></td>
+                                </sz:if>
+                                <sz:if test="${vo.V_STATUS != null}">
+                                    <td>${vo.V_REMARK!}</td>
+                                </sz:if>
+                            </sz:if>
+                            <!-- 未发起确认 
+                            <sz:if test="${!section.ALREADY_LAUNCHED}">
+                                <td></td>
+                            </sz:if>-->
+                        </tr>
+                    </sz:forEach>
+                </table>
+            </div>
+            <div style="width: 100%; height: 10px;"></div>
+        </sz:forEach>
+    </sz:forEach>
+</div>

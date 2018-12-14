@@ -1,0 +1,954 @@
+<!DOCTYPE HTML>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<!-- 启用360浏览器的极速模式(webkit) -->
+<meta name="renderer" content="webkit">
+<!-- 避免IE使用兼容模式 -->
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<title>${session.TENDER_PROJECT_INFO.V_TENDER_PROJECT_NAME}招标项目-在线开标会议室</title> <%includeJSP("/static/include/inc.jsp",{}){}%>
+<link href="${path}${adminPath}/view/metting_room/css/kbmain.css" rel="stylesheet" />
+<link href="${path}${adminPath}/view/metting_room/css/tabs.css" rel="stylesheet" />
+<script type="text/javascript" src="${path}${adminPath}/view/metting_room/js/logout.js"></script>
+<script src="${path}${adminPath}/view/common/js/layer/layer.js" type="text/javascript"></script>
+<script src="${path}${adminPath}/view/metting_room/js/handlebars-v4.0.10.js" type="text/javascript"></script>
+<script type="text/javascript">
+	SZUtilsExtEasyUIListPage.datagrid.pagination();
+	//是否为正整数
+	function isPositiveNum(s){  
+	    var re = /^[0-9]*[1-9][0-9]*$/ ;  
+	    return re.test(s)  
+	} 
+	
+	//空格和空字符串判断
+	function isNull(str) {
+		if (str == "")
+			return true;
+		var regu = "^[ ]+$";
+		var re = new RegExp(regu);
+		return re.test(str);
+	}
+	/***
+	 * 打开内容页
+	 */
+	function openContentPage(url, title) {
+		var tab = $('#content').tabs('getTab', 1);
+		$('#content').tabs('update', {
+			tab : tab,
+			options : {
+				//tools:'#p-tools',
+				title : title,
+				tools : [ {
+					iconCls : 'icon-mini-refresh',
+					handler : function() {
+						flushContentPage();
+					}
+				} ]
+			}
+		});
+		$("#flow-content-iframe").attr("src", url);
+		selectTab(1);
+		//如果弹出层不为空
+		if (layers.length > 0) {
+			//彈出栈顶
+			var index = layers.pop();
+			//关闭最顶层
+			layer.close(index);
+		}
+	}
+
+	/**切换标签页**/
+	function selectTab(index) {
+		$('#content').tabs('select', index);
+	}
+
+	/**刷新流程页面**/
+	function flushFlowStatusPage() {
+		var url = "${path}${adminPath}/tpflow/view?_t=" + new Date().getTime();
+		$("#flow-status-iframe").attr("src", url);
+	}
+
+	/***发送响应指令**/
+	function sendRespCommand(params) {
+		var param = {};
+		param.oneParam = params;
+		param.fun = "respCommandCallback";
+		$("#im-ifame")[0].contentWindow.sendReplyTendererCommond(param);
+	}
+
+	/**响应指令回调**/
+	function respCommandCallback(result) {
+		var url = "${path}${adminPath}/tpflow/node/" + result.nodeID;
+		//刷新当前页面
+		openContentPage(url, result.title);
+		layer.msg(result.msg, {
+			time : 7000, //5s后自动关闭
+		}, function() {
+		});
+	}
+	
+	/***发送流程指令**/
+	function sendFlowCommand(htmlContent) {
+		var param = {};
+		param.oneParam = htmlContent;
+		param.all = true;
+		param.fun = "flowCommandCallback";
+		top.$("#im-ifame")[0].contentWindow.sendCommondByIframe(param);
+	}
+	
+	/***发送结束整个流程指令给移动端**/
+	function finishTenderProjectFlowCommandToMobile(){
+		var param = {};
+		param.all = true;
+		param.fun = "finishTenderProjectFlowCommand";
+		top.$("#im-ifame")[0].contentWindow.sendCommondToMobile(param);
+	}
+	
+
+	/***发送修改流程信息指令,只发给投标人**/
+	function sendModifyCurrentNodeInfoCommandToBidder(tipMsg,currentNode) {
+		var param = {};
+		param.tipMsg = tipMsg;
+		param.currentNode = currentNode;
+		param.all = false;
+		param.fun = "modifyCurrentNodeInfoCommand";
+		top.$("#im-ifame")[0].contentWindow.sendCommondToMobile(param);
+	}
+	
+	/***发送流程指令,只发给投标人**/
+	function sendFlowCommandToBidder(htmlContent) {
+		var param = {};
+		param.oneParam = htmlContent;
+		param.all = false;
+		param.fun = "flowCommandCallback";
+		top.$("#im-ifame")[0].contentWindow.sendCommondByIframe(param);
+	}
+	
+	/***发送流程指令,只发给移动端投标人**/
+	function sendFinishFlowNodeCommandToMobileBidder(currentNodeName,nextNode) {
+		var param = {};
+		param.currentNodeName = currentNodeName;
+		param.nextNode = nextNode;
+		param.all = false;
+		param.fun = "finishFlowNodeCommand";
+		top.$("#im-ifame")[0].contentWindow.sendCommondToMobile(param);
+	}
+
+	/***发送刷新页面流程指令,只发给投标人**/
+	function sendFlowFlushPage() {
+		var param = {};
+		param.all = false;
+		param.fun = "flushContentPage";
+		top.$("#im-ifame")[0].contentWindow.sendCommondByIframe(param);
+	}
+	
+	/***发送刷新页面流程指令,只发给移动端投标人**/
+	function sendFlushFlowNodePageToMobile(currentNode) {
+		var param = {};
+		param.currentNode = currentNode;
+		param.all = false;
+		param.fun = "flushFlowNodePage";
+		top.$("#im-ifame")[0].contentWindow.sendCommondToMobile(param);
+	}
+
+	//弹出层栈
+	var layers = new Array();
+	/**流程指令回调**/
+	function flowCommandCallback(htmlContent) {
+		/* layer.msg(msg, {
+			time : 2000, //2s后自动关闭
+		}); */
+		var index = layer.open({
+			type : 1,
+			shade : false,
+			title : false, //不显示标题
+			content : htmlContent, //捕获的元素，注意：最好该指定的元素要存放在body最外层，否则可能被其它的相对元素所影响
+			cancel : function(index, layero) {
+				//移除栈顶
+				layers.pop();
+			}
+		});
+		//插入栈
+		layers.push(index);
+		//刷新流程页
+		flushFlowStatusPage();
+	}
+	var t;
+	$(function() {
+		//评标办法
+		var obj = JSON.parse('${session.TENDER_PROJECT_INFO.V_BEM_INFO_JSON}');
+		$("#pbbf").html("评标办法：" + obj.V_BID_EVALUATION_METHOD_NAME);
+		//第一次同步时间
+		$.ajax({
+			url : "${path}${adminPath}/notice/getNowTime",
+			//设置请求方法
+			type : 'post',
+			//dataType : 'json',
+			cache : false,
+			async : false,
+			//成功回调
+			success : function(result) {
+				result = JSON.parse(result);
+				if (result.nowTime) {
+					t = result.nowTime;
+				}
+			},
+			//失败回调
+			error : function(XMLHttpRequest, textStatus, errorThrown) {
+				var result = jQuery.parseJSON(XMLHttpRequest.responseText);
+				$.messager.alert("失败", result.errorDesc);
+			}
+		});
+		setInterval(setNowTime, 300000);//设置定时5分钟
+		setInterval(realNowTime, 1000);//设置定时1秒
+		//初始系统消息
+		showNewInfo();
+		//为了避免有些鸡毛浏览器重复加载两次问题
+		$("#im-ifame").attr(
+				"src",
+				"${path}${adminPath}/im/room/${session.TENDER_PROJECT_INFO.ID}?_t="
+						+ new Date().getTime());
+
+		if(${SessionUtils.getAttribute('NTV_STATUS')==1}){
+			$("#ntvmessage-ifame").attr(
+					"src",
+					"${path}${adminPath}/view/ntvmessage/index.ntvmessage.html?_t="
+							+ new Date().getTime());
+		}
+	});
+	function realNowTime() {
+		t = t + 1000;
+		var d = new Date(t);
+		$("#nowtime").html(d.format("yyyy年MM月dd日 hh时mm分ss秒"));
+		//$("#nowtime").html(d.getFullYear()+"年"+d.getMonth()+1+"月"+d.getDate()+"日 "+d.getHours()+"时"+d.getMinutes()+"分"+d.getSeconds()+"秒");
+	}
+	function setNowTime() {
+		$.ajax({
+			url : "${path}${adminPath}/notice/getNowTime",
+			//设置请求方法
+			type : 'post',
+			//dataType : 'json',
+			cache : false,
+			async : false,
+			//成功回调
+			success : function(result) {
+				result = JSON.parse(result);
+				if (result.nowTime) {
+					t = result.nowTime;
+				}
+			},
+			//失败回调
+			error : function(XMLHttpRequest, textStatus, errorThrown) {
+				var result = jQuery.parseJSON(XMLHttpRequest.responseText);
+				$.messager.alert("失败", result.errorDesc);
+			}
+		});
+	}
+	/**刷新内容页**/
+	function flushContentPage() {
+		document.getElementById('flow-content-iframe').contentWindow.location
+				.reload(true);
+	}
+
+	/**结束当前节点**/
+	function finishCurrentFlowNode(nodeID, nodeName) {
+		var url = "${path}${adminPath}/tpflow/finish/" + nodeID;
+		sy.progress.show();
+		// 发生Ajax请求
+		$.ajax({
+			url : url,
+			// 设置请求方法
+			type : 'POST',
+			dataType : 'json',
+			//contentType : 'application/json;charset=UTF-8',
+			//data : JSON.stringify(func),
+			// 成功回调
+			success : function(result) {
+				sy.progress.hide();
+				sy.messagerShow({
+					msg : "操作成功!",
+					title : '提示'
+				});
+				//刷新流程页面
+				flushFlowStatusPage();
+				//如果是空对象
+				if (typeof (result.ID) == "undefined") {
+					//开标流程完全结束
+					$.messager.alert('操作成功', "开标结束!");
+					return;
+				}
+				//下一个环节ID
+				var obj = new Object();
+				var nextName = result.V_NODE_NAME;
+				var nextUrl = "${path}${adminPath}/tpflow/node/" + result.ID;
+				//当前节点名称
+				obj.currentName = nodeName;
+				obj.nextName = nextName;
+				obj.nextUrl = nextUrl;
+				// 用jquery获取模板
+				var source = $("#next-node-tip-template").html();
+				// 预编译模板
+				var template = Handlebars.compile(source);
+				var html = template(obj);
+				//发生流程指令
+				sendFlowCommandToBidder(html);
+				//发给移动端
+				sendFinishFlowNodeCommandToMobileBidder(nodeName,result);
+				//刷新内容页
+				openContentPage(nextUrl, nextName);
+				//发送系统公告
+				addNotice("#{date}:[" + nextName + "]环节已开始!", "1");
+			},
+			// 失败回调
+			error : function(XMLHttpRequest, textStatus, errorThrown) {
+				sy.progress.hide();
+				var result = jQuery.parseJSON(XMLHttpRequest.responseText);
+				$.messager.alert('操作失败', "操作失败[" + result.errorDesc + "]");
+			}
+		});
+	}
+
+	/**结束所有流程**/
+	function finishFlow(nodeID, nodeName) {
+		var url = "${path}${adminPath}/tpflow/finish";
+		sy.progress.show();
+		// 发生Ajax请求
+		$.ajax({
+			url : url,
+			// 设置请求方法
+			type : 'POST',
+			//dataType : 'json',
+			//contentType : 'application/json;charset=UTF-8',
+			//data : JSON.stringify(func),
+			// 成功回调
+			success : function(result) {
+				sy.progress.hide();
+				sy.messagerShow({
+					msg : "操作成功!",
+					title : '提示'
+				});
+				//刷新流程页面
+				flushFlowStatusPage();
+				// 用jquery获取模板
+				var source = $("#flow-finish-tip-template").html();
+				// 预编译模板
+				var template = Handlebars.compile(source);
+				var html = template();
+				//发生流程指令
+				sendFlowCommand(html);
+				//发给移动端
+				finishTenderProjectFlowCommandToMobile();
+				var nextUrl = "${path}${adminPath}/tpflow/node/" + nodeID;
+				//刷新当前页
+				openContentPage(nextUrl, nodeName);
+				//发送系统公告
+				addNotice("#{date}：开标结束!", "1");
+			},
+			// 失败回调
+			error : function(XMLHttpRequest, textStatus, errorThrown) {
+				sy.progress.hide();
+				var result = jQuery.parseJSON(XMLHttpRequest.responseText);
+				$.messager.alert('操作失败', "操作失败[" + result.errorDesc + "]");
+			}
+		});
+	}
+	
+	/**结束当前节点不发指令**/
+	function finishCurrentFlowNodeNoInteractive(nodeID, nodeName) {
+		var url = "${path}${adminPath}/tpflow/finish/" + nodeID;
+		sy.progress.show();
+		// 发生Ajax请求
+		$.ajax({
+			url : url,
+			// 设置请求方法
+			type : 'POST',
+			dataType : 'json',
+			//contentType : 'application/json;charset=UTF-8',
+			//data : JSON.stringify(func),
+			// 成功回调
+			success : function(result) {
+				sy.progress.hide();
+				sy.messagerShow({
+					msg : "操作成功!",
+					title : '提示'
+				});
+				//刷新流程页面
+				flushFlowStatusPage();
+				//如果是空对象
+				if (typeof (result.ID) == "undefined") {
+					//开标流程完全结束
+					$.messager.alert('操作成功', "开标结束!");
+					return;
+				}
+				//下一个环节ID
+				var obj = new Object();
+				var nextName = result.V_NODE_NAME;
+				var nextUrl = "${path}${adminPath}/tpflow/node/" + result.ID;
+				//当前节点名称
+				obj.currentName = nodeName;
+				obj.nextName = nextName;
+				obj.nextUrl = nextUrl;
+				// 用jquery获取模板
+				//var source = $("#next-node-tip-template").html();
+				// 预编译模板
+				//var template = Handlebars.compile(source);
+				// html = template(obj);
+				//发生流程指令
+				//sendFlowCommandToBidder(html);
+				//刷新内容页
+				addNotice("#{date}:[" + nextName + "]环节已开始!", "1");
+				openContentPage(nextUrl, nextName);
+			},
+			// 失败回调
+			error : function(XMLHttpRequest, textStatus, errorThrown) {
+				sy.progress.hide();
+				var result = jQuery.parseJSON(XMLHttpRequest.responseText);
+				$.messager.alert('操作失败', "操作失败[" + result.errorDesc + "]");
+			}
+		});
+	}
+	
+	//新闻显示
+	$(document).ready(function() {
+		//绑定元素点击事件
+		$(".news").click(function() {
+			//判断对象是显示还是隐藏
+			if ($(this).children(".div1").is(":hidden")) {
+				//表示隐藏
+				if (!$(this).children(".div1").is(":animated")) {
+					$(this).children(".xl").css({
+						'transform' : 'rotate(180deg)'
+					});
+					//如果当前没有进行动画，则添加新动画
+					$(this).children(".div1").animate({
+						height : 'show'
+					}, 100)
+					//siblings遍历div1的元素
+					.end().siblings().find(".div1").hide(100);
+				}
+			} else {
+				//表示显示
+				if (!$(this).children(".div1").is(":animated")) {
+					$(this).children(".xl").css({
+						'transform' : 'rotate(360deg)'
+					});
+					$(this).children(".div1").animate({
+						height : 'hide'
+					}, 100).end().siblings().find(".div1").hide(100);
+				}
+			}
+		});
+		//阻止事件冒泡，子元素不再继承父元素的点击事件
+		$('.div1').click(function(e) {
+			e.stopPropagation();
+		});
+	});
+	
+	//定时刷新消息
+	function showNewInfo() {
+		$.ajax({
+			url : "${path}${adminPath}/notice/htmlInfo",
+			//设置请求方法
+			type : 'post',
+			//dataType : 'json',
+			cache : false,
+			//成功回调
+			success : function(result) {
+				result = JSON.parse(result);
+				if (result.noticeInfoTitle) {
+					$("#noticeInfoTitle").html(result.noticeInfoTitle);
+					$("#noticeInfo").html(result.noticeInfo);
+				}
+			},
+			//失败回调
+			error : function(XMLHttpRequest, textStatus, errorThrown) {
+				var result = jQuery.parseJSON(XMLHttpRequest.responseText);
+				$.messager.alert("失败", result.errorDesc);
+			}
+		});
+	}
+	//添加公告v_msg 公告内容 v_type 1系统公告 2 招标人公告
+	function addNotice(v_msg, v_type) {
+		$.ajax({
+			url : "${path}${adminPath}/notice/add",
+			//设置请求方法
+			type : 'post',
+			//dataType : 'json',
+			data : {
+				"v_msg" : v_msg,
+				"v_type" : v_type
+			},
+			//成功回调
+			success : function(result) {
+				sendReloadNoticeCommand();
+				sendRefreshNoticeCommandToMobile();
+			},
+			//失败回调
+			error : function(XMLHttpRequest, textStatus, errorThrown) {
+				var result = jQuery.parseJSON(XMLHttpRequest.responseText);
+				$.messager.alert("创建失败", result.errorDesc);
+				return false;
+			}
+		});
+	}
+
+	/***发送刷新公告指令**/
+	function sendReloadNoticeCommand() {
+		var param = {};
+		param.all = true;
+		param.fun = "showNewInfo";
+		top.$("#im-ifame")[0].contentWindow.sendCommondByIframe(param);
+	}
+	
+	/***发送刷新公告指令,发给移动端**/
+	function sendRefreshNoticeCommandToMobile() {
+		var param = {};
+		param.all = true;
+		param.fun = "refreshNotices";
+		top.$("#im-ifame")[0].contentWindow.sendCommondToMobile(param);
+	}
+	
+	/***发送刷退出系统指令**/
+	function sendLogoutCommand() {
+		var param = {};
+		param.all = true;
+		param.fun = "logout";
+		top.$("#im-ifame")[0].contentWindow.sendCommondByIframe(param);
+	}
+	
+	/***发送刷退出系统指令,发给移动端**/
+	function sendLogoutCommandToMobile() {
+		var param = {};
+		param.all = true;
+		param.fun = "logout";
+		top.$("#im-ifame")[0].contentWindow.sendCommondToMobile(param);
+	}
+
+	/**刷新公告指令回调**/
+	function reloadNoticeCommandCallback() {
+		$.ajax({
+			url : "${path}${adminPath}/notice",
+			//设置请求方法
+			type : 'GET',
+			dataType : 'json',
+			cache : false,
+			//成功回调
+			success : function(notices) {
+				//alert("刷新公告!");
+				//alert(JSON.stringify(notices));
+				for ( var i = 0; i < notices.length; i++) {
+					$("#notice-content").text(notices.V_MSG);
+				}
+			},
+			//失败回调
+			error : function(XMLHttpRequest, textStatus, errorThrown) {
+				var result = jQuery.parseJSON(XMLHttpRequest.responseText);
+				$.messager.alert("失败", result.errorDesc);
+			}
+		});
+	}
+
+	/**生成doc**/
+	function createDoc(sample, template, envelope, modelType) {
+		$.ajax({
+			url : "${path}${adminPath}/" + sample + "/bus/createFile/doc",
+			// 设置请求方法
+			type : "post",
+			data : {
+				"template" : template,
+				"envelope" : envelope,
+				"modelType" : modelType
+			},
+			// dataType : 'json',
+			// contentType : 'application/json;charset=UTF-8',
+			// 成功回调
+			success : function(result) {
+			},
+			// 失败回调
+			error : function(XMLHttpRequest, textStatus, errorThrown) {
+			}
+		});
+	}
+
+	/**重新确认**/
+	function reComfirm(type) {
+		$.ajax({
+			cache : false,
+			async: false,
+			type : 'get',
+			url : "${path}${adminPath}/bus/modelCheck/recomfirm/" + type,//请求的action路径  
+			error : function(XMLHttpRequest, textStatus, errorThrown) {//请求失败处理函数  
+				var result = jQuery.parseJSON(XMLHttpRequest.responseText);
+				$.messager.alert('异步获取数据出现异常', "异步获取数据出现异常[" + result.errorDesc
+						+ "]");
+			},
+			success : function(result) { //请求成功后处理函数。  
+			}
+		});
+	}
+	var panel;
+	/**重复mac地址信息**/
+	function macAddressInfo() {
+		sy.progress.show();
+		$
+				.ajax({
+					async : true,
+					cache : false,
+					type : 'get',
+					//data : data,
+					url : "${path}${adminPath}/bus/mac/getMacInfo",//请求的action路径  
+					error : function(XMLHttpRequest, textStatus, errorThrown) {//请求失败处理函数  
+						sy.progress.hide();
+						var result = jQuery
+								.parseJSON(XMLHttpRequest.responseText);
+						$.messager.alert('异步获取数据出现异常', "异步获取数据出现异常["
+								+ result.errorDesc + "]");
+					},
+					success : function(rs) { //请求成功后处理函数。 
+						sy.progress.hide();
+						 if (!rs.success) {
+							$.messager.alert("提示", "没有相同的MAC地址信息");
+						 } else {
+							// 用jquery获取模板
+							var source = $("#max-same-table-template").html();
+							// 预编译模板
+							var template = Handlebars.compile(source);
+							//注册一个Handlebars Helper,用来将索引+1，因为默认是从0开始的
+							Handlebars.registerHelper("addOne",function(index,options){
+								return parseInt(index)+1;
+							});
+							var html = template(rs);
+							panel = parent.sy.dialog({
+								title : 'MAC地址信息',
+								width : 800,
+								height : 400,
+								content : html,
+								modal : true,
+							});
+						} 
+					}
+				});
+	}
+
+	//mac地址重复，否决投标人
+	function setBidderFail(orgCode,sid){
+		parent.$.messager
+		.confirm(
+				"提示",
+				"否决后将无法更改，确认要否决?",
+				function(r) {
+					if (r) {
+						$.ajax({
+							cache : false,
+							type : 'get',
+							//data : data,
+							url : "${path}${adminPath}/bus/mac/sfb/"+orgCode+"/"+sid,//请求的action路径  
+							error : function(XMLHttpRequest, textStatus, errorThrown) {//请求失败处理函数  
+								var result = jQuery.parseJSON(XMLHttpRequest.responseText);
+								$.messager.alert('操作失败', "操作失败[" + result.errorDesc + "]");
+							},
+							success : function(rs) { //请求成功后处理函数。 
+								parent.sy.messagerShow({
+									msg : "操作成功!",
+									title : '提示'
+								});
+								panel.dialog('close');
+							}
+						});
+					}
+				});
+	}
+	
+	//结束确认
+	function endConfirm(type) {
+		if(${!SessionUtils.isSectionGroup()}&&type=="DYXF_credit"){
+			$.ajax({
+				url : "${path}${adminPath}/bus/modelCheck/end",
+				// 设置请求方法
+				type : "POST",
+				cache : false,
+				async : false,
+				data : {
+					type : "DYXF_credit",
+					tableName:"EKB_T_TENDER_LIST"
+				},
+				// dataType : 'json',
+				// contentType : 'application/json;charset=UTF-8',
+				// 成功回调
+				success : function(result) {
+				},
+				// 失败回调
+				error : function(XMLHttpRequest, textStatus, errorThrown) {
+					var result = jQuery.parseJSON(XMLHttpRequest.responseText);
+					$.messager.alert('操作失败', "操作失败[" + result.errorDesc + "]");
+				}
+			});
+		}else{
+			$.ajax({
+				url : "${path}${adminPath}/bus/modelCheck/end",
+				// 设置请求方法
+				type : "POST",
+				cache : false,
+				async : false,
+				data : {
+					type : type
+				},
+				// dataType : 'json',
+				// contentType : 'application/json;charset=UTF-8',
+				// 成功回调
+				success : function(result) {
+				},
+				// 失败回调
+				error : function(XMLHttpRequest, textStatus, errorThrown) {
+					var result = jQuery.parseJSON(XMLHttpRequest.responseText);
+					$.messager.alert('操作失败', "操作失败[" + result.errorDesc + "]");
+				}
+			});
+		}
+	}
+	
+	//打开视频直播
+	function openVideo(title, index) {
+		if (index == 2) {
+			$
+					.ajax({
+						cache : false,
+						async : false,
+						type : 'get',
+						url : "${path}${adminPath}/bus/video/getVideos",//请求的action路径  
+						error : function(XMLHttpRequest, textStatus,
+								errorThrown) {
+							var result = jQuery
+									.parseJSON(XMLHttpRequest.responseText);
+							$.messager.alert("创建失败", result.errorDesc);
+						},
+						success : function(videoUrl) { //请求成功后处理函数。
+							var ww=$(window).width()-50;
+							var hh=$(window).height()-50;
+							var content = '<iframe id="dlgframe" src="' + videoUrl + '" width="100%" height="99%" frameborder="0" scrolling="no"></iframe>';
+							$('#dlg').dialog({   
+							    title: '${SessionUtils.getBidProjectName()}',   
+							    width: ww,   
+							    height: hh,   
+							    closed: false,  
+							    collapsible:true,
+							    cache: false,   
+							    content: content,   
+							    modal: false,
+							    onClose: function () {
+							    	//关闭视频
+							    	closeLive();
+							    } 
+							});   
+							$("#dlg").dialog("open");
+							/* window
+									.open(videoUrl, '视频监控',
+											'toolbar=no, menubar=no, scrollbars=no, resizable=no,location=no, status=no'); */
+						}
+					});
+			$('#content').tabs('select', 1);
+		}
+	}
+	
+	/***发送关闭视频指令**/
+	function sendCloseLiveCommand() {
+		var param = {};
+		param.all = true;
+		param.fun = "closeLive";
+		top.$("#im-ifame")[0].contentWindow.sendCommondByIframe(param);
+	}
+	
+	/***发送关闭视频指令**/
+	function sendCloseTabCommand() {
+		var param = {};
+		param.all = true;
+		param.fun = "destroyTab";
+		top.$("#im-ifame")[0].contentWindow.sendCommondByIframe(param);
+	}
+	
+	/** 销毁直播选项卡 **/
+	function destroyTab(){
+		//隐藏视频直播按钮
+		$('#content').tabs('close','视频直播')
+	}
+	
+	/**关闭视频**/
+	function closeLive(){
+		var d = $(window.document).find("#dlgframe").attr("src");
+		if (d) {
+			var iframes = $("#dlgframe").find("iframe");
+
+			// 获取所有的iframe
+			//var iframes = document.getElementById('dlgframe').contentWindow.document.getElementsByTagName('iframe')
+			 
+			// 重置每个iframe的src值，
+			for(var i=0;i<iframes.length;i++){
+				//$(iframes[i]).attr('src', "");
+				//iframes[i].src="http://171.8.242.118/mserver";
+				//alert(iframes[i].src)
+				//能重置地址，但是无法刷新iframe，js报没有权限的错误
+				//重定向个任意地址，也可达到释放视频连接的效果
+				iframes[i].contentWindow.location.href="http://171.8.242.118/mserver";
+			}
+			// 刷新iframe的内容页，释放视频流
+			//iframes.location.reload();
+			$('#dlg').dialog('destroy');
+			$("#dlg").dialog("close");
+	    	$(".easyui-layout").append("<div id='dlg'></div>");
+		}
+	}
+	
+	/**海迈预清标**/
+	function gotoHm(_url){
+		window.open(_url);
+	}
+	
+	// 导出投递时间列表
+	function doImportDeliverTime() {
+		window.open('${path}${adminPath}/bus/sa/export_bidders');
+	}
+	
+	// 导出xml
+	function exportXml(method,status){
+		
+		$.ajax({
+			url : '${path}${adminPath}/bus/sa/epx?status='+status+'&method='+method+'&_t='+new Date().getTime(),
+			// 设置请求方法
+			type : "GET",
+			cache : false,
+			async : false,
+			// dataType : 'json',
+			// contentType : 'application/json;charset=UTF-8',
+			// 成功回调
+			success : function(result) {
+				window.open('${path}${adminPath}/bus/records/downloadXml')
+			},
+			// 失败回调
+			error : function(XMLHttpRequest, textStatus, errorThrown) {
+				var result = jQuery.parseJSON(XMLHttpRequest.responseText);
+				$.messager.alert('提示', result.errorDesc);
+			}
+		});
+	}
+</script>
+<script id="next-node-tip-template" type="text/x-handlebars-template">
+<div class="xtgg_div">
+    <p class="xtgg_p">推送时间：#{date}</p>    
+	<p class="xtgg_p">[{{currentName}}]环节已结束!</p>
+    <p class="xtgg_p">请各投标人进入[{{nextName}}]环节!</p>
+    <p class="xtgg_p"><a style="color:#fff;" href="javascript:void(0);" onclick="openContentPage('{{nextUrl}}','{{nextName}}')">点击进入</a></p>
+</div>
+</script>
+<script id="flow-finish-tip-template" type="text/x-handlebars-template">
+<div class="xtgg_div">
+    <p class="xtgg_p">推送时间：#{date}</p> 
+	<p class="xtgg_p">开标结束!</p>
+</div>
+</script>
+<script id="max-same-table-template" type="text/x-handlebars-template">
+<table class="sztable" width="100%" style="text-align: center;">
+	<tr>
+		<td>序号</td>
+		<td>投标人名称</td>
+		<td>信封</td>
+		<td>标段</td>
+		<td>MAC地址</td>
+		<td>操作</td>
+	</tr>
+{{#each rows}}
+	<tr>
+		<td>{{addOne @index}}</td>
+		<td>{{V_BIDDER_NAME}}</td>
+		<td>{{V_TIPSNAME}}</td>
+		<td>{{V_BID_SECTION_NAME}}</td>
+		<td>{{V_MAC}}</td>
+		<td><a href='javascript:void(0)' class='easyui-linkbutton' onclick='setBidderFail("{{V_ORG_CODE}}","{{V_BID_SECTION_ID}}");'>否决</a></td>
+	</tr>
+{{/each}}
+</table>
+</script>
+</head>
+
+
+<body class="easyui-layout">
+    <div data-options="region:'north',border:false,bodyCls:'theme-header-layout'" style="height: 67px;">
+        <div class="header">
+            <% var user = authz.getCurrentUser();%>
+            <table width="100%" style="border: 0; border-collapse: separate; border-spacing: 0px 0px;">
+                <tr>
+                    <td width="25%" class="myTd"><span class="mySpan">开标时间：${session.TENDER_PROJECT_INFO.V_BIDOPEN_TIME}</span></td>
+                    <td width="50%" class="myTd"><span class="mySpan2">工程名称：${session.TENDER_PROJECT_INFO.V_TENDER_PROJECT_NAME}</span></td>
+                    <td width="20%" class="myTd"><img src="${path}${adminPath}/view/metting_room/images/tbr.png" width="25" height="19" style="margin-bottom: -5px" title="当前用户" /> <span class="mySpan3">${user.V_NAME}</span></td>
+                    <td width="5%" rowspan="2" align="center" valign="middle"><span href="javascript:void(0)" onclick="logout();" style="cursor: pointer;"> <img src="${path}${adminPath}/view/metting_room/images/exit.gif" style="border: 0;" title="退出系统" /> <br /> <span style="color: #FFF; font-family: '微软雅黑'; font-size: 15px;">注销</span>
+                    </span></td>
+                </tr>
+                <tr>
+                    <td class="myTd"><span class="mySpan">招&ensp;标&ensp;人：${session.TENDER_PROJECT_INFO.V_TENDERER_NAME}</span></td>
+                    <td class="myTd"><span id="pbbf" class="mySpan2"></span></td>
+                    <td class="myTd"><img src="${path}${adminPath}/view/metting_room/images/sj.png" width="25" height="19" style="margin-bottom: -5px" title="当前时间" /> <span id="nowtime" class="mySpan3"></span></td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <!-- 左 -->
+    <sz:if test="${SessionUtils.getAttribute('IM_STATUS')==1}">
+        <sz:if test="${SessionUtils.getTenderProjectType()=='10'}">
+            <div data-options="region:'east',split:false,border:false" style="width: 290px; padding: 0px;">
+                <iframe id="im-ifame" src="" frameborder="0" style="border: 0; width: 100%; height: 99.5%"></iframe>
+            </div>
+        </sz:if>
+        <sz:if test="${SessionUtils.getTenderProjectType()!='10'}">
+            <div data-options="region:'east',split:false,border:false" style="width: 0px; padding: 0px;">
+                <iframe id="im-ifame" src="" frameborder="0" style="border: 0; width: 0px; height: 99.5%"></iframe>
+            </div>
+        </sz:if>
+    </sz:if>
+    <sz:if test="${SessionUtils.getAttribute('IM_STATUS')!=1}">
+        <sz:if test="${SessionUtils.getAttribute('NTV_STATUS')==1}">
+            <div data-options="region:'east',split:false,border:false" style="width: 290px; padding: 0px;">
+                <iframe id="ntvmessage-ifame" src="" frameborder="0" style="border: 0; width: 100%; height: 99.5%"></iframe>
+            </div>
+        </sz:if>
+        <div data-options="region:'east',split:false,border:false" style="width: 0px; padding: 0px;">
+            <iframe id="im-ifame" src="" frameborder="0" style="border: 0; width: 0px; height: 99.5%"></iframe>
+        </div>
+    </sz:if>
+
+    <!-- 右 -->
+    <div data-options="region:'center',border:false">
+        <div id="tab-tools" style="width: 550px;">
+            <div class="news">
+                <span class="news-img"><img src="${path}${adminPath}/view/metting_room/images/news.png" width="27" height="26"></span> <span class="news-bt"></span> <span class="news-wz" id="noticeInfoTitle"></span> <span class="xl"></span>
+                <div class="div1" id="noticeInfo"></div>
+            </div>
+        </div>
+        <div class="easyui-tabs" id="content" data-options="tabHeight:60,tools:'#tab-tools',fit:true,onSelect:openVideo">
+            <div title="流程" data-options="iconCls:'icon-lc',closable:false" style="padding: 10px">
+                <!-- 流程FRAME -->
+                <iframe id="flow-status-iframe" src="${path}${adminPath}/tpflow/view" frameborder="0" scrolling="auto" marginheight="0" marginwidth="0" hspeace="0" vspace="0" width="100%" height="100%"></iframe>
+            </div>
+            <div title="正文" data-options="iconCls:'icon-zw',closable:false,tools:'#p-tools'" style="padding: 10px">
+                <!-- 流程FRAME -->
+                <iframe id="flow-content-iframe" src="${path}${adminPath}/view/metting_room/blank.html" frameborder="0" scrolling="yes" marginheight="0" marginwidth="0" hspeace="0" vspace="0" width="100%" height="100%"></iframe>
+            </div>
+            <sz:if test="${SessionUtils.getAttribute('VIDEO_STATUS')==1&&SessionUtils.getAttribute('BID_OPEN_STATUS')==false}">
+                <div title="视频直播" data-options="iconCls:'icon-SP',closable:false,tools:'#p-tools'" style="padding: 10px"></div>
+            </sz:if>
+        </div>
+    </div>
+
+    <div id="p-tools">
+        <a href="javascript:void(0)" class="icon-mini-refresh" onclick="flushContentPage()"></a>
+    </div>
+
+    <!-- 下 -->
+    <div data-options="region:'south',border:false,split:true" style="height: 25px; padding: 0px;">
+        <div align="center" id="copyright">
+            ©福建首众-技术支持&emsp;&emsp;客服热线：400-999-6901&emsp;&emsp;QQ在线咨询：<a href="####" onclick="javascript:window.open('http://wpa.b.qq.com/cgi/wpa.php?ln=1&key=XzkzODE5MjY0OV80ODA3NjRfNDAwMTg4NjY0MF8yXw');">点击咨询</a>
+        </div>
+    </div>
+    <div id="dlg"></div>
+</body>
+
+</html>

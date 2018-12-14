@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>在线会议室</title><%includeJSP("/static/include/inc.jsp",{}){}%>
+<script src="${path}${adminPath}/view/ntvmessage/js/longpolling.js" type="text/javascript"></script>
+<script src="${path}${adminPath}/view/ntvmessage/js/ntvmessage.js" type="text/javascript"></script>
+<link href="${path}${adminPath}/view/ntvmessage/css/index.ntvmessage.css" rel="stylesheet" />
+<script type="text/javascript">
+	$(function() {
+		init();
+	});
+	function init() {
+		/*
+		 *初始化消息接收器
+		 *框架里的函数getMessageQueueReader和getMessageQueueWritor分别用于获取读写消息队列的地址。
+		 */
+		// 频道
+		var channel = "${SessionUtils.getTPID()}";
+		// 地址
+		var url = "${SessionUtils.getAttribute('NTV_URL')}";
+
+		var url1 = "http://" + url + "/msg_reader/" + channel;
+		initNtvMsgReader(url1);
+
+		url1 = "http://" + url + "/msg_writor/" + channel;
+		initNtvMsgWritor(url1);
+		//初始化用户计数器
+		//initNtvUserCounter(url);
+
+		$("#msg-span").keydown(function(event) {
+			var e = window.event || event;
+			var k = e.keyCode || e.which || e.charCode;
+			if ((event.ctrlKey && (k == 13 || k == 10))) {
+				sendMessage();
+			}
+		});
+
+		adaptHeight();
+	}
+
+	function adaptHeight() {
+		var fIEVersion = getIEVersion();
+		var height = $(document).height();//window.innerHeight;
+		if (fIEVersion == 8) {
+			height = top.$("#ntvmessage-ifame").height();
+		}
+
+		$(".mid-rg").height(height - 2);
+
+		//rg-top 41px; 
+		// ztbgn 24px; 5px 55px; 34 55 89
+		// 5px
+		$(".div-ul-chat").height(height - 2 - 41 - 89 - 20);
+
+	}
+
+	function getIEVersion() {
+		var userAgent = navigator.userAgent;
+		var reIE = new RegExp("MSIE (\\d+\\.\\d+);");
+		reIE.test(userAgent);
+		return parseFloat(RegExp['$1']);
+	}
+
+	function dumpMessage(_msg) {
+		var _html = '';
+		_html += '<li class="li-chat"><div class="div-chat-dl-info" title="' + _msg.V_SENDER_NAME + '">';
+		_html += '<div class="div-name">' + _msg.V_SENDER_NAME
+				+ "</div><div>&nbsp;&nbsp;" + _msg.V_SEND_TIME + "</div>";
+		_html += '</div><div class="div-chat-contents">'
+		_html += _msg.V_MESSAGE_CONTENT;
+		_html += '</div></li>';
+
+		$("#msg-ul").append(_html);
+	}
+	/*
+	 收到消息回调
+	 */
+	function onMsgReceive(jsonObj, textStatus, jqXHR) {
+		dumpMessage(jsonObj);
+	}
+	/*
+	 错误回调
+	 */
+	function onMsgError(jqXHR, textStatus, errorThrown) {
+		dumpMessage("Error");
+	}
+
+	function onCounterMsgReceive(jsonObj, textStatus, jqXHR) {
+		var msg = "subscribers:" + jsonObj.subscribers + "\n";
+		dumpMessage(msg);
+	}
+	/*
+	 *发送消息
+	 */
+	function sendMessage() {
+		var msgContent = $("#msg-span").val();
+		if (typeof (msgContent) == "undefined" || msgContent == null
+				|| msgContent == "") {
+			return;
+		}
+		
+		if (msgContent.length >= 2000) {
+			alert("您输入的内容过长");
+			return;
+		}
+
+		$.ajax({
+			url : "${path}${adminPath}/bus/ntvmessage",
+			// 设置请求方法
+			type : 'POST',
+			//contentType : 'application/json;charset=UTF-8',
+			data : {
+				"msgContent" : msgContent
+			},
+			// 成功回调
+			success : function(result) {
+				postJsonMsg(JSON.stringify(result));
+				$("#msg-span").val('');
+			},
+			// 失败回调
+			error : function(XMLHttpRequest, textStatus, errorThrown) {
+				sy.progress.hide();
+				var result = jQuery.parseJSON(XMLHttpRequest.responseText);
+				$.messager.alert('操作失败', "操作失败[" + result.errorDesc + "]");
+			}
+		})
+	}
+	
+	/*
+	 *历史消息
+	 */
+    function loadHistoricalNews(tpid) {
+        var p = parent.sy.window({
+            title : '&nbsp;消息记录',
+            // iconCls: "icon-man",
+            href : '${path}${adminPath}/view/ntvmessage/historical.news.view.html?tpid='+tpid,
+            width : 600,
+            height : 500,
+            modal : true,
+            closable : true,
+            minimizable : false
+        });
+    }
+</script>
+</head>
+<body style="overflow: hidden;" oncontextmenu=self.event.returnValue=false onselectstart="return false">
+    <div id="chat-page" class="mid-rg">
+        <div class="rg-top">
+            <div id="im-rg-top">
+                <span class="mod"> <span class="mod-check">信息公告</span>
+                </span>
+            </div>
+            <!-- <div class="contraction"></div> -->
+        </div>
+        <div class="div-chat-list">
+            <ul class="div-ul-chat" id="msg-ul">
+            </ul>
+        </div>
+        <sz:if test="${!SessionUtils.isBidder()}">
+            <div class="ztbgn">
+                <span class="his-msg" title="消息记录"><img src="${path}${adminPath}/view/frame/images/msg-his.png" width="26" height="18" onclick="loadHistoricalNews('${SessionUtils.getTPID()}')" /></span> <span class="chat-dx" id="aite-span"></span>
+            </div>
+            <div class="rg-foot1">
+                <div class="edit">
+                    <span class="edit-k"> <textarea id="msg-span" name="msg-span" class="txt-u"></textarea>
+                    </span> <span class="send" id="im-msg-send" onclick="sendMessage()">发送</span>
+                </div>
+            </div>
+        </sz:if>
+    </div>
+</body>
+</html>

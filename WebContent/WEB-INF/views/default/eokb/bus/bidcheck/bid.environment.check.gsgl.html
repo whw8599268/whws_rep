@@ -1,0 +1,131 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>开标环境检测结果</title> <%includeJSP("/static/include/inc.jsp",{}){}%>
+<link href="${path}/static/css/table.css" rel="stylesheet" />
+<style>
+tr {
+	height: 30px;
+}
+
+td {
+	text-align: center;
+}
+
+.pass {
+	padding: 1px 5px;
+	background-color: green;
+	color: #FFF;
+	border-radius: 2px;
+	font-size: 16px;
+	font-weight: bold;
+	margin-left: 10px;
+	background-color: #36E56C;
+}
+
+.fail {
+	padding: 1px 5px;
+	height: 32px;
+	background-color: red;
+	color: #FFF;
+	border-radius: 2px;
+	font-size: 16px;
+	font-weight: bold;
+	margin-left: 10px;
+}
+
+.sys-txt {
+	margin-left: 10px;
+	font-size: 18px;
+	font-weight: bold;
+}
+
+h1 {
+	text-align: center;
+}
+
+table td,table th {
+	border: 1px solid #cad9ea;
+	color: #666;
+	height: 30px;
+}
+
+table thead th {
+	background-color: #CCE8EB;
+	width: 100px;
+}
+
+table tr:nth-child(odd) {
+	background: #fff;
+}
+
+table tr:nth-child(even) {
+	background: #F5FAFA;
+}
+</style>
+</head>
+<body>
+    <h1>若环境异常请联系运维人员</h1>
+    <table width="100%" height="100%" class="sztable" border="0" cellSpacing="0" cellPadding="0">
+        <thead>
+            <tr>
+                <th>项</th>
+                <th>详情</th>
+            </tr>
+        </thead>
+        <tr>
+            <td width="32%">招标文件检测</td>
+            <td><sz:if test="${BIDDING_DOCUMENTS!}">
+                    <span class="pass">√ 正常</span>
+                </sz:if> <sz:if test="${!BIDDING_DOCUMENTS!}">
+                    <span class="fail">× 异常</span>
+                </sz:if></td>
+        </tr>
+        <tr>
+            <td>补遗文件检测</td>
+            <td><sz:if test="${ADDENDUM_FILE!}">
+                    <span class="pass">√ 正常</span>
+                </sz:if> <sz:if test="${!ADDENDUM_FILE!}">
+                    <span class="fail">× 异常</span>
+                </sz:if></td>
+        </tr>
+        <tr>
+            <td>控制价检测</td>
+            <td><sz:if test="${CONTROL_PRICE!}">
+                    <span class="pass">√ 正常</span>
+                </sz:if> <sz:if test="${!CONTROL_PRICE!}">
+                    <span class="fail">× 异常</span>
+                </sz:if></td>
+        </tr>
+        <tr>
+            <td>投递文件检测</td>
+            <td><sz:if test="${TB_FILE!}">
+                    <span class="pass">√ 正常</span>
+                </sz:if> <sz:if test="${!TB_FILE!}">
+                    <span class="fail">× 异常</span>
+                </sz:if></td>
+        </tr>
+        <tr>
+            <td>交易平台访问检测</td>
+            <td><sz:if test="${EDE_URL!}">
+                    <span class="pass">√ 正常</span>
+                </sz:if> <sz:if test="${!EDE_URL!}">
+                    <span class="fail">×异常</span>
+                </sz:if></td>
+        </tr>
+        <tr>
+            <td>磁盘剩余空间检测</td>
+            <td><sz:if test="${DISK_FREE_SPACE>=30}">
+                    <span class="pass">${DISK_FREE_SPACE!}G</span>
+                </sz:if> <sz:if test="${DISK_FREE_SPACE<30}">
+                    <span class="fail">${DISK_FREE_SPACE!}G</span>
+                </sz:if></td>
+        </tr>
+        <tr style="height: 360px;">
+            <td colspan="2"><iframe src='${path}${adminPath}/wstest/view' width="100%" scrolling="auto" height="360px" frameborder="0"></iframe></td>
+        </tr>
+    </table>
+</body>
+</html>

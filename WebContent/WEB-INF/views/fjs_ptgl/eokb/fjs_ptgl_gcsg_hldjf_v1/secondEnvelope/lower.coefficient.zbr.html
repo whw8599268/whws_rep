@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>下浮系数抽取结果录入</title> <%includeJSP("/static/include/inc.jsp",{}){}%>
+<link href="${path}/static/css/table.css" rel="stylesheet" />
+<script src="${path}${adminPath}/view/im/js/CountDown.js" type="text/javascript"></script>
+<script src="${path}${adminPath}/view/metting_room/js/handlebars-v4.0.10.js" type="text/javascript"></script>
+<style>
+html,body {
+	height: 100%;
+	padding: 0;
+	margin: 0;
+}
+
+td {
+	border: 1px solid #B5D6E6;
+}
+</style>
+<script id="tip-template" type="text/x-handlebars-template">
+<div class="xtgg_div">
+	<p class="xtgg_p">推送时间：#{date}</p>
+    <p class="xtgg_p">[${TENDER_PROJECT_FLOW_NODE.V_NODE_NAME}]进入数据确认环节!</p>
+    <p class="xtgg_p">请各投标人进入[${TENDER_PROJECT_FLOW_NODE.V_NODE_NAME}]环节!</p>
+    <p class="xtgg_p"><a style="color:#fff;" href="javascript:void(0);" onclick="openContentPage('${path}${adminPath}/tpflow/node/${TENDER_PROJECT_FLOW_NODE.ID}','${TENDER_PROJECT_FLOW_NODE.V_NODE_NAME}')">点击进入</a></p>
+</div>
+</script>
+</head>
+<body>
+    <sz:if test="${TENDER_PROJECT_FLOW_NODE.N_STATUS!=3}">
+        <div style="text-align: right;">
+            <a id="data-staging-save-button" href="#" class="easyui-linkbutton" title="暂时保存下浮系数的球号信息以便最终确认保存结果做准备" data-options="iconCls:'icon-save'" onclick="doStagingSave();">暂存</a> <a id="data-save-button" href="#" class="easyui-linkbutton" title="确认下浮系数球号抽取没有错误，保存抽取结果并展示抽取结果给投标人" data-options="iconCls:'icon-save'" onclick="doSave();">保存抽取结果</a> <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-ok'" title="结束下浮系数球号抽取，进入下一个环节" onclick="finishCurrentFlow();">进入下一环节</a>
+        </div>
+    </sz:if>
+    <span id="count_down" style="display: none;"></span>
+    <div class="easyui-tabs" data-options="plain:true">
+        <sz:forEach items="${TENDER_PROJECT_LC_LIST}" var="lc,stat">
+            <div title="标段：${lc.SECTION_INFO.V_BID_SECTION_NAME}" style="padding: 10px;">
+                <form id="${lc.SECTION_INFO.V_BID_SECTION_ID}-METHOD-FORM">
+                    <input type="hidden" id="${lc.SECTION_INFO.V_BID_SECTION_ID}-V_BID_SECTION_ID" name="V_BID_SECTION_ID" value="${lc.SECTION_INFO.V_BID_SECTION_ID}"> <input type="hidden" id="${lc.SECTION_INFO.V_BID_SECTION_ID}-V_BID_SECTION_NAME" name="V_BID_SECTION_NAME" value="${lc.SECTION_INFO.V_BID_SECTION_NAME}">
+                    <div>
+                        <div style="width: 30%; float: left;">
+                            <div style="font-size: 18px; color: #ff7300; font-weight: bold;">通过第一数字信封评审的投标家数：${lc.TOTAL_BIDDER}家</div>
+                            <div style="font-size: 18px; color: #ff7300; font-weight: bold;">有效投标家数：${lc.TOTAL_EFFECTIVE_BIDDER}家</div>
+                            <div style="font-size: 18px; color: #ff7300; font-weight: bold;">
+                                计算基准价方法：
+                                <sz:if test="${lc.METHOD == -1}">小于15家算法</sz:if>
+                                <sz:if test="${lc.METHOD == 1}">方法一</sz:if>
+                                <sz:if test="${lc.METHOD == 2}">方法二</sz:if>
+                                <sz:if test="${lc.METHOD == 3}">方法三</sz:if>
+                            </div>
+                            <div style="font-size: 18px; color: #ff7300; font-weight: bold;">
+                                系数抽取范围：
+                                <sz:if test="${lc.COEFFICIENT_INFO.COEFFICIENT_NO==1}">2～5%</sz:if>
+                                <sz:if test="${lc.COEFFICIENT_INFO.COEFFICIENT_NO==2}">-1～2%</sz:if>
+                                <sz:if test="${lc.COEFFICIENT_INFO.COEFFICIENT_NO==3}">-4～-1%</sz:if>
+                            </div>
+                            <div style="font-size: 18px; color: #ff7300; font-weight: bold;">
+                                抽取球号： <select id="${lc.SECTION_INFO.V_BID_SECTION_ID}-YAOHAO_RESULT" name="YAOHAO_RESULT" style="width: 100px;" onchange="showSelectMethodTipInfo('${lc.SECTION_INFO.V_BID_SECTION_ID}')">
+                                    <option value="">请选择</option>
+                                    <sz:forEach items="${lc.COEFFICIENT_INFO.LIST_VALUS}" var="lv,step">
+                                        <sz:if test="${lv.NO!=null && lv.NO!=''}">
+                                            <option value="${lv.NO}"
+                                                <sz:if test="${lv.NO==lc.YAOHAO_NO}">selected="selected"</sz:if>
+                                                >${lv.NO}
+                                            </option>
+                                        </sz:if>
+                                    </sz:forEach>
+                                </select> <input type="hidden" id="${lc.SECTION_INFO.V_BID_SECTION_ID}-YAOHAO_RESULT_VALUE" name="COEFFCIENT_VALUE" value="${lc.COEFFCIENT_VALUE}">
+                            </div>
+                            <div style="font-size: 18px; color: #ff7300; font-weight: bold;">
+                                代表系数：<span id="${lc.SECTION_INFO.V_BID_SECTION_ID}-METHOD_TIP" style="font-size: 18px; color: #ff7300; font-weight: bold;">${lc.COEFFCIENT_VALUE}</span>%
+                            </div>
+                        </div>
+                        <!-- 小于15家的方法 -->
+                        <div style="width: 20%; float: left;">
+                            <table class="sztable" width="100%" style="text-align: center;">
+                                <thead>
+                                    <tr>
+                                        <td width="50%">系数</td>
+                                        <td width="50%">球号</td>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <sz:forEach items="${lc.COEFFICIENT_INFO.LIST_VALUS}" var="lv,step">
+                                        <tr>
+                                            <td><span id="${lc.SECTION_INFO.V_BID_SECTION_ID}-${step.index}-text">${lv.VALUE}</span></td>
+                                            <td><input id="${lc.SECTION_INFO.V_BID_SECTION_ID}-${step.index}" name="${step.index}" class="easyui-validatebox" onchange="modifyYaoHaoSelectValue('${lc.SECTION_INFO.V_BID_SECTION_ID}');" value="${lv.NO}" data-options="required:true" style="width: 50px;" maxlength="4"></td>
+                                        </tr>
+                                    </sz:forEach>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </sz:forEach>
+    </div>
+
+
+    <script type="text/javascript">
+                    //初始化
+                    $(function() {
+                        getConfirmStatus();
+                    });
+                    //获取确认状态值
+                    function getConfirmStatus() {
+                        $.ajax({
+                            async : true,
+                            cache : false,
+                            type : 'get',
+                            dataType : "json",
+                            //data : data,
+                            url : "${path}${adminPath}/bus/modelCheck/status/DEXF_LOWER_COEFFICIENT",//请求的action路径  
+                            error : function(XMLHttpRequest, textStatus, errorThrown) {//请求失败处理函数  
+                                var result = jQuery.parseJSON(XMLHttpRequest.responseText);
+                                $.messager.alert('异步获取数据出现异常', "异步获取数据出现异常[" + result.errorDesc + "]");
+                            },
+                            success : function(rs) { //请求成功后处理函数。 
+                                //没确人过
+                                if (!rs.success) {
+                                    return;
+                                }
+                                var result = rs.result;
+                                //未确认
+                                if (rs.success && result.V_STATUS == '0') {
+                                    return;
+                                }
+                                $("#data-staging-save-button").hide();
+                                $("#data-save-button").hide();
+                                var endTime = result.N_CONFIRM_TIME;
+                                var beginTime = result.NOW_TIME;
+                                var _date = new Date(endTime);
+                                showTime(_date.format('hh:mm:ss'));
+                                countDown(beginTime, endTime);
+                            }
+                        });
+                    }
+                    /**修改标段摇号下拉框值**/
+                    function modifyYaoHaoSelectValue(sid) {
+                        var html = '<option value="">请选择</option>';
+                        var id = "#" + sid + "-";
+                        var value;
+                        for ( var i = 0; i < 7; i++) {
+                            var idt = id + i;
+                            value = $(idt).val();
+                            if (typeof (value) != "undefined" && null != value && "" != value) {
+                                html += '<option value="'+value+'">' + value + '</option>';
+                            }
+                        }
+                        $("#" + sid + "-YAOHAO_RESULT").html(html);
+                    }
+
+                    /**显示所选方法提示**/
+                    function showSelectMethodTipInfo(sid) {
+                        var rs = $("#" + sid + "-YAOHAO_RESULT").val();
+                        var html = '';
+                        var id = "#" + sid + "-";
+                        var value;
+                        for ( var i = 0; i < 7; i++) {
+                            var idt = id + i;
+                            value = $(idt).val();
+                            if (rs == value) {
+                                html = $(idt + "-text").html();
+                                $("#" + sid + "-YAOHAO_RESULT_VALUE").val($(idt + "-text").html());
+                                break;
+                            }
+                        }
+                        $("#" + sid + "-METHOD_TIP").html(html);
+                    }
+
+                    // 判断是否有重复球号
+                    function arrRepeat(param){
+                    	//获取json长度 
+                        var jslength=0;
+                        for(var js2 in param){
+                           jslength++;
+                        }  
+                        //将对应数字放入数组 
+                        var arr = new Array();
+                        for(var h=0;h<jslength;h++){
+                        	if(param[""+h+""]){
+                        		arr.push(param[""+h+""])
+                        	}
+                        }
+                    	
+                    	arr.sort(); 
+                    	for(var i=0;i<arr.length;i++){ 
+                        	if (arr[i]==arr[i+1]){ 
+                        	   return arr[i];
+                        	}
+                    	}
+                    	return 'true';
+                    }
+                    
+                    /**暂存**/
+                    function doStagingSave() {
+                    	var validate = true;
+                        var sections = new Array();
+                        $("form").each(function() {
+                            var param = $(this).form2json({
+                                allowEmptySingleVal : false
+                            });
+                            
+                            //判断数组是否有重复  出现重复会提示重复数组，不重复返回true
+                            var flag=arrRepeat(param);
+                            var sectionName=param['V_BID_SECTION_NAME'];
+                            if(flag!='true'){
+                            	alert("标段："+sectionName+"出现重复数字"+flag);
+                            	validate = false;
+                            	return;
+                            }
+                            sections.push(param); 
+                        });
+                        
+                        if (!validate) {
+                            return;
+                        }
+                        
+                        var obj = new Object();
+                        obj.SECTION_METHODS = sections;
+                        // 发生Ajax请求
+                        $.ajax({
+                            url : '${path}${adminPath}/fjs_ptgl_gcsg_hldjf_v1/lc/${TENDER_PROJECT_FLOW_NODE.ID}',
+                            // 设置请求方法
+                            type : 'POST',
+                            //dataType : 'json',
+                            contentType : 'application/json;charset=UTF-8',
+                            data : JSON.stringify(obj),
+                            // 成功回调
+                            success : function(result) {
+                                parent.sy.progress.hide();
+                                parent.sy.messagerShow({
+                                    msg : "操作成功!",
+                                    title : '提示'
+                                });
+                            },
+                            // 失败回调
+                            error : function(XMLHttpRequest, textStatus, errorThrown) {
+                                parent.sy.progress.hide();
+                                var result = jQuery.parseJSON(XMLHttpRequest.responseText);
+                                top.$.messager.alert('操作失败', "操作失败[" + result.errorDesc + "]");
+                            }
+                        });
+                    }
+
+                    /**保存**/
+                    function doSave() {
+                        var sections = new Array();
+                        var validate = true;
+                        $("form").each(function() {
+                            var param = $(this).form2json({
+                                allowEmptySingleVal : false
+                            });
+                            
+                          //判断数组是否有重复  出现重复会提示重复数组，不重复返回true
+                            var flag=arrRepeat(param);
+                            var sectionName=param['V_BID_SECTION_NAME'];
+                            if(flag!='true'){
+                            	alert("标段："+sectionName+"出现重复数字"+flag);
+                            	validate = false;
+                            	return;
+                            }
+                            
+                            if (!$(this).form('validate')) {
+                                alert("标段：" + param.V_BID_SECTION_NAME + "-尚有球号未录入!");
+                                validate = false;
+                                return;
+                            }
+                            if (typeof (param.YAOHAO_RESULT) == "undefined" || null == param.YAOHAO_RESULT || "" == param.YAOHAO_RESULT) {
+                                alert("标段：" + param.V_BID_SECTION_NAME + "-抽取球号未录入!");
+                                validate = false;
+                                return;
+                            }
+                            sections.push(param);
+                        });
+                        if (!validate) {
+                            return;
+                        }
+                        //alert(JSON.stringify(sections));
+                        var obj = new Object();
+                        obj.SECTION_METHODS = sections;
+                        // 发生Ajax请求
+                        $.ajax({
+                            url : '${path}${adminPath}/fjs_ptgl_gcsg_hldjf_v1/lc/${TENDER_PROJECT_FLOW_NODE.ID}',
+                            // 设置请求方法
+                            type : 'POST',
+                            //dataType : 'json',
+                            contentType : 'application/json;charset=UTF-8',
+                            data : JSON.stringify(obj),
+                            // 成功回调
+                            success : function(result) {
+                                dataConfirm();
+                            },
+                            // 失败回调
+                            error : function(XMLHttpRequest, textStatus, errorThrown) {
+                                parent.sy.progress.hide();
+                                var result = jQuery.parseJSON(XMLHttpRequest.responseText);
+                                top.$.messager.alert('操作失败', "操作失败[" + result.errorDesc + "]");
+                            }
+                        });
+                    }
+
+                    //发起确认
+                    function dataConfirm() {
+                        $.ajax({
+                            url : "${path}${adminPath}/bus/modelCheck/updateStatus",
+                            // 设置请求方法
+                            type : "POST",
+                            data : {
+                            	type : "DEXF_LOWER_COEFFICIENT",
+                    			tableName:"EKB_T_TENDER_LIST"
+                            },
+                            // dataType : 'json',
+                            // contentType : 'application/json;charset=UTF-8',
+                            // 成功回调
+                            success : function(result) {
+                                var html = getTemplateHtml("tip-template");
+                                parent.sendFlowCommandToBidder(html);
+                                location.reload();
+                            },
+                            // 失败回调
+                            error : function(XMLHttpRequest, textStatus, errorThrown) {
+                                var result = jQuery.parseJSON(XMLHttpRequest.responseText);
+                                $.messager.alert('操作失败', "操作失败[" + result.errorDesc + "]");
+                            }
+                        });
+                    }
+
+                    /**获取模板中的Html内容**/
+                    function getTemplateHtml(tempid) {
+                        // 用jquery获取模板
+                        var source = $("#" + tempid).html();
+                        // 预编译模板
+                        var template = Handlebars.compile(source);
+                        return template(new Object());
+                    }
+
+                    //定时器
+                    function countDown(begin, end) {
+                        var startDate = new Date(begin);
+                        var endDate = new Date(end);
+                        //开始时间小于结束时间
+                        if (startDate < endDate) {
+                            //var en
+                            //endDate.setDate(endDate.getDate()+1);
+                            CountDown.openTimeCountByStartAndEndDate({
+                                Ele : document.getElementById('count_down'),
+                                StartDate : startDate,
+                                EndDate : endDate,
+                                Sign : 'flypie',
+                                Divider : ':',
+                                EndFunc : function() {
+                                    //时间结束，自动确认
+                                    endConfirm();
+                                  	//刷新投标人页面
+                            		parent.sendFlowFlushPage();
+                                    location.reload();
+                                }
+                            });
+                        }
+                    }
+
+                    //确认时间
+                    function showTime(_time) {
+                        var endDate = new Date(_time);
+
+                        $("#con-time-zbr").css("display", "block");
+                        $("#time-zbr").html(_time);
+                    }
+
+                    /**结束当前节点**/
+                    function finishCurrentFlow() {
+                    	if(!${alreadyLaunched}){
+                			$.messager.alert('操作提示', "尚未保存抽取结果");
+                			return;
+                		}
+                    	
+                        endConfirm();
+                      	//刷新投标人页面
+                		parent.sendFlowFlushPage();
+                        parent.finishCurrentFlowNode('${TENDER_PROJECT_FLOW_NODE.ID}', '${TENDER_PROJECT_FLOW_NODE.V_NODE_NAME}');
+                        
+                      	//生成doc文件
+                		parent.createDoc('ptgl','fjs_ptgl_gcsg_hldjf_v1', 'secondEnvelope,${TENDER_PROJECT_FLOW_NODE.ID}',
+                				'DEXF_LOWER_COEFFICIENT');
+                    }
+
+                    //结束确认
+                    function endConfirm() {
+                        $.ajax({
+                            url : "${path}${adminPath}/bus/modelCheck/end",
+                            // 设置请求方法
+                            type : "POST",
+                            data : {
+                            	type : "DEXF_LOWER_COEFFICIENT",
+                    			tableName:"EKB_T_TENDER_LIST"
+                            },
+                            // dataType : 'json',
+                            // contentType : 'application/json;charset=UTF-8',
+                            // 成功回调
+                            success : function(result) {
+                            },
+                            // 失败回调
+                            error : function(XMLHttpRequest, textStatus, errorThrown) {
+                                var result = jQuery.parseJSON(XMLHttpRequest.responseText);
+                                $.messager.alert('操作失败', "操作失败[" + result.errorDesc + "]");
+                            }
+                        });
+                    }
+                </script>
+</body>
+</html>

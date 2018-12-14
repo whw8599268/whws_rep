@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<!-- 启用360浏览器的极速模式(webkit) -->
+<meta name="renderer" content="webkit">
+<!-- 避免IE使用兼容模式 -->
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<title>角色选择页面</title>
+<style type="text/css">
+<!--
+.user-mod {
+	background-color: #FFF;
+	height: 380px;
+	width: 380px;
+}
+
+.user-login {
+	margin: 40px;
+	width: 300px;
+}
+
+.role-zb {
+	float: left;
+	height: 116px;
+	width: 298px;
+	margin-bottom: 20px;
+	margin-top: 10px;
+	cursor: pointer;
+}
+
+.role-tb {
+	float: left;
+	height: 116px;
+	width: 298px;
+	margin-top: 20px;
+	cursor: pointer;
+}
+-->
+</style>
+
+<script type="text/javascript">
+	function login(type) {
+		parent.setCurrentRoleName(type);
+		if (0 == type) {
+			//招标人
+			location.href = "${path}${adminPath}/o2c/auth?user_type=0";
+		}
+		if (1 == type) {
+			//投标人
+			location.href = "${path}${adminPath}/o2c/auth?user_type=1";
+		}
+	}
+</script>
+</head>
+
+<body>
+    <div class="user-mod">
+        <div class="user-login">
+            <span class="role-zb" onclick="login(0)"><img src="${path}${adminPath}/view/login/images/role_zb.png" width="298" height="116" /></span> <span class="role-tb" onclick="login(1)"><img src="${path}${adminPath}/view/login/images/role_tb.png" width="298" height="116" /></span>
+        </div>
+    </div>
+</body>
+</html>

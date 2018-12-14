@@ -1,0 +1,2 @@
+INSERT INTO T_SYS_PARAM (PARAM_ID, PARAM_KEY, PARAM_VALUE, PARAM_RULE, PARAM_TIP, PARAM_DEMO) VALUES ('289d2145f45d4b6e82982f0d7660ea26', 'com.sozone.ekb.url', 'http://xxx.okap.com', '.*', '海迈访问调用地址的基础路径', '海迈访问调用地址的基础路径');
+INSERT INTO T_SYS_PARAM (PARAM_ID, PARAM_KEY, PARAM_VALUE, PARAM_RULE, PARAM_TIP, PARAM_DEMO) VALUES ('88e57703f9b8479b96c4d009697e33ed', 'com.sozone.ekb.haimaiUrl', 'http://xxx', '.*', '海迈基础路径', '海迈基础路径');

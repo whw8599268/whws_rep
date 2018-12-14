@@ -1,0 +1,129 @@
+<!doctype html>
+<html>
+
+<head>
+<meta charset="UTF-8">
+<title>福建省高速公路电子化开标辅助系统</title> <%includeJSP( "/static/include/inc.jsp",{}){}%>
+<link href="${path}${adminPath}/view/frame/css/kb.css" rel="stylesheet" type="text/css" />
+<script type="text/javascript">
+    function isreturn() {
+        window.location.href = "${path}${adminPath}/view/login/login-k.html?";
+    }
+
+    SZUtilsExtEasyUIListPage.datagrid.pagination();
+    /**
+     * 查询
+     */
+    function doSearch() {
+        // 使用Form2Json插件处理,同时过滤掉空数据
+        var searchParam = $('#searchForm').form2json({
+            allowEmptySingleVal : false
+        });
+        $('#formGrid-tbr-info').datagrid('load', searchParam);
+    }
+    /**
+     * 清空
+     */
+    function doClear() {
+        $('#searchForm').form('reset');
+        $('#formGrid-tbr-info').datagrid('load', {});
+    }
+
+    var GridFormatter = {
+        "OPERATION" : function(value, row, index) {
+            var id = row.ID;
+            var status = row.V_SIGN_STATUS;
+            //返回链接
+            var res = '';
+            if (status == '1') {
+                res += "<span style='cursor:pointer;text-decoration: underline;color:blue;' onclick='intoProject(\"" + index + "\")'>进入开标会</span>";
+
+            } else if (status == '0') {
+                res += "<span style='cursor:pointer;text-decoration: underline;color:blue;' onclick='bidderSignIn(\"" + index + "\")' >签到</span>";
+            }
+            return res;
+        }
+    };
+
+    function intoProject(index) {
+        var data = $('#formGrid-tbr-info').datagrid("getRows")[index];
+        var tpid = data.ID;
+        $.ajax({
+            url : '${path}${adminPath}/bus/project/tbrgo/' + tpid,
+            // 设置请求方法
+            type : 'GET',
+            cache : false,
+            // dataType : 'json',
+            //contentType : 'application/json;charset=UTF-8',
+            // data : data,
+            // 成功回调
+            success : function(result) {
+                //跳转到投标人操作列表
+                forward();
+            },
+            // 失败回调
+            error : function(XMLHttpRequest, textStatus, errorThrown) {
+                var result = jQuery.parseJSON(XMLHttpRequest.responseText);
+                top.$.messager.alert('操作失败', "操作失败[" + result.errorDesc + "]");
+            }
+        });
+    }
+    //请求跳转
+    function forward() {
+        window.location.href = "${path}${adminPath}/view/frame/frame.kb.tbr.html";
+    }
+
+    //签到
+    function bidderSignIn(index) {
+        var data = $('#formGrid-tbr-info').datagrid("getRows")[index];
+        var tbid = data.ID;
+        $.ajax({
+            url : '${path}${adminPath}/bus/signin/tbr/' + tpid,
+            // 设置请求方法
+            type : 'GET',
+            cache : false,
+            // dataType : 'json',
+            //contentType : 'application/json;charset=UTF-8',
+            // data : data,
+            // 成功回调
+            success : function(result) {
+                //刷新列表
+                $('#formGrid-tbr-info').datagrid('load', {});
+                top.$.messager.alert('提示', data.V_TENDER_PROJECT_NAME + "项目签到成功，请进入开标会!");
+            },
+            // 失败回调
+            error : function(XMLHttpRequest, textStatus, errorThrown) {
+                var result = jQuery.parseJSON(XMLHttpRequest.responseText);
+                top.$.messager.alert('提示', "操作失败[" + result.errorDesc + "]");
+            }
+        });
+    }
+</script>
+</head>
+
+<body style="font-size: 16px;">
+    <div class="header">
+        <div class="logo"></div>
+        <div class="head-rg">
+            <% var user = authz.getCurrentUser();%> <span class="user">投标人：</span><span class="user-name" title=${user.V_NAME}>${user.V_NAME}</span> <span class="exit"><a style="color: #fff;" href="${path}${adminPath}/authc/logout"><img src="images/exit.png" width="17" height="22" />安全退出</a></span>
+        </div>
+    </div>
+
+    <!-- 表格 -->
+    <table id="formGrid-tbr-info" style="width: auto; height: auto" class="easyui-datagrid" title="" toolbar="#searchForm-toolbar" rownumbers="true" fitColumns="true" fit="true" url="${path}${adminPath}/bus/project/tbrlist" pageList="[15,25,50,100,200]" pageSize="15" pagination="true" nowrap="false" data-options="method:'get'">
+        <thead>
+            <tr>
+                <th field="ID" align="center" hidden="true"></th>
+                <th field="V_BIDOPEN_TIME" align="center" halign="center" width="54" data-options="">开标时间</th>
+                <th field="V_TENDER_PROJECT_NAME" align="left" halign="center" width="120" data-options="">招标项目名称</th>
+                <th field="V_INVITENO" align="left" halign="center" width="120" data-options="">招标项目编号</th>
+                <th field="V_SIGN_IN_TIME" align="center" halign="center" width="54" data-options="">签到时间</th>
+                <th field="V_SIGN_STATUS" align="center" halign="center" width="35" formatter="GridFormatter.OPERATION">操作</th>
+            </tr>
+        </thead>
+    </table>
+    <!-- 搜索工具栏 -->
+    <div id="searchForm-toolbar" style="padding: 5px; height: auto"></div>
+</body>
+
+</html>

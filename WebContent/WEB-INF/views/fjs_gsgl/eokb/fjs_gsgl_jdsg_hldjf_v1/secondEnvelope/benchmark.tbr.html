@@ -1,0 +1,253 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>评标基准价计算记录表</title> <%includeJSP("/static/include/inc.jsp",{}){}%>
+<link href="${path}/static/css/table.css" rel="stylesheet" />
+<style>
+td {
+	border: 1px solid #B5D6E6;
+	word-break: break-all;
+}
+</style>
+<script type="text/javascript">
+	var modelType = "DEXF_price";
+	$(function() {
+		getConfirmStatus();
+	});
+
+	//确认时间
+	function showTime(_time) {
+		$("#con-time-tbr").css("display", "block");
+		$("#time-tbr").html(_time);
+	}
+
+	//获取确认状态值
+	function getConfirmStatus() {
+		$.ajax({
+			async : true,
+			cache : false,
+			type : 'get',
+			dataType : "json",
+			//data : data,
+			url : "${path}${adminPath}/bus/modelCheck/status/"+modelType,//请求的action路径  
+			error : function(XMLHttpRequest, textStatus, errorThrown) {//请求失败处理函数  
+				var result = jQuery.parseJSON(XMLHttpRequest.responseText);
+				$.messager.alert('异步获取数据出现异常', "异步获取数据出现异常[" + result.errorDesc
+						+ "]");
+			},
+			success : function(rs) { //请求成功后处理函数。 
+				//没确人过
+				if (!rs.success) {
+					return;
+				}
+				var result = rs.result;
+				//未确认
+				if (rs.success && result.V_STATUS == '0') {
+					return;
+				}
+				var endTime = result.N_CONFIRM_TIME;
+				var _date = new Date(endTime);
+				showTime(_date.format('hh:mm:ss'));
+			}
+		});
+	}
+
+	//基准价方法对话框
+	function methodDialog(obj) {
+		var _value = $("#list_size").val();
+		if (_value == 1) {
+			$.messager.alert('提示', '尚未计算评标基准价');
+			return;
+		}
+		var p = parent.sy
+				.dialog({
+					title : '&nbsp;基准价方法',
+					// iconCls: "icon-man",
+					href : '${path}${adminPath}/bus/benchmark/record/'+ obj,
+					width : 1200,
+					height : 450,
+
+				});
+	}
+
+	//tableName:ekb_t_record_b,ekb_t_record_b
+	//mode:V_ELECTRONICS_CONFIRM....
+	//flag:1:点击确认 2：点击不确认
+	function confirm(busName, status, tpid, id) {
+		if (status == 1) {
+			var remark = "确认";
+			parent.$.messager.confirm("提示", "确认当前信息无误?", function(r) {
+				if (r) {
+					sendAjax(busName, status, tpid, id, remark)
+				}
+			});
+		} else {
+			var p = parent.sy
+					.dialog({
+						title : '不同意说明',
+						width : 300,
+						height : 200,
+						content : "<input id='con-msg'  class='easyui-textbox' type='text' data-options='multiline:true,required:false' style='width: 100%; height: 100%;'/> ",
+						closed : false,
+						cache : false,
+						modal : true,
+						buttons : [
+								{
+									text : "确定",
+									iconCls : "icon-ok",
+									handler : function() {
+										var remark = p.find("#con-msg").val();
+										if (remark.length == 0
+												|| parent.isNull(remark)) {
+											alert("请输入不同意理由");
+											return;
+										}
+										if (remark.length >= 200) {
+											alert("您输入的内容过长");
+											return;
+										}
+										remark = '不确认原因:' + remark;
+										sendAjax(busName, status, tpid, id,
+												remark);
+										p.dialog('close');
+									}
+								}, {
+									text : "取消",
+									iconCls : "icon-remove",
+									handler : function() {
+										p.dialog('close');
+									}
+								} ],
+
+						onLoad : function() {
+						}
+					});
+		}
+	}
+
+	function sendAjax(busName, status, tpid, id, remark) {
+		parent.sy.progress.show();
+		$.ajax({
+			async : true,
+			cache : false,
+			type : 'post',
+			data : {
+				busName : busName,
+				remark : remark,
+				status : status,
+				id : id,
+				tpid : tpid
+			},
+			cache : false,
+			//dataType : "json",
+			//data : data,
+			url : "${path}${adminPath}/bus/modelCheck/confirm",//请求的action路径  
+			error : function(XMLHttpRequest, textStatus, errorThrown) {//请求失败处理函数  
+				parent.sy.progress.hide();
+				var result = jQuery.parseJSON(XMLHttpRequest.responseText);
+				$.messager.alert('异步获取数据出现异常', "异步获取数据出现异常[" + result.errorDesc
+						+ "]");
+			},
+			success : function(result) { //请求成功后处理函数。  
+				parent.sy.progress.hide();
+				<% var user = authz.getCurrentUser();%>
+				//发送响应指令
+				var msg = "同意";
+				if (2 == status) {
+					msg = "不同意";
+				}
+				var param = new Object();
+				msg = "${user.V_NAME}-" + msg + "-投标基准价";
+				param.msg = msg;
+				param.nodeID = "${TENDER_PROJECT_FLOW_NODE.ID}";
+				param.title = "${TENDER_PROJECT_FLOW_NODE.V_NODE_NAME}";
+				parent.sendRespCommand(param);
+				$.messager.alert('操作成功', "操作成功");
+				location.reload();
+			}
+		});
+	}
+</script>
+</head>
+
+<body>
+    <sz:if test="${TENDER_PROJECT_FLOW_NODE.N_STATUS!=3}">
+        <div style="font-size: 25px; text-align: center; color: red; display: none;" id="con-time-tbr">
+            请在<span style="font-size: 25px; text-align: center; color: red;" id="time-tbr"></span>之前确认
+        </div>
+    </sz:if>
+    <!-- 数据 -->
+    <div class="easyui-tabs" data-options="plain:true">
+        <sz:forEach items="${SECTION_LIST}" var="section,stat">
+            <div title="标段：${section.BID_SECTION_NAME}" style="padding: 10px;">
+                <div style="margin-bottom: 10px; color: blue;">
+                    <span style="line-height: 18px; font-size: 18px;">评标基准价（元）:&nbsp;&nbsp;${fmt.format("###,##0",section.N_EVALUATION_PRICE)}</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span style="line-height: 18px; font-size: 18px;">最高限价（元）:&nbsp;&nbsp;${fmt.format("###,##0",section.N_CONTROL_PRICE)}</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    <sz:if test="${section.JZJ_INFO!=null}">
+                        <span style="line-height: 18px; font-size: 18px;">下浮系数:&nbsp;&nbsp;${fmt.format("###,##0.00",section.JZJ_INFO.N_DOWN*100)}%</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                        <a href="javascript:void(0)" class="easyui-linkbutton" onclick="methodDialog('${section.JZJ_INFO.V_BID_SECTION_ID}')" style="width: 120px"> 基准价方法:${section.JZJ_INFO.N_METHOD}</a>
+                    </sz:if>
+                </div>
+
+                <table class="sztable" width="100%" style="text-align: center;">
+                    <thead>
+                        <tr>
+                            <td width="10%">投标人编号</td>
+                            <td width="30%">投标人名称</td>
+                            <td width="10%">投标报价（元）</td>
+                            <td width="30%">投标人确认</td>
+                        </tr>
+                    </thead>
+                    <sz:forEach items="${section.TENDER_LIST}" var="vo,step">
+                        <!-- 是自己 -->
+                        <sz:if test="${SessionUtils.getEntUniqueCode()==vo.V_BIDDER_ORG_CODE}">
+                            <tr style="color: blue; font-weight: bold; font-size: 14;">
+                                <td>${vo.V_BIDDER_NO}</td>
+                                <td>${vo.V_BIDDER_NAME}</td>
+                                <td>${fmt.format("###,##0",vo.N_PRICE)}</td>
+                                <!-- 已发起确认 -->
+                                <sz:if test="${section.ALREADY_LAUNCHED}">
+
+                                    <!-- 如果为空-->
+                                    <sz:if test="${vo.V_STATUS == null}">
+                                        <td><a href="javascript:void(0)" class="easyui-linkbutton" onclick="confirm('DEXF_price','1','${vo.V_TPID}','${vo.ID}')" style="width: 80px">同意</a> <a href="javascript:void(0)" class="easyui-linkbutton" onclick="confirm('DEXF_price','2','${vo.V_TPID}','${vo.ID}')" style="width: 80px">不同意</a></td>
+                                    </sz:if>
+                                    <sz:if test="${vo.V_STATUS != null}">
+                                        <td>${vo.V_REMARK!}</td>
+                                    </sz:if>
+                                </sz:if>
+                                <!-- 未发起确认 -->
+                                <sz:if test="${!section.ALREADY_LAUNCHED}">
+                                    <td></td>
+                                </sz:if>
+                            </tr>
+                        </sz:if>
+                        <!-- 不是自己 -->
+                        <sz:if test="${SessionUtils.getEntUniqueCode()!=vo.V_BIDDER_ORG_CODE}">
+                            <tr>
+                                <td>${vo.V_BIDDER_NO}</td>
+                                <td>${vo.V_BIDDER_NAME}</td>
+                                <td>${fmt.format("###,##0",vo.N_PRICE)}</td>
+                                <!-- 已发起确认 -->
+                                <sz:if test="${section.ALREADY_LAUNCHED}">
+                                    <!-- 如果为空-->
+                                    <sz:if test="${vo.V_STATUS == null}">
+                                        <td></td>
+                                    </sz:if>
+                                    <sz:if test="${vo.V_STATUS != null}">
+                                        <td>${vo.V_REMARK!}</td>
+                                    </sz:if>
+                                </sz:if>
+                                <!-- 未发起确认 -->
+                                <sz:if test="${!section.ALREADY_LAUNCHED}">
+                                    <td></td>
+                                </sz:if>
+                            </tr>
+                        </sz:if>
+                    </sz:forEach>
+                </table>
+            </div>
+        </sz:forEach>
+    </div>
+</body>
+</html>

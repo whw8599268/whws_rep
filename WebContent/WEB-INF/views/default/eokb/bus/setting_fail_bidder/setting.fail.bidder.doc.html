@@ -1,0 +1,31 @@
+
+<!-- 数据 -->
+<div class="easyui-tabs" data-options="plain:true">
+    <sz:forEach items="${SECTION_LIST}" var="section,stat">
+        <caption>标段：${section.V_BID_SECTION_NAME}</caption>
+            <table class="sztable" width="100%" style="text-align: center;">
+                <thead>
+                    <tr>
+                        <td width="20%">投标人编号</td>
+                        <td width="50%">投标人名称</td>
+                        <td width="20%">关联编号</td>
+                        <td width="10%">操作</td>
+                    </tr>
+                </thead>
+                <sz:forEach items="${section.TENDER_LIST}" var="vo,step">
+                    <tr>
+                        <td>${vo.V_BIDDER_NO}</td>
+                        <td>${vo.V_BIDDER_NAME}</td>
+                        <td>${vo.V_CORRELATE_CODE!}</td>
+                        <sz:if test="${vo.N_ENVELOPE_0==1}">
+                            <td><span style="color: green;">正常</span></td>
+                        </sz:if>
+                        <sz:if test="${vo.N_ENVELOPE_0==0}">
+                            <td><span style="color: red;">已否决</span></td>
+                        </sz:if>
+                    </tr>
+                </sz:forEach>
+            </table>
+        </div>
+    </sz:forEach>
+</div>

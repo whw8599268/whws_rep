@@ -1,0 +1,49 @@
+<div>
+    <p style="font-size: 25px; text-align: center; font-weight: bold;">
+        <u style="font-size: 25px; text-align: center; font-weight: bold;">${PROJECT_NAME}</u>（项目名称）<u style="font-size: 25px; text-align: center; font-weight: bold;">${GROUP} </u>组别开标记录表
+    </p>
+    <p style="font-size: 25px; text-align: center; font-weight: bold;">第一信封（商务文件）</p>
+    <p style="font-size: 18px; text-align: center; font-weight: bold;">
+        组别包括标段：<u style="font-size: 18px; text-align: center; font-weight: bold;">${SECTIONS} </u>开标时间：<u style="font-size: 18px; text-align: center; font-weight: bold;"> ${TIME}</u>
+    </p>
+</div>
+<div class="easyui-tabs" data-options="plain:true">
+    <sz:forEach items="${SECTION_LIST}" var="section,stat">
+        <sz:if test="${!SessionUtils.isSectionGroup()}">
+            <caption>标段：${section.BID_SECTION_NAME}</caption>
+        </sz:if>
+        <table class="sztable" width="100%" style="text-align: center;">
+            <tr>
+                <td width="5%" rowspan="2">序号</td>
+                <td width="20%" rowspan="2">投标人名称</td>
+                <td width="10%" rowspan="2">投标保证金递交情况</td>
+                <td width="10%" rowspan="2">解密情况</td>
+                <td width="10%" rowspan="2">递交投标文件电脑的Mac地址</td>
+                <td width="30%" colspan="3">投标人信用分申请使用情况</td>
+                <td width="15%" rowspan="2">备注</td>
+            </tr>
+            <tr>
+                <td width="15%">单位</td>
+                <td width="7%">项目经理</td>
+                <td width="7%">技术负责人</td>
+            </tr>
+            <sz:forEach items="${section.TENDER_LIST}" var="vo,step">
+                <tr>
+                    <td>${step.index+1}</td>
+                    <td>${vo.V_BIDDER_NAME}</td>
+                    <td>${vo.bzjdjqk}</td>
+                    <td>成功</td>
+                    <td>第一信封：${vo.firstMac!}</br>第二信封：${vo.secondMac!}
+                    </td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td>${vo.firstRemark!}</td>
+                </tr>
+            </sz:forEach>
+        </table>
+    </sz:forEach>
+</div>
+<div style="font-size: 18px; text-align: center; font-weight: bold;">
+    <p>招标人代表：______记录人：_____ 监标人：____</p>
+</div>

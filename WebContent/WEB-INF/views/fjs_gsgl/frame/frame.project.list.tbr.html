@@ -1,0 +1,257 @@
+<!doctype html>
+<html>
+
+<head>
+<meta charset="UTF-8">
+<title>高速公路电子招投标开标辅助系统</title> <%includeJSP( "/static/include/inc.jsp",{}){}%>
+<link href="${path}${adminPath}/view/frame/css/frame.list.css" rel="stylesheet" type="text/css" />
+<script type="text/javascript" src="${path}${adminPath}/view/frame/js/logout.js"></script>
+<script type="text/javascript">
+    $.extend($.fn.validatebox.defaults.rules, {   
+        telNum:{ //既验证手机号，又验证座机号
+          validator: function(value, param){
+              return /(^1[34578]\d{9}$)/.test(value);
+             },   
+             message: '请输入正确的电话号码。'
+        }  
+    });
+    $(function() {
+        //投标人项目信息列表
+        $('#formGrid-tbr-info').datagrid({
+            pagination : false,
+            loadFilter : resultFilter,
+            onBeforeLoad : onBeforeList,
+            fitColumns : true,
+            rownumbers : true,
+            fit : true,
+            nowrap : false,
+            url : '${path}${adminPath}/bus/project/tbrlist',
+            method : 'get',
+            columns : [ [ {
+                field : 'ID',
+                hidden : 'true'
+            }, {
+                field : 'V_BIDOPEN_TIME',
+                title : '开标时间',
+                align : 'center',
+                halign : 'center',
+                width : 54
+            }, {
+                field : 'V_TENDER_PROJECT_NAME',
+                title : '招标项目名称',
+                align : 'left',
+                halign : 'center',
+                width : 120
+            }, {
+                field : 'V_INVITENO',
+                title : '招标项目编号',
+                align : 'left',
+                halign : 'center',
+                width : 120
+            }, {
+                field : 'V_SIGN_IN_TIME',
+                title : '签到时间',
+                align : 'center',
+                halign : 'center',
+                width : 54
+            }, {
+                field : 'V_SIGN_STATUS',
+                title : '操作',
+                align : 'center',
+                halign : 'center',
+                width : 35,
+                formatter : GridFormatter.OPERATION
+            } ] ]
+        });
+        $('#kbTime').datebox().datebox('calendar').calendar({
+            validator : function(date) {
+                var now = new Date();
+                var d1 = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 2);
+                var d2 = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                return d1 <= date && date <= d2;
+            }
+        });
+        $('#kbTime').datebox('setValue', formatterDate(new Date()));
+    })
+
+    function isreturn() {
+        window.location.href = "${path}${adminPath}/view/login/login.fjs.gsgl.html?";
+    }
+    SZUtilsExtEasyUIListPage.datagrid.pagination();
+    /**
+     * 查询
+     */
+    function doSearch() {
+        // 使用Form2Json插件处理,同时过滤掉空数据
+        var searchParam = $('#searchForm').form2json({
+            allowEmptySingleVal : false
+        });
+        $('#formGrid-tbr-info').datagrid('load', searchParam);
+    }
+    /**
+     * 清空
+     */
+    function doClear() {
+        $('#searchForm').form('reset');
+        $('#formGrid-tbr-info').datagrid('load', {});
+    }
+
+    var GridFormatter = {
+        "OPERATION" : function(value, row, index) {
+            var time = row.V_SIGN_IN_TIME;
+            //返回链接
+            var res = '';
+            if (time != null) {
+                res = "<span style='cursor:pointer;text-decoration: underline;color:blue;' onclick='intoProject(\"" + index + "\")'>进入开标会</span>";
+
+            } else {
+                res = "<span style='cursor:pointer;text-decoration: underline;color:blue;' onclick='bidderSignIn(\"" + index + "\")' >签到</span>";
+            }
+            return res;
+        }
+    };
+
+    function intoProject(index) {
+        var data = $('#formGrid-tbr-info').datagrid("getRows")[index];
+        var tpid = data.ID;
+        $.ajax({
+            url : '${path}${adminPath}/bus/project/tbrgo/' + tpid,
+            // 设置请求方法
+            type : 'GET',
+            cache : false,
+            // dataType : 'json',
+            //contentType : 'application/json;charset=UTF-8',
+            //data : data,
+            // 成功回调
+            success : function(result) {
+                //跳转到投标人操作列表
+                forward(tpid);
+            },
+            // 失败回调
+            error : function(XMLHttpRequest, textStatus, errorThrown) {
+                var result = jQuery.parseJSON(XMLHttpRequest.responseText);
+                top.$.messager.alert('提示', result.errorDesc);
+            }
+        });
+    }
+    //请求跳转
+    function forward(tpid) {
+        //window.location.href = "${path}${adminPath}/view/frame/frame.kb.tbr.html?";
+        window.location.href = "${path}${adminPath}/room/join/" + tpid + "?_t=" + new Date().getTime();
+    }
+
+    //签到需要先录入用户信息
+    function bidderSignIn(index) {
+    	var data = $('#formGrid-tbr-info').datagrid("getRows")[index];
+        var tpid = data.ID;
+    	var p = sy.dialog({
+			title : '联系方式',
+			width : 300,
+			height : 150,
+			closed : false,
+			cache : false,
+			modal : true,
+			href : '${path}${adminPath}/view/eokb/bus/phone/bidder.phone.add.html',
+			buttons : [ {
+				text : "确定",
+				iconCls : "icon-ok",
+				handler : function() {
+					var f = p.find('form');
+					if (f.form('validate')) {
+						p.dialog('close');
+						//保存操作
+						var info = f.form2json({
+							allowEmptySingleVal : true
+						});
+						info.tpid=tpid;
+						parent.sy.progress.show();
+						// 发生Ajax请求
+						$.ajax({
+    						url : '${path}${adminPath}/bus/bp/sbp',
+    						// 设置请求方法
+    						type : 'POST',
+    						//dataType : 'json',
+    						contentType : 'application/json;charset=UTF-8',
+    						data : JSON.stringify(info),
+    						// 成功回调
+    						success : function(result) {
+    							doSignIn(tpid);
+    							parent.sy.progress.hide();
+    							p.dialog('close');
+    							//签到
+    						},
+    						// 失败回调
+    						error : function(XMLHttpRequest,textStatus,errorThrown) {
+    							parent.sy.progress.hide();
+    							var result = jQuery.parseJSON(XMLHttpRequest.responseText);
+    							top.$.messager.alert('操作失败',"操作失败[" + result.errorDesc + "]");
+    						}
+    					});
+					}
+				}
+			}, {
+				text : "取消",
+				iconCls : "icon-remove",
+				handler : function() {
+					p.dialog('close');
+				}
+			} ]
+		});
+    }
+    
+    //签到
+    function doSignIn(tpid) {
+        $.ajax({
+            url : '${path}${adminPath}/bus/signin/tbr/' + tpid,
+            // 设置请求方法
+            type : 'GET',
+            cache : false,
+            // dataType : 'json',
+            //contentType : 'application/json;charset=UTF-8',
+            //data : data,
+            // 成功回调
+            success : function(result) {
+            	location.reload();
+                //刷新列表
+                if (result.success) {
+                    //$('#formGrid-tbr-info').datagrid('load', {});
+                    top.$.messager.alert('提示', data.V_TENDER_PROJECT_NAME + "项目签到成功，请进入开标会!");
+                } else {
+                    top.$.messager.alert('提示', "该项目已签到!");
+                }
+            },
+            // 失败回调
+            error : function(XMLHttpRequest, textStatus, errorThrown) {
+                var result = jQuery.parseJSON(XMLHttpRequest.responseText);
+                top.$.messager.alert('提示', "操作失败[" + result.errorDesc + "]");
+            }
+        });
+    }
+    
+    //得到当前日期
+    function formatterDate(date) {
+        var day = date.getDate() > 9 ? date.getDate() : "0" + date.getDate();
+        var month = (date.getMonth() + 1) > 9 ? (date.getMonth() + 1) : "0" + (date.getMonth() + 1);
+        return date.getFullYear() + '-' + month + '-' + day;
+    };
+</script>
+</head>
+
+<body style="font-size: 16px;">
+    <div class="header">
+        <div class="logo"></div>
+        <div class="head-rg">
+            <% var user = authz.getCurrentUser();%> <span class="user-tbr">投标人：</span><span class="user-name" title=${user.V_NAME}>${user.V_NAME}</span> <span class="exit"><a style="color: #fff;" href="javascript:void(0)" onclick="logout()"><img src="images/exit.png" style="border: 0;" />安全退出</a></span>
+        </div>
+    </div>
+    <div id="searchForm-toolbar" style="padding: 5px; height: auto">
+        <div align="center">
+            <form id="searchForm">
+                开标时间：<input id="kbTime" name="kbTime" type="text" editable="false" class="easyui-datebox" required="required"></input> &nbsp;&nbsp;<a id="btn" href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-search'" onclick="doSearch()">招标项目查询</a>
+            </form>
+        </div>
+    </div>
+    <table id="formGrid-tbr-info" style="width: auto; height: auto" toolbar="#searchForm-toolbar"></table>
+    <div style="height: 20px; padding: 0px; position: absolute; bottom: 0; text-align: center; width: 100%">©福建首众-技术支持&emsp;&emsp;客服热线：400-999-6901&emsp;&emsp;QQ在线咨询：<a href="####" onclick="javascript:window.open('http://wpa.b.qq.com/cgi/wpa.php?ln=1&key=XzkzODE5MjY0OV80ODA3NjRfNDAwMTg4NjY0MF8yXw');">点击咨询</a></div>
+</body>
+</html>

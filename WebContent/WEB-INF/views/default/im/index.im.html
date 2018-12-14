@@ -1,0 +1,777 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<!-- 启用360浏览器的极速模式(webkit) -->
+<meta name="renderer" content="webkit">
+<!-- 避免IE使用兼容模式 -->
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<title>在线会议室</title> <%includeJSP("/static/include/inc.jsp",{}){}%>
+<script src="${path}${adminPath}/view/im/js/swfobject.js" type="text/javascript"></script>
+<script src="${path}${adminPath}/view/im/js/web_socket.js" type="text/javascript"></script>
+<script src="${path}${adminPath}/view/im/js/layer/layer.js" type="text/javascript"></script>
+<script src="${path}${adminPath}/view/im/js/CountDown.min.js" type="text/javascript"></script>
+<script type="text/javascript">
+	//浏览器是否支持
+	var support = true;
+	//是否IE9一下版本
+	var isLteIE9 = false;
+</script>
+<!--[if lte IE 9 ]>
+<script type="text/javascript">
+isLteIE9 = true;
+//flash 路径
+WEB_SOCKET_SWF_LOCATION = "${basePath}/static/websocket/WebSocketMain.swf";
+WEB_SOCKET_DEBUG = true;
+//加载安全策略文件
+WebSocket.loadFlashPolicyFile("${XMLSOCKET_URL}");
+</script>
+<![endif]-->
+<!--[if lt IE 8]>
+<script type="text/javascript">
+support = false;
+</script>
+<![endif]-->
+<link href="${path}${adminPath}/view/im/css/index.im.css" rel="stylesheet" />
+</head>
+<!-- 2018-06-01 wengdm 去除禁止复制聊天信息 -->
+<body style="overflow: hidden;" oncontextmenu=self.event.returnValue=false onselectstart="return true">
+    <div id="chat-page" class="mid-rg">
+        <div class="rg-top">
+            <div id="im-rg-top">
+                <span class="mod"> <sz:if test="${IS_TENDERER==true}">
+                        <span class="mod-check">在线聊天/</span>
+                        <span class="mod-uncheck" onclick="changePage(1)">用户列表</span>
+                    </sz:if> <sz:if test="${IS_TENDERER==false}">
+                        <span class="mod-check">在线聊天</span>
+                    </sz:if>
+                </span>
+            </div>
+            <!-- <div class="contraction"></div> -->
+        </div>
+        <div class="div-chat-list">
+            <ul class="div-ul-chat" id="chat-ul">
+            </ul>
+        </div>
+        <div class="ztbgn">
+            <span class="his-msg" title="消息记录"><img src="${path}${adminPath}/view/frame/images/msg-his.png" width="26" height="18" onclick="loadHistoricalNews()" /></span>
+            <sz:if test="${IS_TENDERER==true}">
+                <span class="ztbgb-tb"><img src="${path}${adminPath}/view/frame/images/userlist_03.png" width="26" height="18" onclick="doChatAllOrOne()" /></span>
+            </sz:if>
+            <span class="chat-dx" id="aite-span"></span>
+            <!--<span class="xxjl">消息记录<img src="${path}${adminPath}/view/frame/images/jlxl.png" width="6" height="4" /></span> -->
+        </div>
+        <form id="message">
+            <input type="hidden" id="RECIPIENT_ID" name="RECIPIENT_ID" /> <input type="hidden" id="RECIPIENT_NAME" name="RECIPIENT_NAME" />
+            <div class="rg-foot1">
+                <div class="edit">
+                    <span class="edit-k"> <textarea id="MESSAGE_CONTENT" name="MESSAGE_CONTENT" class="txt-u"></textarea>
+                    </span> <span class="send" id="im-msg-send" title="Ctrl+Enter 发送">发送</span>
+                </div>
+            </div>
+        </form>
+    </div>
+    <sz:if test="${IS_TENDERER==true}">
+        <div id="user-page" class="mid-rg" style="display: none;">
+            <div class="rg-top">
+                <div>
+                    <span class="mod"><span class="mod-uncheck" onclick="changePage(0)">在线聊天</span><span class="mod-check">/用户列表</span></span>
+                </div>
+            </div>
+            <div class="div-user-list">
+                <div class="search">
+                    <span class="sear-k"> <input id="SEARCH_USER_NAME" name="SEARCH_USER_NAME" type="text" class="sea-t" />
+                    </span> <span class="sear-img" style="background-image: url('${path}${adminPath}/view/frame/images/search.png');" onclick="doSearchUser()"></span>
+                </div>
+                <ul class="div-ul-user" id="participants-info-list-ui">
+                </ul>
+            </div>
+            <div class="rg-foot">
+                <div class="qtjy">
+                    <span class="qt-img"> <img src="${path}${adminPath}/view/frame/images/index_42.png" width="16" height="16" />
+                    </span> <span class="qt-wz" onclick="muteAll()">全体禁言</span>
+                </div>
+                <div class="qtjy1">
+                    <span class="qt-img"> <img src="${path}${adminPath}/view/frame/images/index_67.png" width="16" height="16" />
+                    </span> <span class="qt-wz1" onclick="unMuteAll()">取消禁言</span>
+                </div>
+            </div>
+        </div>
+    </sz:if>
+    <script type="text/javascript">
+					var isDoSearchUser = false;
+					var isDoSearchTempWord = "";
+					function doSearchUser() {
+
+					}
+
+					function doChatAllOrOne() {
+						changePage(1);
+					}
+
+					var webSocket;
+					var participants = new Array();
+					var currentUser = new Object();
+					currentUser.USER_ID = "${CURRENT_USER.USER_ID}";
+					currentUser.USER_ACCOUNT = "${CURRENT_USER.USER_ACCOUNT}";
+					currentUser.V_NAME = "${CURRENT_USER.V_NAME!}";
+					currentUser.MUTE = false;
+					currentUser.IS_TENDERER = "${IS_TENDERER}" == "true" ? true
+							: false;
+					function changePage(index) {
+						if (index == 0) {
+							$("#chat-page").show();
+							$("#user-page").hide();
+						} else {
+							$("#user-page").show();
+							$("#chat-page").hide();
+						}
+					}
+					var interval;
+					$(document).ready(
+							function(e) {
+								adaptHeight();
+								openSocket();
+								interval = setInterval("keepUserOnLine()",
+										1000 * 60 * 15);
+								init();
+							});
+
+					function getIEVersion() {
+						var userAgent = navigator.userAgent;
+						var reIE = new RegExp("MSIE (\\d+\\.\\d+);");
+						reIE.test(userAgent);
+						return parseFloat(RegExp['$1']);
+					}
+
+					function adaptHeight() {
+						var fIEVersion = getIEVersion();
+						var height = $(document).height();//window.innerHeight;
+						if (fIEVersion == 8) {
+							height = top.$("#im-ifame").height();
+						}
+
+						$(".mid-rg").height(height - 2);
+
+						//rg-top 41px; 
+						// ztbgn 24px; 5px 55px; 34 55 89
+						// 5px
+						$(".div-ul-chat").height(height - 2 - 41 - 89 - 20);
+
+						//rg-top 41px; 
+						//search height: 30px; 14px 13 px;
+						//rg-foot height: 38px 
+						$(".div-ul-user")
+								.height(height - 2 - 41 - 57 - 38 - 10);
+					}
+
+					function init() {
+						$("#message").form('reset');
+						if (currentUser.IS_TENDERER) {
+							$("#aite-span").html("@全体人员");
+						}
+						$('#im-msg-send').click(function(event) {
+							sendMessage(event);
+						});
+						$("#MESSAGE_CONTENT").keydown(function(event) {
+							var e = window.event || event;
+							var k = e.keyCode || e.which || e.charCode;
+							if ((event.ctrlKey && (k == 13 || k == 10))) {
+								sendMessage(event);
+							}
+						});
+					}
+
+					function openSocket() {
+						//var ieVersion = getIEVersion();
+						if (!support) {
+							alert("您的IE浏览器版本太低,请使用IE8及以上版本的IE浏览器!");
+							forwordOut();
+							return;
+						}
+						if (typeof WebSocket == "undefined") {
+							alert('请使用10.0.0版本以上的 Adobe Flash Player! 或者使用IE10以上的浏览器!');
+							//alert('请使用10.0.0版本以上的 <a  href="https://get2.adobe.com/cn/flashplayer/" target="_blank">Adobe Flash Player！</a> 或者使用IE10以上的浏览器');
+							forwordOut();
+							return;
+						}
+						//开启连接
+						connection();
+					}
+
+					/**连接次数**/
+					var connWSTimes = 0;
+					//是否已经连接
+					var isConnected = false;
+					/**连接**/
+					function connection() {
+						if (webSocket !== undefined
+								&& webSocket.readyState !== WebSocket.CLOSED
+								|| isConnected) {
+							top.$.messager.alert('提示',
+									"WebSocket is already opened.");
+							connWSTimes = 1;
+							isConnected = true;
+							return;
+						}
+						//如果小于等于IE9
+						if (isLteIE9) {
+							//加载安全策略文件
+							WebSocket.loadFlashPolicyFile("${XMLSOCKET_URL}");
+						}
+						webSocket = new WebSocket(
+								"${WEBSOCKET_URL}/bomim;jsessionid=${SESSION_ID}?tpid=${TENDER_PROJECT_INFO.ID}");
+						webSocket.onopen = function(event) {
+							getMeetingRoomParticipants();
+							if (event.data === undefined)
+								return;
+							parseResponse(event.data);
+							connWSTimes = 1;
+							isConnected = true;
+						};
+
+						webSocket.onmessage = function(event) {
+							parseResponse(event.data);
+						};
+
+						webSocket.onclose = function(event) {
+							isConnected = false;
+							//如果重连次数超过10次
+							if (connWSTimes > 10) {
+								connWSTimes = 999;
+								window.clearInterval(interval);
+								alert("连接中断或者会议已经关闭!");
+								forwordOut();
+								return;
+							}
+							//否则发起重新连接,最多重连10次
+							//开启一个加载层
+							layer.load(2, {
+								//每一次演示
+								time : connWSTimes * 1000,
+								//结束回调
+								end : function(layero, index) {
+									connection();
+								}
+							});
+						};
+						connWSTimes++;
+					}
+
+					function keepUserOnLine() {
+						$
+								.ajax({
+									cache : false,
+									url : '${path}${adminPath}/room/kuol',
+									// 设置请求方法
+									type : 'GET',
+									dataType : 'json',
+									// 成功回调
+									success : function(result) {
+
+									},
+									// 失败回调
+									error : function(XMLHttpRequest,
+											textStatus, errorThrown) {
+										var result = jQuery
+												.parseJSON(XMLHttpRequest.responseText);
+										top.$.messager.alert('操作失败', "操作失败["
+												+ result.errorDesc + "]");
+									}
+								});
+					}
+					//获取参会人
+					function getMeetingRoomParticipants() {
+						// 发生Ajax请求
+						$
+								.ajax({
+									cache : false,
+									url : '${path}${adminPath}/im/participants/${TENDER_PROJECT_INFO.ID}',
+									// 设置请求方法
+									type : 'GET',
+									dataType : 'json',
+									//contentType : 'application/json;charset=UTF-8',
+									//data : JSON.stringify(role),
+									// 成功回调
+									success : function(result) {
+										participants = result;
+										refreshParticipantsView();
+									},
+									// 失败回调
+									error : function(XMLHttpRequest,
+											textStatus, errorThrown) {
+										var result = jQuery
+												.parseJSON(XMLHttpRequest.responseText);
+										top.$.messager.alert('操作失败', "操作失败["
+												+ result.errorDesc + "]");
+									}
+								});
+					}
+
+					var tendererIsExist;
+
+					/** 刷新参会人员显示区域* */
+					function refreshParticipantsView() {
+						if ((!participants) || participants.length == 0) {
+							return;
+						}
+						var _html = "";
+						var isTenderer = currentUser.IS_TENDERER;
+						var tendererID = "";
+						var tendererName = "";
+						tendererIsExist = false;
+						_html += '<li class="li-user-dl"><div class="div-name-tb" title="全体人员">全体人员</div>';
+						_html += '<span title="回复" class="click-pointer" onclick="chartOne(\'\',\'\',\'false\')">@</span>';
+						_html += '</li>';
+						for ( var i = 0; i < participants.length; i++) {
+							var pt = participants[i];
+
+							if (pt.IS_TENDERER) {
+								tendererIsExist = true;
+								tendererID = pt.USER_ID;
+								tendererName = pt.USER_NAME;
+								_html += '<li class="li-user-dl" title="' + pt.USER_NAME + '" ';
+                                _html += '>[招标人] '
+										+ pt.USER_NAME + '</li>';
+								continue;
+							}
+							_html += '<li class="li-user-tb">';
+							_html += '<div class="div-name-tb" title="' + pt.USER_NAME + '" ';
+                            _html += '>'
+									+ pt.USER_NAME + '</div>';
+							_html += '<span title="回复" class="click-pointer" onclick="chartOne(\''
+									+ pt.USER_ID
+									+ '\',\''
+									+ pt.USER_NAME
+									+ '\',\''
+									+ pt.IS_TENDERER
+									+ '\')">@</span><span class="dl-gnimg">';
+							_html += '<img class="click-pointer" src="${path}${adminPath}/view/frame/images/';
+							// 禁言
+							if (pt.MUTE) {
+								_html += 'index_42.png" tietle="解禁" ';
+								if (isTenderer) {
+									_html += ' onclick="unMuteOne(\''
+											+ pt.USER_ID + '\',\''
+											+ pt.USER_NAME + '\')" ';
+								}
+							} else {
+								_html += 'index_39.png" tietle="禁言" ';
+								if (isTenderer) {
+									_html += ' onclick="muteOne(\''
+											+ pt.USER_ID + '\',\''
+											+ pt.USER_NAME + '\')" ';
+								}
+							}
+							_html += ' width="16" height="16" />';
+							_html += '</span>';
+							_html += '</li>';
+						}
+
+						if (isTenderer) {
+							$('#participants-info-list-ui').html(_html);
+						}
+
+						if (tendererID != "" && !isTenderer) {
+							chartOne(tendererID, tendererName, true);
+						}
+						dealMute();
+					}
+
+					function parseResponse(msg) {
+						//将详细转换成JSON对象
+						var response = JSON.parse(msg);
+						//判断消息类型
+						var type = response.MESSAGE_TYPE;
+						//如果是移动端消息
+						if (100 == type) {
+							return;
+						}
+						//如果发送的是命令
+						if (1 == type || -4 == type) {
+							//解析命令
+							excuteCommond(response);
+							return;
+						}
+						//如果是公告
+						if (-1 == type) {
+							writeNotice(response);
+							return;
+						}
+						//如果是普通消息
+						if (0 == type) {
+							writeResponse(response);
+							return;
+						}
+						top.$.messager.alert("失败", "无法识别的消息类型:" + msg);
+					}
+
+					/**写入公告**/
+					function writeNotice(message) {
+						if (!message) {
+							return;
+						}
+						var _html = "";
+						_html += '<li class="li-notice"><div class="li-div-notice">'
+						_html += "[公告]" + message.MESSAGE_CONTENT;
+						_html += '</div></li>';
+						$("#chat-ul").append(_html);
+					}
+
+					/**执行命令**/
+					function excuteCommond(message) {
+						var mc = JSON.parse(message.MESSAGE_CONTENT);
+						var commond = mc.COMMAND;
+						if (typeof (commond) == "undefined") {
+							//如果命令存在
+							return;
+						}
+						var param = mc.PARAM;
+						try {
+							var func = eval(commond);
+							new func(param);
+						} catch (e) {
+							alert(e);
+						}
+					}
+
+					/**写入聊天消息**/
+					function writeResponse(message) {
+						if (!message) {
+							return;
+						}
+						var _html = "";
+						var sendTime = SZUtilsDate.format(message.SEND_TIME,
+								"hh:mm:ss");
+						var _content = message.MESSAGE_CONTENT;
+						if (_content) {
+							_content = _content.replace(/\n/g, "<br/>");
+						}
+						var _senderName = message.SENDER_NAME;
+						var _senderNameTitle = message.SENDER_NAME;
+						var _isTenderer = currentUser.IS_TENDERER;
+						var _userID = currentUser.USER_ID;
+
+						if (!message.RECIPIENT_ID) {
+							_senderName = "@全体人员";
+							_senderNameTitle = "全体人员";
+						} else {
+							if (message.RECIPIENT_ID != _userID) {
+								_senderName = "@" + message.RECIPIENT_NAME;
+								_senderNameTitle = message.RECIPIENT_NAME;
+							}
+						}
+
+						if (message.IS_TENDERER) {
+							_html += '<li class="li-chat"><div class="div-chat-tb-info" title="' + _senderNameTitle + '">';
+							_html += '<div class="div-name">' + _senderName
+									+ "</div><div>&nbsp;&nbsp;" + sendTime
+									+ "</div>";
+							_html += '</div><div class="div-chat-contents">'
+							_html += _content;
+							_html += '</div></li>';
+						} else {
+							_html += '<li class="li-chat"><div class="div-chat-dl-info" title="' + _senderNameTitle + '">';
+							_html += '<div class="div-name">' + _senderName
+									+ "</div><div>&nbsp;&nbsp;" + sendTime
+									+ "</div>";
+							_html += '</div><div class="div-chat-contents">'
+							_html += _content;
+							_html += '</div></li>';
+						}
+						$("#chat-ul").append(_html);
+					}
+
+					/***发送消息**/
+					function sendMessage(event) {
+						//投标人发送信息，判断招标人是否在线
+						var isTenderer = currentUser.IS_TENDERER;
+						//如果已经连接且自己不是招标人且招标人不在线
+						if (isConnected && !isTenderer && !tendererIsExist) {
+							alert("招标人已离线！");
+							return;
+						}
+						if (currentUser.MUTE
+								|| $("#im-msg-send").hasClass("unsend")) {
+							return;
+						}
+
+						//保存操作
+						var message = $("#message").form2json({
+							allowEmptySingleVal : false
+						});
+						var msg_ = message.MESSAGE_CONTENT;
+						if (typeof (msg_) == "undefined" || null == msg_
+								|| $.trim(msg_).length == 0) {
+							alert('发送内容不能为空,请重新输入。');
+							return;
+						}
+						/* if (msg_.replace(/(^s*)|(s*$)/g, "").length ==0) 
+						{ 
+							alert('发送内容不能为空,请重新输入。'); 
+							return;
+						} */
+						if (msg_.length >= 4000) {
+							alert('发送内容长度不能超过4000。');
+							return;
+						}
+
+						if (!message.RECIPIENT_ID) {
+							message.RECIPIENT_ID = "";
+						}
+						if (!message.RECIPIENT_NAME) {
+							message.RECIPIENT_NAME = "";
+						}
+						webSocket.send(JSON.stringify(message));
+						$("#MESSAGE_CONTENT").val('');
+					}
+
+					function chartOne(userID, userName, isTenderer) {
+						var isTendererCu = currentUser.IS_TENDERER;
+						//只能投标人或招标人对发 或者招标人群发
+						if (!(isTendererCu ^ isTenderer)) {
+							return;
+						}
+
+						$("#RECIPIENT_ID").val(userID);
+						$("#RECIPIENT_NAME").val(userName);
+						var _userName;
+						if (!userName) {
+							_userName = "@全体人员"
+						} else {
+							_userName = "@" + userName;
+						}
+						$("#aite-span").html(_userName).attr("title", userName);
+						changePage(0);
+					}
+				</script>
+    <script type="text/javascript">
+					function dealMute() {
+						var isMuteBo = isMute();
+						if (currentUser.MUTE == isMuteBo) {
+							return;
+						}
+						currentUser.MUTE = isMuteBo;
+						if (isMuteBo) {
+							$("#im-msg-send").attr("title", "禁言").attr(
+									'disabled', "true").html("禁言").removeClass(
+									"send").addClass("unsend");
+						} else {
+							$("#im-msg-send").attr("title", "Ctrl+Enter发送")
+									.removeAttr('disabled').html("发送")
+									.removeClass("unsend").addClass("send");
+						}
+					}
+
+					function isMute() {
+						if (!participants) {
+							return false;
+						}
+						var userID = currentUser.USER_ID;
+						for ( var i = 0; participants.length; i++) {
+							var paUserID = participants[i].USER_ID;
+							if (userID == paUserID) {
+								return participants[i].MUTE;
+							}
+						}
+						return false;
+					}
+
+					/**
+					 *被强制踢掉
+					 **/
+					function doKickedOut(param) {
+						connWSTimes = 999;
+						var tipMsg = "贵司用户：" + param.V_LOGIN_NAME + "("
+								+ param.V_KEY_NAME + ")将您强制踢出开标会议室!";
+						$("#chat-ul").append(
+								'<li class="li-notice"><div class="li-div-notice">[系统消息]'
+										+ tipMsg + '</div></li>');
+						top.$.messager.alert("", tipMsg, "error", function() {
+							try {
+								webSocket.onclose();
+							} catch (e) {
+							}
+							forwordOut();
+						});
+					}
+
+					function getOut(param) {
+						if (param.USER_ID != currentUser.USER_ID) {
+							return;
+						}
+						connWSTimes = 999;
+						webSocket.onclose();
+						$("#chat-ul")
+								.append(
+										'<li class="li-notice"><div class="li-div-notice">[系统消息]已被退出聊天室！</div></li>');
+						top.$.messager.alert("", "已被退出聊天室！", "error",
+								function() {
+									forwordOut();
+								});
+					}
+
+					function forwordOut() {
+						var user_type;
+						if (currentUser.IS_TENDERER) {
+							user_type = '0';
+						} else {
+							user_type = '1';
+						}
+						top.window.location.href = "${path}${adminPath}/view/auth.sucess.forward.html?user_type="
+								+ user_type;
+					}
+
+					/*****增加在线会议参与者****/
+					function addParticipant(param) {
+						getMeetingRoomParticipants();
+					}
+
+					/*****删除在线会议参与者****/
+					function removeParticipant(param) {
+						getMeetingRoomParticipants();
+					}
+
+					/**禁言全部(除招标代理/招标人)**/
+					function muteAll() {
+						if (currentUser.IS_TENDERER) {
+							var message = {};
+							message.RECIPIENT_ID = "";
+							message.MESSAGE_TYPE = -2;
+							webSocket.send(JSON.stringify(message));
+						}
+					}
+
+					/**解禁全部(除招标代理/招标人)**/
+					function unMuteAll() {
+						if (currentUser.IS_TENDERER) {
+							var message = {};
+							message.RECIPIENT_ID = "";
+							message.MESSAGE_TYPE = -3;
+							webSocket.send(JSON.stringify(message));
+						}
+					}
+
+					/**禁言某人**/
+					function muteOne(userID, userName) {
+						if (currentUser.IS_TENDERER) {
+							var message = {};
+							message.RECIPIENT_ID = userID;
+							message.RECIPIENT_NAME = userName;
+							message.MESSAGE_TYPE = -2;
+							webSocket.send(JSON.stringify(message));
+						}
+					}
+
+					/**解禁某人**/
+					function unMuteOne(userID, userName) {
+						if (currentUser.IS_TENDERER) {
+							var message = {};
+							message.RECIPIENT_ID = userID;
+							message.RECIPIENT_NAME = userName;
+							message.MESSAGE_TYPE = -3;
+							webSocket.send(JSON.stringify(message));
+						}
+					}
+
+					function sendReplyTendererCommond(param) {
+						var isTednerer = currentUser.IS_TENDERER;
+						if (isTednerer) {
+							alert("招标人不能调用回复自己的指令！");
+							return;
+						}
+						var message = {};
+						message.RECIPIENT_ID = "";
+						message.RECIPIENT_NAME = "";
+						message.MESSAGE_TYPE = -4;
+						message.MESSAGE_CONTENT = JSON.stringify({
+							"COMMAND" : "responseReplyTendererCommond",
+							"PARAM" : param
+						});
+						webSocket.send(JSON.stringify(message));
+					}
+
+					function responseReplyTendererCommond(param) {
+						try {
+							window.parent[param.fun](param.oneParam);
+						} catch (e) {
+						}
+					}
+
+					function sendNoticeByIframe(content) {
+						var message = {};
+						message.MESSAGE_CONTENT = content;
+						message.RECIPIENT_ID = "";
+						message.RECIPIENT_NAME = "";
+						message.MESSAGE_TYPE = -1;
+						webSocket.send(JSON.stringify(message));
+					}
+
+					function sendCommondByIframe(param) {
+						var message = {};
+						message.RECIPIENT_ID = "";
+						message.RECIPIENT_NAME = "";
+						message.MESSAGE_TYPE = 1;
+						message.MESSAGE_CONTENT = JSON.stringify({
+							"COMMAND" : "commondCallback",
+							"PARAM" : param
+						});
+						webSocket.send(JSON.stringify(message));
+					}
+
+					//发送指令给移动端
+					function sendCommondToMobile(param) {
+						var message = {};
+						message.RECIPIENT_ID = "";
+						message.RECIPIENT_NAME = "";
+						message.MESSAGE_TYPE = 100;
+						message.MESSAGE_CONTENT = JSON.stringify({
+							//执行参数中的命令
+							"COMMAND" : "excuteParamCommand",
+							"PARAM" : param
+						});
+						webSocket.send(JSON.stringify(message));
+					}
+
+					function sendMessageByIframe(content) {
+						var message = {};
+						message.MESSAGE_CONTENT = content;
+						message.RECIPIENT_ID = "";
+						message.RECIPIENT_NAME = "";
+						message.MESSAGE_TYPE = 0;
+						webSocket.send(JSON.stringify(message));
+					}
+
+					function commondCallback(param) {
+						try {
+							if (param.all) {
+								window.parent[param.fun](param.oneParam);
+								//top.$("#"+param.iframeID)[0].contentWindow[param.fun](param.oneParam);
+							} else {
+								if (!currentUser.IS_TENDERER) {
+									window.parent[param.fun](param.oneParam);
+									//top.$("#"+param.iframeID)[0].contentWindow[param.fun](param.oneParam);
+								}
+							}
+						} catch (e) {
+						}
+					}
+				</script>
+
+    <script type="text/javascript">
+					function loadHistoricalNews() {
+						var p = parent.sy
+								.window({
+									title : '&nbsp;消息记录',
+									// iconCls: "icon-man",
+									href : '${path}${adminPath}/view/im/historical.news.view.html?tpid=${TENDER_PROJECT_INFO.ID}',
+									width : 600,
+									height : 500,
+									modal : true,
+									closable : true,
+									minimizable : false
+								});
+					}
+				</script>
+</body>
+</html>

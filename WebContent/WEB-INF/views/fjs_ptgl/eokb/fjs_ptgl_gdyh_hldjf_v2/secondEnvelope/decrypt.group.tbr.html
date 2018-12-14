@@ -1,0 +1,87 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>第二数字信封解密情况一览表</title> <%includeJSP("/static/include/inc.jsp",{}){}%>
+<link href="${path}/static/css/table.css" rel="stylesheet" />
+<style>
+td {
+	border: 1px solid #B5D6E6;
+	word-break: break-all;
+}
+</style>
+</head>
+<body>
+    <!-- 数据 -->
+    <div class="easyui-tabs" data-options="plain:true">
+        <sz:forEach items="${GROUP_LIST}" var="group,sta">
+            <div title="标段组：${group.V_BID_SECTION_GROUP_CODE}" style="padding: 10px;">
+                <sz:forEach items="${group.SECTION_LIST}" var="section,stat">
+                    <div class="easyui-panel" title="标段：${section.BID_SECTION_NAME}" style="padding: 10px;">
+                        <div style="margin-bottom: 10px; color: blue;">
+                            <span style="line-height: 18px; font-size: 18px;">最高限价（元）:&nbsp;&nbsp;${fmt.format("###,##0.00",section.N_CONTROL_PRICE)} &nbsp;&nbsp; 最低进入评标基准价的下限（元）:&nbsp;&nbsp;${section.N_CONTROL_MIN_PRICE==null?'无':fmt.format("###,##0.00",section.N_CONTROL_MIN_PRICE)}&nbsp;&nbsp; 暂列金额（元）:&nbsp;&nbsp;${section.N_PROJECT_PROVISIONAL_MONEY==null?'无':fmt.format("###,##0.00",section.N_PROJECT_PROVISIONAL_MONEY)}&nbsp;&nbsp; 暂估价（元）:&nbsp;&nbsp;${section.N_PROJECT_TEMPORARY_VALUATION==null?'无':fmt.format("###,##0.00",section.N_PROJECT_TEMPORARY_VALUATION)}</span>
+                        </div>
+
+                        <table class="sztable" width="100%" style="text-align: center;">
+                            <thead>
+                                <tr>
+                                    <td width="10%">序号</td>
+                                    <td width="30%">投标人名称</td>
+                                    <td width="15%">投标报价（元）</td>
+                                    <td width="15%">其他内容</td>
+                                    <td width="15%">是否超过最高限价</td>
+                                    <td width="15%">是否低于进入评标基准价的下限</td>
+                                </tr>
+                            </thead>
+                            <sz:forEach items="${section.TENDER_LIST}" var="vo,step">
+                                <!-- 是自己 -->
+                                <sz:if test="${SessionUtils.getEntUniqueCode()==vo.V_BIDDER_ORG_CODE}">
+                                    <tr style="color: blue; font-weight: bold; font-size: 14px;">
+                                        <td>${step.index+1}</td>
+                                        <td>${vo.V_BIDDER_NAME}</td>
+                                        <td>${fmt.format("###,##0.00",vo.N_PRICE)}</td>
+                                        <td>${vo.qtnr}</td>
+                                        <sz:if test="${vo.N_PRICE>section.N_CONTROL_PRICE!0}">
+                                            <td><span style="color: red;">是</span></td>
+                                        </sz:if>
+                                        <sz:if test="${vo.N_PRICE<=section.N_CONTROL_PRICE!0}">
+                                            <td>否</td>
+                                        </sz:if>
+                                        <sz:if test="${vo.N_PRICE>=(section.N_CONTROL_MIN_PRICE==null?0:section.N_CONTROL_MIN_PRICE)}">
+                                            <td>否</td>
+                                        </sz:if>
+                                        <sz:if test="${vo.N_PRICE<(section.N_CONTROL_MIN_PRICE==null?0:section.N_CONTROL_MIN_PRICE)}">
+                                            <td><span style="color: red;">是</span></td>
+                                        </sz:if>
+                                    </tr>
+                                </sz:if>
+                                <!-- 不是自己 -->
+                                <sz:if test="${SessionUtils.getEntUniqueCode()!=vo.V_BIDDER_ORG_CODE}">
+                                    <tr>
+                                        <td>${step.index+1}</td>
+                                        <td>${vo.V_BIDDER_NAME}</td>
+                                        <td>${fmt.format("###,##0.00",vo.N_PRICE)}</td>
+                                        <td>${vo.qtnr}</td>
+                                        <sz:if test="${vo.N_PRICE>section.N_CONTROL_PRICE!0}">
+                                            <td><span style="color: red;">是</span></td>
+                                        </sz:if>
+                                        <sz:if test="${vo.N_PRICE<=section.N_CONTROL_PRICE!0}">
+                                            <td>否</td>
+                                        </sz:if>
+                                        <sz:if test="${vo.N_PRICE>=(section.N_CONTROL_MIN_PRICE==null?0:section.N_CONTROL_MIN_PRICE)}">
+                                            <td>否</td>
+                                        </sz:if>
+                                        <sz:if test="${vo.N_PRICE<(section.N_CONTROL_MIN_PRICE==null?0:section.N_CONTROL_MIN_PRICE)}">
+                                            <td><span style="color: red;">是</span></td>
+                                        </sz:if>
+                                    </tr>
+                                </sz:if>
+                            </sz:forEach>
+                        </table>
+                    </div>
+                </sz:forEach>
+            </div>
+        </sz:forEach>
+    </div>
+</body>
+</html>

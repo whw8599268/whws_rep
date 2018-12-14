@@ -1,0 +1,621 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title></title> <%includeJSP("/static/include/inc.jsp",{}){}%>
+<script src="${path}${adminPath}/view/common/js/layer/layer.js" type="text/javascript"></script>
+<script type="text/javascript">
+	SZUtilsExtEasyUIListPage.datagrid.pagination();
+	//初始化
+	$(function() {
+	});
+
+	/**
+	 * 查询
+	 */
+	function doSearch() {
+		// 使用Form2Json插件处理,同时过滤掉空数据
+		var searchParam = $('#searchForm').form2json({
+			allowEmptySingleVal : false
+		});
+		$('#formGrid').datagrid('load', searchParam);
+	}
+
+	/**
+	 * 清空
+	 */
+	function doClear() {
+		$('#searchForm').form('reset');
+		$('#formGrid').datagrid('load', {});
+	}
+
+	/**
+	 * 删除
+	 */
+	function doDel() {
+		var rows = $('#formGrid').datagrid('getSelections');
+		var msg = "确认要删除选择的数据吗?";
+		var url = '${path}${adminPath}/bus/projecttool/remove/';
+		if (rows.length > 0) {
+			parent.$.messager.confirm("提示!", msg, function(res) {
+				if (res) {
+					var id = rows[0].ID;
+					parent.sy.progress.show();
+					$.ajax({
+						url : url + id,
+						// 设置类型
+						//dataType : 'json',
+						// 设置请求方法
+						type : "GET",
+						// 成功回调
+						success : function(result) {
+							parent.sy.progress.hide();
+							$('#formGrid').datagrid('reload');
+							parent.sy.messagerShow({
+								msg : "操作成功!",
+								title : '提示'
+							});
+						},
+						// 失败回调
+						error : function(XMLHttpRequest, textStatus,
+								errorThrown) {
+							parent.sy.progress.hide();
+							var result = jQuery
+									.parseJSON(XMLHttpRequest.responseText);
+							top.$.messager.alert('操作失败', "操作失败["
+									+ result.errorDesc + "]");
+						}
+					});
+				}
+			});
+		} else {
+			top.$.messager.alert("提示", "请选择要修改的对象!");
+		}
+	}
+
+	/**
+	 * 重置
+	 */
+	function doReSet() {
+		var rows = $('#formGrid').datagrid('getSelections');
+		var msg = "确认要重置选择的数据吗?";
+		var url = '${path}${adminPath}/bus/projecttool/reSet/';
+		if (rows.length > 0) {
+			parent.$.messager.confirm("提示!", msg, function(res) {
+				if (res) {
+					var id = rows[0].ID;
+					parent.sy.progress.show();
+					$.ajax({
+						url : url + id,
+						// 设置类型
+						//dataType : 'json',
+						// 设置请求方法
+						type : "GET",
+						// 成功回调
+						success : function(result) {
+							parent.sy.progress.hide();
+							$('#formGrid').datagrid('reload');
+							parent.sy.messagerShow({
+								msg : "操作成功!",
+								title : '提示'
+							});
+						},
+						// 失败回调
+						error : function(XMLHttpRequest, textStatus,
+								errorThrown) {
+							parent.sy.progress.hide();
+							var result = jQuery
+									.parseJSON(XMLHttpRequest.responseText);
+							top.$.messager.alert('操作失败', "操作失败["
+									+ result.errorDesc + "]");
+						}
+					});
+				}
+			});
+		} else {
+			top.$.messager.alert("提示", "请选择要修改的对象!");
+		}
+	}
+
+	// 下载开标数据
+	function downloadData() {
+		var rows = $('#formGrid').treegrid('getSelections');
+		var row = rows[0];
+		if (rows.length == 0) {
+			parent.$.messager.alert("提示", "请选择要下载的项目！");
+			return;
+		}
+		var _content = '<div style="text-align:center;"><select><option value="0">仅数据</option><option value="1">数据+招标文件</option><option value="2">全部</option></select></div>';
+		var p = parent.sy
+				.dialog({
+					title : '&nbsp;编辑',
+					iconCls : "application_osx_add",
+					content : _content,
+					width : 380,
+					height : 300,
+					buttons : [
+							{
+								text : '保存',
+								iconCls : "icon-save",
+								handler : function() {
+									var _val = p.find('select').val();
+									p.dialog('close');
+									var _url = '${path}${adminPath}/bus/projecttool/dlkpd/'
+											+ row.ID + "/" + _val;
+									window.open(_url);
+								}
+							}, {
+								text : "关闭",
+								iconCls : "icon-remove",
+								handler : function() {
+									p.dialog('close');
+								}
+							} ]
+				});
+	}
+
+	/**
+	 * 修改
+	 */
+	function doEdit() {
+		var rows = $('#formGrid').treegrid('getSelections');
+		if (rows.length == 0) {
+			parent.$.messager.alert("提示", "请选择要修改的数据！");
+			return;
+		}
+		if (rows.length > 1) {
+			parent.$.messager.alert("提示", "只允许对单条数据进行编辑！");
+			return;
+		}
+		var row = rows[0];
+		var p = parent.sy
+				.dialog({
+					title : '&nbsp;编辑',
+					iconCls : "application_osx_add",
+					href : '${path}${adminPath}/view/eokb/bus/project_tool/project.edit.html',
+					width : 380,
+					height : 300,
+					buttons : [
+							{
+								text : '保存',
+								iconCls : "icon-save",
+								handler : function() {
+									var f = p.find('form');
+									if (f.form('validate')) {
+										//保存操作
+										var flow = f.form2json({
+											allowEmptySingleVal : true
+										});
+										//alert(JSON.stringify(func));
+										parent.sy.progress.show();
+										// 发生Ajax请求
+										$
+												.ajax({
+													url : '${path}${adminPath}/bus/projecttool/modify',
+													// 设置请求方法
+													type : 'POST',
+													//dataType : 'json',
+													contentType : 'application/json;charset=UTF-8',
+													data : JSON.stringify(flow),
+													// 成功回调
+													success : function(result) {
+														parent.sy.progress
+																.hide();
+														$('#formGrid')
+																.datagrid(
+																		'reload');
+														parent.sy
+																.messagerShow({
+																	msg : "操作成功!",
+																	title : '提示'
+																});
+														p.dialog('close');
+													},
+													// 失败回调
+													error : function(
+															XMLHttpRequest,
+															textStatus,
+															errorThrown) {
+														parent.sy.progress
+																.hide();
+														var result = jQuery
+																.parseJSON(XMLHttpRequest.responseText);
+														top.$.messager
+																.alert(
+																		'操作失败',
+																		"操作失败["
+																				+ result.errorDesc
+																				+ "]");
+													}
+												});
+									}
+								}
+							}, {
+								text : "关闭",
+								iconCls : "icon-remove",
+								handler : function() {
+									p.dialog('close');
+								}
+							} ],
+					onLoad : function() {
+						var f = p.find('form');
+						//window.console.log(JSON.stringify(row));
+						f.form('reset');
+						f.form('load', row);
+					}
+				});
+	}
+
+	/**
+	 * 查看投标人
+	 */
+	function doSearchBidders() {
+		var rows = $('#formGrid').treegrid('getSelections');
+		if (rows.length == 0) {
+			parent.$.messager.alert("提示", "请选择要查看的项目！");
+			return;
+		}
+		if (rows.length > 1) {
+			parent.$.messager.alert("提示", "只允许查看单个项目！");
+			return;
+		}
+
+		var ww = $(window).width() - 10;
+		var hh = $(window).height() - 10;
+
+		var row = rows[0];
+		var p = parent.sy
+				.dialog({
+					title : '查看有投标人',
+					href : '${path}${adminPath}/view/eokb/bus/project_tool/project.bidder.html?tpID='
+							+ row.ID + '&is_group=' + row.N_IS_SECTION_GROUP,
+					width : ww,
+					height : hh,
+					buttons : [ {
+						text : "关闭",
+						iconCls : "icon-remove",
+						handler : function() {
+							p.dialog('close');
+						}
+					} ]
+				});
+	}
+
+	/**
+	 * 查看评标参数
+	 */
+	function doSearchPbParams() {
+		var rows = $('#formGrid').treegrid('getSelections');
+		if (rows.length == 0) {
+			parent.$.messager.alert("提示", "请选择要查看的项目！");
+			return;
+		}
+		if (rows.length > 1) {
+			parent.$.messager.alert("提示", "只允许查看单个项目！");
+			return;
+		}
+
+		var row = rows[0];
+		p = parent.sy.dialog({
+			title : '查看评标参数',
+			href : '${path}${adminPath}/bus/projecttool/infos/' + row.ID + '/'
+					+ row.V_BID_EVALUATION_METHOD_TYPE,
+			width : 600,
+			height : 600,
+			buttons : [ {
+				text : "保存",
+				iconCls : "icon-ok",
+				handler : function() {
+					doSavePrice(p, row.ID)
+					p.dialog('close');
+				}
+			}, {
+				text : "关闭",
+				iconCls : "icon-remove",
+				handler : function() {
+					p.dialog('close');
+				}
+			} ]
+		});
+	}
+
+	/**保存**/
+	function doSavePrice(p, tpid) {
+		var sections = new Array();
+		p.find("#price-form").each(function() {
+			var param = $(this).form2json({
+				allowEmptySingleVal : false
+			});
+			sections.push(param);
+		});
+		sy.progress.show();
+		// 发生Ajax请求
+		$.ajax({
+			url : '${path}${adminPath}/bus/projecttool/savePrices/' + tpid,
+			// 设置请求方法
+			type : 'POST',
+			//dataType : 'json',
+			//contentType : 'application/json;charset=UTF-8',
+			data : {
+				"info" : JSON.stringify(sections),
+				"tpid" : tpid
+			},
+			// 成功回调
+			success : function(result) {
+				sy.progress.hide();
+				parent.sy.messagerShow({
+					msg : "操作成功!",
+					title : '提示'
+				});
+			},
+			// 失败回调
+			error : function(XMLHttpRequest, textStatus, errorThrown) {
+				parent.sy.progress.hide();
+				var result = jQuery.parseJSON(XMLHttpRequest.responseText);
+				top.$.messager.alert('操作失败', "操作失败[" + result.errorDesc + "]");
+			}
+		});
+	}
+
+	var GridFormatter = {
+		"IS_GROUP" : function(val) {
+			if (val == 1) {
+				return '是';
+			}
+			return '否'
+		},
+		"ZB_TYPE" : function(val) {
+			if (val == '10') {
+				return '高速公路';
+			}
+			if (val == '20') {
+				return '普通公路';
+			}
+			if (val == '30') {
+				return '水运工程';
+			}
+			if (val == 'A01') {
+				return '房屋建筑';
+			}
+			return '市政工程';
+		}
+	};
+
+	// 启动录制视频
+	function startVideo() {
+		var rows = $('#formGrid').treegrid('getSelections');
+		if (rows.length == 0) {
+			parent.$.messager.alert("提示", "请选择要启动的项目！");
+			return;
+		}
+		if (rows.length > 1) {
+			parent.$.messager.alert("提示", "只允许启动单个项目！");
+			return;
+		}
+
+		var row = rows[0];
+		sy.progress.show();
+		// 发生Ajax请求
+		$.ajax({
+			url : '${path}${adminPath}/bus/video/stvr/' + row.ID,
+			// 设置请求方法
+			type : 'GET',
+			cache : false,
+			//dataType : 'json',
+			//contentType : 'application/json;charset=UTF-8',
+			// 成功回调
+			success : function(result) {
+				sy.progress.hide();
+				parent.sy.messagerShow({
+					msg : "操作成功!",
+					title : '提示'
+				});
+			},
+			// 失败回调
+			error : function(XMLHttpRequest, textStatus, errorThrown) {
+				parent.sy.progress.hide();
+				var result = jQuery.parseJSON(XMLHttpRequest.responseText);
+				top.$.messager.alert('操作失败', "操作失败[" + result.errorDesc + "]");
+			}
+		})
+	}
+
+	// 结束录制视频
+	function endVideo() {
+		var rows = $('#formGrid').treegrid('getSelections');
+		if (rows.length == 0) {
+			parent.$.messager.alert("提示", "请选择要结束的项目！");
+			return;
+		}
+		if (rows.length > 1) {
+			parent.$.messager.alert("提示", "只允许结束单个项目！");
+			return;
+		}
+
+		var row = rows[0];
+		sy.progress.show();
+		// 发生Ajax请求
+		$.ajax({
+			url : '${path}${adminPath}/bus/video/spovr/' + row.ID,
+			// 设置请求方法
+			type : 'GET',
+			cache : false,
+			//dataType : 'json',
+			//contentType : 'application/json;charset=UTF-8',
+			// 成功回调
+			success : function(result) {
+				sy.progress.hide();
+				parent.sy.messagerShow({
+					msg : "操作成功!",
+					title : '提示'
+				});
+			},
+			// 失败回调
+			error : function(XMLHttpRequest, textStatus, errorThrown) {
+				parent.sy.progress.hide();
+				var result = jQuery.parseJSON(XMLHttpRequest.responseText);
+				top.$.messager.alert('操作失败', "操作失败[" + result.errorDesc + "]");
+			}
+		})
+	}
+
+	// 推送投标人
+	function doPush() {
+		var rows = $('#formGrid').treegrid('getSelections');
+		if (rows.length == 0) {
+			parent.$.messager.alert("提示", "请选择要结束的项目！");
+			return;
+		}
+		if (rows.length > 1) {
+			parent.$.messager.alert("提示", "只允许结束单个项目！");
+			return;
+		}
+		var row = rows[0];
+		var tpid = row.ID;
+		var type = row.V_TENDERPROJECT_APP_TYPE;
+		var group = row.N_IS_SECTION_GROUP;
+
+		var opts = new Object;
+		opts.text = "推送中......";
+		parent.sy.progress.show(opts);
+		$.ajax({
+			url : '${path}${adminPath}/bus/nodeTool/push/' + tpid + '/' + type
+					+ '/' + group,
+			// 设置请求方法
+			type : 'GET',
+			cache : false,
+			dataType : 'json',
+			contentType : 'application/json;charset=UTF-8',
+			// 成功回调
+			success : function(result) {
+
+				parent.sy.progress.hide();
+			},
+			// 失败回调
+			error : function(XMLHttpRequest, textStatus, errorThrown) {
+				var result = jQuery.parseJSON(XMLHttpRequest.responseText);
+				top.$.messager.alert('提示', result.errorDesc);
+				parent.sy.progress.hide();
+			}
+		});
+	}
+
+	// 修改摄像头
+	function modifyVideo() {
+		var rows = $('#formGrid').treegrid('getSelections');
+		if (rows.length == 0) {
+			parent.$.messager.alert("提示", "请选择要结束的项目！");
+			return;
+		}
+		if (rows.length > 1) {
+			parent.$.messager.alert("提示", "只允许结束单个项目！");
+			return;
+		}
+		var row = rows[0];
+
+		var p = parent.sy
+				.dialog({
+					title : '&nbsp;编辑',
+					iconCls : "application_osx_add",
+					href : '${path}${adminPath}/bus/projecttool/mdv/view/'
+							+ row.ID,
+					width : 380,
+					height : 300,
+					buttons : [
+							{
+								text : '保存',
+								iconCls : "icon-save",
+								handler : function() {
+									var f = p.find('form');
+									if (f.form('validate')) {
+										//保存操作
+										var flow = f.form2json({
+											allowEmptySingleVal : true
+										});
+										parent.sy.progress.show();
+										// 发生Ajax请求
+										$
+												.ajax({
+													url : '${path}${adminPath}/bus/projecttool/mdi',
+													// 设置请求方法
+													type : 'POST',
+													//dataType : 'json',
+													contentType : 'application/json;charset=UTF-8',
+													data : JSON.stringify(flow),
+													// 成功回调
+													success : function(result) {
+														parent.sy.progress
+																.hide();
+														parent.sy
+																.messagerShow({
+																	msg : "操作成功!",
+																	title : '提示'
+																});
+														p.dialog('close');
+													},
+													// 失败回调
+													error : function(
+															XMLHttpRequest,
+															textStatus,
+															errorThrown) {
+														parent.sy.progress
+																.hide();
+														var result = jQuery
+																.parseJSON(XMLHttpRequest.responseText);
+														top.$.messager
+																.alert(
+																		'操作失败',
+																		"操作失败["
+																				+ result.errorDesc
+																				+ "]");
+													}
+												});
+									}
+								}
+							}, {
+								text : "关闭",
+								iconCls : "icon-remove",
+								handler : function() {
+									p.dialog('close');
+								}
+							} ]
+				});
+	}
+</script>
+</head>
+<body>
+    <!-- 表格 -->
+    <table id="formGrid" style="width: auto; height: auto" class="easyui-datagrid" title="" toolbar="#searchForm-toolbar" rownumbers="true" singleSelect="true" fitColumns="true" fit="true" url="${path}${adminPath}/bus/projecttool" pagination="true" pageList="[50,100,150,200]" pageSize="50" data-options="nowrap:false,method:'get'">
+        <thead>
+            <tr>
+                <th data-options="field:'ID',checkbox:true"></th>
+                <th field="V_TENDER_PROJECT_ID" hidden></th>
+                <th field="V_TENDER_PROJECT_NAME" align="left" width="45">招标项目名称</th>
+                <th field="V_BIDOPEN_TIME" align="left" width="20">开标时间</th>
+                <th field="V_TENDERER_NAME" align="left" width="20">招标人名称</th>
+                <th field="V_TENDERER_CODE" align="left" width="15">招标人组织机构代码</th>
+                <th field="V_TENDER_AGENCY_NAME" align="left" width="20">招标代理名称</th>
+                <th field="V_TENDER_AGENCY_CODE" align="left" width="15">招标代理组织机构代码</th>
+                <th field="DELIVER_NUM" align="left" width="15">投标文件家数</th>
+                <th field="V_BEM_CODE" align="left" width="15">流程编号</th>
+                <th field="N_IS_SECTION_GROUP" align="left" width="10" data-options="formatter:GridFormatter.IS_GROUP">是否采用标段组</th>
+                <th field="V_TENDERPROJECT_APP_TYPE" align="left" width="10" data-options="formatter:GridFormatter.ZB_TYPE">招标项目的类型</th>
+            </tr>
+        </thead>
+    </table>
+    <!-- 搜索工具栏 -->
+    <div id="searchForm-toolbar" style="padding: 5px; height: auto">
+        <div>
+            <form id="searchForm">
+                <label>招标项目名称</label> <input class="easyui-textbox" style="width: 200px" id="V_TENDER_PROJECT_NAME" name="V_TENDER_PROJECT_NAME" type="text"> <label>开标时间</label> <input class="easyui-textbox" style="width: 100px" id="V_BIDOPEN_TIME" name="V_BIDOPEN_TIME" type="text"> <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-search'" onclick="doSearch()">搜索</a> <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-clear'" onclick="doClear()">清空搜索条件</a>
+            </form>
+        </div>
+        <div>
+            <!-- <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-add'" title="新增" onclick="doAdd()">新增</a> -->
+            <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-edit'" title="修改" onclick="doEdit()">修改</a> <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-remove'" title="删除" onclick="doDel()">彻底清空开标数据</a> <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-edit'" title="重置" onclick="doReSet()">重置开标</a> <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-search'" title="查看投标人" onclick="doSearchBidders()">查看投标人</a> <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-search'" title="查看评标参数" onclick="doSearchPbParams()">查看评标参数</a> <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-ok'" title="启动视频录制" onclick="startVideo()">启动视频录制</a> <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-no'" title="结束视频录制" onclick="endVideo()">结束视频录制</a> <a href="javascript:void(0)"
+                class="easyui-linkbutton" data-options="iconCls:'icon-ok'" title="启动视频录制" onclick="doPush()">推送投标人</a> <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-ok'" title="下载开标数据" onclick="downloadData()">下载开标数据</a> <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-edit'" title="下载开标数据" onclick="modifyVideo()">修改摄像头</a>
+            <!-- <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-remove'" title="删除节点JSON" onclick="doDelFlowJson()">删除节点JSON</a> -->
+        </div>
+    </div>
+</body>
+</html>

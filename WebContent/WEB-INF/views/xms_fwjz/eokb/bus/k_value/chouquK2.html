@@ -1,0 +1,340 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>抽取K值结果</title> <%includeJSP("/static/include/inc.jsp",{}){}%>
+<link href="${path}/static/css/table.css" rel="stylesheet" />
+</head>
+<body>
+    <sz:if test="${TENDER_PROJECT_FLOW_NODE.N_STATUS!=3}">
+        <div style="text-align: right;">
+            <a id="data-staging-save-button" href="#" class="easyui-linkbutton" data-options="iconCls:'icon-save'" onclick="doStagingSave();">暂存</a> <a id="data-save-button" href="#" class="easyui-linkbutton" data-options="iconCls:'icon-save'" onclick="doSave();">保存抽取结果</a>
+        </div>
+    </sz:if>
+    <div class="easyui-tabs" data-options="plain:true">
+        <sz:forEach items="${KINFOS}" var="kinfo,stat">
+            <div title="标段：${kinfo.V_BID_SECTION_NAME!}" style="padding: 10px;">
+                <form id="${kinfo.V_BID_SECTION_ID}-METHOD-FORM">
+                    <div>K的取值区间：${fmt.format("#####0.00",MIN_K!)}% - ${fmt.format("#####0.00",MAX_K!)}%（含 ${fmt.format("#####0.00",MIN_K)}% ,不含 ${fmt.format("#####0.00",MAX_K!)}%），按百分数表示的K值小数点后保留2位。</div>
+                    <input type="hidden" id="${kinfo.V_BID_SECTION_ID}-V_BID_SECTION_ID" name="V_BID_SECTION_ID" value="${kinfo.V_BID_SECTION_ID}"> <input type="hidden" id="${kinfo.V_BID_SECTION_ID}-V_BID_SECTION_NAME" name="V_BID_SECTION_NAME" value="${kinfo.V_BID_SECTION_NAME}">
+                            <div style="width: 20%; float: left; margin-left: 10%;">
+                                <table class="sztable" width="100%" style="text-align: center;">
+                                    <thead>
+                                        <tr>
+                                            <td>序号</td>
+                                            <td>抽取数字</td>
+                                            <td>分配球号</td>
+                                        </tr>
+                                    </thead>
+                                    <sz:forEach items="${kinfo.K_INFO.K_VALUES}" var="k_value,sta">
+                                        <tr>
+                                            <td>${sta.index+1}</td>
+                                            <td><span id="${kinfo.V_BID_SECTION_ID}-${sta.index}-text">${k_value.VALUE}</span></td>
+                                            <sz:if test="${TENDER_PROJECT_FLOW_NODE.N_STATUS!=3}">
+                                                <td><input id="${kinfo.V_BID_SECTION_ID}-${sta.index}" type="text" style="text-align: center; width: 70px;" name="${sta.index}" value="${k_value.NO}" class="easyui-validatebox" onchange="modifyYaoHaoSelectValue('${kinfo.V_BID_SECTION_ID}','${kinfo.K_LENGTH}');" data-options="required:true,validType:['intOrFloat']" /></td>
+                                            </sz:if>
+                                            <sz:if test="${TENDER_PROJECT_FLOW_NODE.N_STATUS==3}">
+                                                <td>${k_value.NO}</td>
+                                            </sz:if>
+                                        </tr>
+                                    </sz:forEach>
+                                </table>
+                            </div>
+                            <div style="width: 30%; float: left; margin-left: 5%;">
+                                <div style="font-size: 18px; color: #ff7300; font-weight: bold;">
+                                    <sz:if test="${TENDER_PROJECT_FLOW_NODE.N_STATUS!=3}">
+                                        抽取球号：<select id="${kinfo.V_BID_SECTION_ID}-YAOHAO_RESULT" name="YAOHAO_RESULT" style="width: 100px;" onchange="showSelectKvalueTipInfo('${kinfo.V_BID_SECTION_ID}','${kinfo.K_LENGTH}')">
+                                            <option value="">请选择</option>
+                                            <sz:forEach items="${kinfo.K_INFO.K_VALUES}" var="lv,step">
+                                                <sz:if test="${lv.NO!=null && lv.NO!=''}">
+                                                    <option value="${lv.NO}"
+                                                        <sz:if test="${lv.NO==kinfo.YAOHAO_NO}">selected="selected"</sz:if>
+                                                        >${lv.NO}
+                                                    </option>
+                                                </sz:if>
+                                            </sz:forEach>
+                                        </select>
+                                        <input type="hidden" id="${kinfo.V_BID_SECTION_ID}-YAOHAO_RESULT_VALUE" name="K_VALUE" value="${kinfo.K_VALUE}"> </input>
+                                    </sz:if>
+
+                                    <sz:if test="${TENDER_PROJECT_FLOW_NODE.N_STATUS==3}">
+                                      抽取球号：${kinfo.YAOHAO_NO}
+                                    </sz:if>
+                                </div>
+                                <div style="font-size: 18px; color: #ff7300; font-weight: bold;">
+                                    代表数值：<span id="${kinfo.V_BID_SECTION_ID}-METHOD_TIP" style="font-size: 18px; color: #ff7300; font-weight: bold;">${kinfo.K_VALUE}</span>
+                                </div>
+                            </div>
+                </form>
+            </div>
+        </sz:forEach>
+    </div>
+    <strong> 抽取K值小数点第一位数值</strong>
+    </br> 1、向抽取机中任意放入30个不重复号码的号码球；
+    </br> 2、进行公开随机抽取；
+    </br> 3、第一次抽取的号码球对应的数值为K值区间小数点后第一位最小值，第二次抽取的号码球对应的数值为K值小数点后第一位最小值+1，依次抽取号码球，直到产生k值小数点后第一位最大值的号码球；
+    </br> 4、将小数点后第一位所代表的球号放入抽取机中抽取，抽取出的号码球代表小数点后第一位。
+    </div>
+
+    <script type="text/javascript">
+					$
+							.extend(
+									$.fn.validatebox.defaults.rules,
+									{
+										intOrFloat : {// 验证整数或小数
+											validator : function(value) {
+												return /^\d+(\.\d+)?$/i
+														.test(value);
+											},
+											message : '请输入数字，并确保格式正确'
+										},
+										maxTo : {
+											validator : function(value, param) {
+												return parseFloat(value) <= parseFloat(param[0]);
+											},
+											message : '数值不能大于{0}'
+										}
+									});
+					//初始化
+					$(function() {
+					});
+					/**修改标段摇号下拉框值**/
+					function modifyYaoHaoSelectValue(sid, length) {
+						var html = '<option value="">请选择</option>';
+						var id = "#" + sid + "-";
+						var value;
+						for ( var i = 0; i < length; i++) {
+							var idt = id + i;
+							value = $(idt).val();
+							if (typeof (value) != "undefined" && null != value
+									&& "" != value) {
+								html += '<option value="'+value+'">' + value
+										+ '</option>';
+							}
+						}
+						$("#" + sid + "-YAOHAO_RESULT").html(html);
+					}
+
+					/**显示所选方法提示**/
+					function showSelectKvalueTipInfo(sid, length) {
+						var rs = $("#" + sid + "-YAOHAO_RESULT").val();
+						var html = '';
+						var id = "#" + sid + "-";
+						var value;
+						for ( var i = 0; i < length; i++) {
+							var idt = id + i;
+							value = $(idt).val();
+							if (rs == value) {
+								html = $(idt + "-text").html();
+								$("#" + sid + "-YAOHAO_RESULT_VALUE").val(
+										$(idt + "-text").html());
+								break;
+							}
+						}
+						$("#" + sid + "-METHOD_TIP").html(html);
+					}
+
+					// 判断是否有重复球号
+					function arrRepeat(param) {
+						//获取json长度 
+						var jslength = 0;
+						for ( var js2 in param) {
+							jslength++;
+						}
+						//将对应数字放入数组 
+						var arr = new Array();
+						for ( var h = 0; h < jslength; h++) {
+							if (param["" + h + ""]) {
+								arr.push(param["" + h + ""])
+							}
+						}
+
+						arr.sort();
+						for ( var i = 0; i < arr.length; i++) {
+							if (arr[i] == arr[i + 1]) {
+								return arr[i];
+							}
+						}
+						return 'true';
+					}
+
+					/**暂存**/
+					function doStagingSave() {
+						var validate = true;
+						var sections = new Array();
+						$("form")
+								.each(
+										function() {
+											if(!$(this).form('validate')){
+												validate = false;
+												return;
+											}
+											var param = $(this).form2json({
+												allowEmptySingleVal : false
+											});
+
+											//判断数组是否有重复  出现重复会提示重复数组，不重复返回true
+											var flag = arrRepeat(param);
+											var sectionName = param['V_BID_SECTION_NAME'];
+											if (flag != 'true') {
+												top.$.messager.alert("提示",
+														"标段：" + sectionName
+																+ "出现重复数字"
+																+ flag);
+												validate = false;
+												return;
+											}
+											sections.push(param);
+										});
+
+						if (!validate) {
+							return;
+						}
+						var obj = new Object();
+						obj.SECTION_METHODS = sections;
+						// 发生Ajax请求
+						$
+								.ajax({
+									url : '${path}${adminPath}/kvalue/save/${TENDER_PROJECT_FLOW_NODE.ID}',
+									// 设置请求方法
+									type : 'POST',
+									//dataType : 'json',
+									contentType : 'application/json;charset=UTF-8',
+									data : JSON.stringify(obj),
+									// 成功回调
+									success : function(result) {
+										parent.sy.progress.hide();
+										parent.sy.messagerShow({
+											msg : "操作成功!",
+											title : '提示'
+										});
+									},
+									// 失败回调
+									error : function(XMLHttpRequest,
+											textStatus, errorThrown) {
+										parent.sy.progress.hide();
+										var result = jQuery
+												.parseJSON(XMLHttpRequest.responseText);
+										top.$.messager.alert('操作失败', "操作失败["
+												+ result.errorDesc + "]");
+									}
+								});
+					}
+
+					/**保存**/
+					function doSave() {
+						parent.$.messager
+								.confirm(
+										"提示",
+										"确认球号无误进入小数后第二位抽取？",
+										function(r) {
+											if (r) {
+												var sections = new Array();
+												var validate = true;
+												$("form")
+														.each(
+																function() {
+																	var param = $(
+																			this)
+																			.form2json(
+																					{
+																						allowEmptySingleVal : false
+																					});
+																	//判断数组是否有重复  出现重复会提示重复数组，不重复返回true
+																	var flag = arrRepeat(param);
+																	var sectionName = param['V_BID_SECTION_NAME'];
+																	if (flag != 'true') {
+																		top.$.messager
+																				.alert(
+																						"提示",
+																						"标段："
+																								+ sectionName
+																								+ "出现重复数字"
+																								+ flag);
+																		validate = false;
+																		return;
+																	}
+
+																	if (!$(this)
+																			.form(
+																					'validate')) {
+																		top.$.messager
+																				.alert(
+																						"提示",
+																						"标段："
+																								+ param.V_BID_SECTION_NAME
+																								+ "-尚有球号未录入!");
+																		validate = false;
+																		return;
+																	}
+																	if (typeof (param.YAOHAO_RESULT) == "undefined"
+																			|| null == param.YAOHAO_RESULT
+																			|| "" == param.YAOHAO_RESULT) {
+																		top.$.messager
+																				.alert(
+																						"提示",
+																						"标段："
+																								+ param.V_BID_SECTION_NAME
+																								+ "-抽取球号未录入!");
+																		validate = false;
+																		return;
+																	}
+																	sections
+																			.push(param);
+																});
+												if (!validate) {
+													return;
+												}
+												//alert(JSON.stringify(sections));
+												var obj = new Object();
+												obj.SECTION_METHODS = sections;
+												// 发生Ajax请求
+												$
+														.ajax({
+															url : '${path}${adminPath}/kvalue/save/${TENDER_PROJECT_FLOW_NODE.ID}',
+															// 设置请求方法
+															type : 'POST',
+															//dataType : 'json',
+															contentType : 'application/json;charset=UTF-8',
+															data : JSON
+																	.stringify(obj),
+															// 成功回调
+															success : function(
+																	result) {
+																parent
+																		.finishCurrentFlowNodeNoInteractive(
+																				'${TENDER_PROJECT_FLOW_NODE.ID}',
+																				'${TENDER_PROJECT_FLOW_NODE.V_NODE_NAME}');
+															},
+															// 失败回调
+															error : function(
+																	XMLHttpRequest,
+																	textStatus,
+																	errorThrown) {
+																parent.sy.progress
+																		.hide();
+																var result = jQuery
+																		.parseJSON(XMLHttpRequest.responseText);
+																top.$.messager
+																		.alert(
+																				'操作失败',
+																				"操作失败["
+																						+ result.errorDesc
+																						+ "]");
+															}
+														});
+											}
+										});
+					}
+
+					/**结束当前节点**/
+					function finishCurrentFlow() {
+
+						parent.finishCurrentFlowNodeNoInteractive(
+								'${TENDER_PROJECT_FLOW_NODE.ID}',
+								'${TENDER_PROJECT_FLOW_NODE.V_NODE_NAME}');
+					}
+				</script>
+</body>
+</html>

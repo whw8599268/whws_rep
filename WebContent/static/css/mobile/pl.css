@@ -1,0 +1,1273 @@
+/*样式重置申明*/
+
+html,
+body,
+div,
+span,
+object,
+iframe,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+blockquote,
+pre,
+abbr,
+address,
+cite,
+code,
+del,
+dfn,
+em,
+img,
+ins,
+kbd,
+q,
+samp,
+small,
+strong,
+sub,
+sup,
+var,
+b,
+i,
+dl,
+dt,
+dd,
+ol,
+ul,
+li,
+fieldset,
+form,
+label,
+legend,
+table,
+caption,
+tbody,
+tfoot,
+thead,
+tr,
+th,
+td,
+article,
+aside,
+canvas,
+details,
+figcaption,
+figure,
+footer,
+header,
+hgroup,
+menu,
+nav,
+section,
+summary,
+time,
+mark,
+audio,
+video {
+    margin: 0;
+	padding: 0;
+	border: 0;
+	outline: 0;
+	vertical-align: baseline;
+	background: transparent;
+}
+
+article,
+aside,
+details,
+figcaption,
+figure,
+footer,
+header,
+hgroup,
+main,
+menu,
+nav,
+section,
+summary {
+	display: block;
+}
+
+audio,
+canvas,
+progress,
+video {
+	display: inline-block;
+	vertical-align: baseline;
+}
+
+audio:not([controls]) {
+	display: none;
+	height: 0;
+}
+
+b,
+strong {
+	font-weight: bold;
+}
+
+dfn {
+	font-style: italic;
+}
+
+h1 {
+	font-size: 2em;
+	margin: 0.67em 0;
+}
+
+small {
+	font-size: 80%;
+}
+
+sub,
+sup {
+	font-size: 75%;
+	line-height: 0;
+	position: relative;
+	vertical-align: baseline;
+}
+
+sup {
+	top: -0.5em;
+}
+
+sub {
+	bottom: -0.25em;
+}
+
+svg:not(:root) {
+	overflow: hidden;
+}
+
+mark {
+	background: #ff0;
+	color: #000;
+}
+
+hr {
+	box-sizing: content-box;
+	height: 0;
+}
+
+pre {
+	overflow: auto;
+}
+
+code,
+kbd,
+pre,
+samp {
+	font-family: monospace, monospace;
+	font-size: 1em;
+}
+
+button,
+input,
+optgroup,
+select,
+textarea {
+	color: inherit;
+	line-height: normal;
+	font-family: sans-serif;
+	margin: 0;
+	color: inherit;
+}
+
+button {
+	overflow: visible;
+}
+
+button,
+select {
+	text-transform: none;
+}
+
+b,
+strong {
+	font-weight: bold;
+}
+
+dfn {
+	font-style: italic;
+}
+
+h1 {
+	font-size: 2em;
+	margin: 0.67em 0;
+}
+
+small {
+	font-size: 80%;
+}
+
+sub,
+sup {
+	font-size: 75%;
+	line-height: 0;
+	position: relative;
+	vertical-align: baseline;
+}
+
+sup {
+	top: -0.5em;
+}
+
+sub {
+	bottom: -0.25em;
+}
+
+svg:not(:root) {
+	overflow: hidden;
+}
+
+mark {
+	background: #ff0;
+	color: #000;
+}
+
+hr {
+	box-sizing: content-box;
+	height: 0;
+}
+
+pre {
+	overflow: auto;
+}
+
+code,
+kbd,
+pre,
+samp {
+	font-family: monospace, monospace;
+	font-size: 1em;
+}
+
+button,
+input,
+optgroup,
+select,
+textarea {
+	color: inherit;
+	line-height: normal;
+	font-family: sans-serif;
+	margin: 0;
+}
+
+button {
+	overflow: visible;
+}
+
+button,
+select {
+	text-transform: none;
+}
+
+button,
+input,
+optgroup,
+select,
+textarea {
+	margin: 0;
+	font: inherit;
+	color: inherit;
+}
+
+em {
+	font-style: normal;
+}
+
+textarea {
+	width: 99.25%;
+	text-indent: 2em;
+	margin: 0.6rem;
+	text-align: left;
+}
+
+a,
+input,
+textarea,
+button {
+	transition: all .5s;
+}
+
+
+/*apple*/
+
+* {
+	outline: none;
+	-webkit-tap-highlight-color: rgba(255, 255, 255, 0);
+	-webkit-touch-callout: none;
+	background: linear-gradient(to bottom, transparent, transparent);
+}
+
+
+/*使其看起来更像按钮*/
+
+button,
+html input[type="button"],
+input[type="reset"],
+input[type="submit"] {
+	-webkit-appearance: button;
+	cursor: pointer;
+}
+
+button[disabled],
+html input[disabled] {
+	cursor: default;
+}
+
+button::-moz-focus-inner,
+input::-moz-focus-inner {
+	border: 0;
+	padding: 0;
+}
+
+input {
+	line-height: normal;
+}
+
+fieldset {
+	border: 1px solid #c0c0c0;
+	margin: 0 2px;
+	padding: 0.35em 0.625em 0.75em;
+}
+
+legend {
+	border: 0;
+	padding: 0;
+}
+
+textarea {
+	overflow: auto!important;
+}
+
+optgroup {
+	font-weight: bold;
+}
+
+
+/*选中区域底色*/
+
+::selection {
+	background: #333;
+	color: #fff;
+	text-shadow: none;
+}
+
+
+/*清除浮动*/
+
+.clearfix:before,
+.clearfix:after {
+	content: ".";
+	display: block;
+	height: 0;
+	clear: both;
+	visibility: hidden;
+}
+
+*html .clearfix {
+	height: 1%;
+}
+
+*+html .clearfix {
+	height: 1%;
+}
+
+.clear {
+	clear: both;
+	height: 0px;
+	overflow: hidden;
+}
+
+.clearfix:after {
+	clear: both;
+}
+
+.clearfix {
+	zoom: 1;
+}
+
+
+/*细线表格*/
+
+table {
+	border-collapse: collapse;
+	border-spacing: 0;
+	text-align: left;
+	width: 100%;
+}
+
+
+/*取消默认标题斜体*/
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+	font-weight: normal;
+}
+
+
+/*取消默认ul圆点*/
+
+ul {
+	list-style: none;
+}
+
+
+/*当q标签嵌套时，可以实现内部是单引号，外层是双引号*/
+
+q:lang(en) {
+	quotes: '"' '"' "'" "'"
+}
+
+
+/*分割线*/
+
+.hr {
+	display: block;
+	height: 1px;
+	border: 0;
+	border-top: 1px solid #cccccc;
+	margin: 1em 0;
+	padding: 0;
+}
+
+
+/*删除线*/
+
+del {
+	text-decoration: line-through;
+}
+
+
+/*链接标签默认没有下划线，让激活状态和触发焦点时，虚线框为无*/
+
+a {
+	text-decoration: none;
+	color: #66757f;
+}
+
+a:focus,
+a:active {
+	outline: 0 !important;
+}
+
+
+/*链接下面的图片标签边框为无*/
+
+a img {
+	border: none;
+}
+
+
+/*去掉链接下划线*/
+
+a {
+	text-decoration: none;
+}
+
+
+/*让所有应用移入的hover有缓冲变化效果*/
+
+a:hover,
+li:hover {
+	transition: all .3s;
+}
+
+
+/*图片自适应*/
+
+img {
+	-webkit-box-sizing: border-box;
+	box-sizing: border-box;
+	vertical-align: middle;
+	border: 0;
+	max-width: 100%;
+	height: auto;
+	width: auto\9;
+}
+
+input:focus,
+input:active,
+textarea:focus,
+textare:active {
+	outline: 0;
+}
+
+
+/*万能居中*/
+
+.center {
+	margin: 0 auto;
+	text-align: center;
+}
+
+.center_m {
+	margin: 0 auto;
+}
+
+.center_t {
+	text-align: center;
+}
+
+
+/*父子同居中*/
+
+.center_all {
+	display: block;
+	text-align: center;
+	/* 解决间隙问题 */
+	font-size: 0;
+}
+
+.center_all li,
+.center_all > div {
+	display: inline-block;
+	*display: inline;
+	*zoom: 1;
+	/* 解决不能水平对齐问题 */
+	vertical-align: top;
+	/* 解决间隙问题后遗症解决 */
+	font-size: 1.4rem;
+}
+
+
+/* 让 chrome 支持 12px 以下的字体 */
+
+@media screen and (-webkit-min-device-pixel-ratio:0) {
+	.center_all {
+		-webkit-text-size-adjust: none;
+		font-size: 1px;
+	}
+}
+
+.left {
+	float: left;
+}
+
+.right {
+	float: right;
+}
+
+.hide {
+	display: none !important;
+}
+
+.show {
+	display: block !important;
+}
+
+.bold {
+	font-weight: bold;
+}
+
+.left100 {
+	float: left;
+	width: 100%;
+}
+
+.fixed {
+	position: fixed;
+	left: 0;
+	top: 0;
+	right: 0;
+	z-index: 1000;
+	-webkit-transform: translateZ(0);
+}
+
+.relative {
+	position: relative;
+}
+
+.absolute {
+	position: absolute;
+}
+
+.overflow-hidden {
+	overflow: hidden;
+}
+
+.width_full {
+	width: 100%;
+}
+
+.inline {
+	float: left;
+	display: inline !important;
+	width: auto !important;
+	margin-right: 10px;
+}
+
+
+/*上箭头*/
+
+.dart-top {
+	display: inline-block;
+	width: 0;
+	height: 0;
+	vertical-align: middle;
+	border-bottom: 7px solid #999;
+	border-right: 5px solid transparent;
+	border-left: 5px solid transparent;
+	content: "";
+}
+
+
+/*下箭头*/
+
+.dart-bottom {
+	display: inline-block;
+	width: 0;
+	height: 0;
+	border-top: 7px solid #999;
+	vertical-align: middle;
+	border-right: 5px solid transparent;
+	border-left: 5px solid transparent;
+	content: "";
+}
+
+
+/*右箭头*/
+
+.dart-right {
+	display: inline-block;
+	width: 0;
+	height: 0;
+	vertical-align: middle;
+	border-left: 7px solid #999;
+	border-top: 5px solid transparent;
+	border-bottom: 5px solid transparent;
+	content: "";
+}
+
+
+/*左箭头*/
+
+.dart-left {
+	display: inline-block;
+	width: 0;
+	height: 0;
+	vertical-align: middle;
+	border-right: 7px solid #999;
+	border-top: 5px solid transparent;
+	border-bottom: 5px solid transparent;
+	content: "";
+}
+
+
+/*容器*/
+
+
+/*固定*/
+
+.content_parent {
+	width: 1002px;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+
+/*电脑端*/
+
+.content_parent_pc {
+	width: 1200px;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+
+/*移动端*/
+
+.content_parent_mobile {
+	width: 90%;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+
+/*全局智能操控*/
+
+html {
+	font-size: 62.5%;
+	font-family: sans-serif;
+	-ms-text-size-adjust: 100%;
+	-webkit-text-size-adjust: 100%;
+}
+
+html,
+body {
+	height: 100%;
+}
+
+body {
+	line-height: 1;
+	font: 1.2rem/1.5 "微软雅黑" arial tahoma!important;
+}
+
+
+/*让body下面第一级子元素自适应高度,设定所有父元素之间有边距*/
+
+body > div,
+body > section {
+	margin: 0 auto;
+	display: block;
+	clear: both;
+	zoom: 1\9;
+}
+
+
+/*删除线*/
+
+del {
+	text-decoration: line-through;
+}
+
+
+/*链接标签默认没有下划线，让激活状态和触发焦点时，虚线框为无*/
+
+a {
+	text-decoration: none;
+}
+
+a:focus,
+a:active {
+	outline: 0 !important;
+}
+
+
+/*链接下面的图片标签边框为无*/
+
+a img {
+	border: none;
+}
+
+input:focus,
+input:active,
+textarea:focus,
+textare:active {
+	outline: 0;
+}
+
+.left {
+	float: left;
+}
+
+.right {
+	float: right;
+}
+
+.hide {
+	display: none !important;
+}
+
+.show {
+	display: block !important;
+}
+
+.bold {
+	font-weight: bold;
+}
+
+.fixed {
+	position: fixed;
+	left: 0;
+	top: 0;
+	right: 0;
+	z-index: 1000;
+	-webkit-transform: translateZ(0);
+}
+
+.relative {
+	position: relative;
+}
+
+.absolute {
+	position: absolute;
+}
+
+
+/*偷懒公共类库*/
+
+.input {
+	display: inline-block;
+	height: 20px;
+	padding: 6px;
+	margin: 0;
+	font-size: 13px;
+	line-height: 21px;
+	color: #555555;
+	vertical-align: middle;
+	border: 1px solid #ccc;
+	float: left;
+}
+
+.it_bjcolor_f7 {
+	background-color: #f7f7f7;
+	border: 0;
+	color: #777777;
+}
+
+.button {
+	margin: 0;
+	padding: 4px 12px;
+	cursor: pointer;
+	background: #fff;
+	border: 1px solid #CCC;
+	color: #66757F;
+}
+
+.input[type="radio"],
+.input[type="checkbox"] {
+	float: left;
+	width: auto !important;
+	margin-right: 6px;
+	background: transparent;
+	padding: 0;
+	display: block;
+	height: auto;
+	height: 13px !important;
+	line-height: 0 !important;
+	color: transparent;
+	line-height: normal;
+	border: none;
+}
+
+.input[type="radio"]:hover,
+.input[type="checkbox"]:hover,
+.input[type="radio"]:active,
+.input[type="checkbox"]:active {
+	background: transparent;
+	padding: 0;
+}
+
+.input:focus,
+.input:active,
+.textarea:focus,
+.input:focus {
+	border-color: #3FA8E2;
+	-moz-box-shadow: inset 0px 1px 1px rgba(0, 0, 0, .1);
+	-ms-box-shadow: inset 0px 1px 1px rgba(0, 0, 0, .1);
+	-webkit-box-shadow: inset 0px 1px 1px rgba(0, 0, 0, .1);
+	box-shadow: inset 0px 1px 1px rgba(0, 0, 0, .1);
+}
+
+.button:hover {
+	background: #f8f8f8;
+	color: #333;
+}
+
+.login input[type="email"],
+input[type="password"] {
+	width: 92%;
+	background: #fff;
+	margin-bottom: 4%;
+	border: 1px solid #ccc;
+	padding: 4%;
+	font-family: 'Open Sans', sans-serif;
+	font-size: 95%;
+	color: #555;
+}
+
+.login input[type="submit"] {
+	width: 100%;
+	background: #3399cc;
+	border: 0;
+	padding: 4%;
+	font-family: 'Open Sans', sans-serif;
+	font-size: 100%;
+	color: #fff;
+	cursor: pointer;
+	transition: background .3s;
+	-webkit-transition: background .3s;
+}
+
+.login input[type="submit"]:hover {
+	background: #2288bb;
+}
+
+
+/*橙色按钮*/
+
+.btn_login_chengse {
+	height: 40px;
+	font-size: 1.6rem;
+	background: #ec6c00;
+	color: #FFFFFF;
+	border: none;
+	transition: all .3s;
+}
+
+.btn_login_chengse:hover {
+	background: #f57a12;
+	text-shadow: 1px 1px 0px #cd5e00;
+}
+
+
+/*橙色按钮*/
+
+.btn_login_lanse {
+	height: 40px;
+	font-size: 1.6rem;
+	background: #59c2e6;
+	color: #FFFFFF;
+	border: none;
+	transition: all .3s;
+}
+
+.btn_login_lanse:hover {
+	background: #6bcdee;
+	color: #f5f5f5;
+	text-shadow: 1px 1px 0px #4fb8dc;
+}
+
+
+/*提交按钮*/
+
+.btn_submit_1a9ab3 {
+	color: #FFFFFF;
+	background: #1a9ab3;
+	padding: 7px 3.99rem;
+	border: 0;
+}
+
+.btn_submit_1a9ab3:hover {
+	background: #2aa8c1;
+	color: #FFFFFF;
+}
+
+
+/*定义皮肤本身*/
+
+.border_ea {
+	border: 1px #EAEAEA solid;
+}
+
+header,
+footer {
+	display: block;
+	width: 100%;
+}
+
+
+/*自动高度*/
+
+.block {
+	display: block;
+	overflow: hidden;
+}
+
+
+/*独占一行，清除浮动*/
+
+.block_clear {
+	display: block;
+	overflow: hidden;
+	clear: both;
+}
+
+
+/*定义栅格比例*/
+
+.col-1 {
+	width: 8.33333333%;
+}
+
+.col-2 {
+	width: 16.66666667%;
+}
+
+.col-3 {
+	width: 25%;
+}
+
+.col-4 {
+	width: 33.33333333%;
+}
+
+.col-5 {
+	width: 41.66666667%;
+}
+
+.col-6 {
+	width: 50%;
+}
+
+.col-7 {
+	width: 58.33333333%;
+}
+
+.col-8 {
+	width: 66.66666667%;
+}
+
+.col-9 {
+	width: 75%;
+}
+
+.col-10 {
+	width: 83.33333333%;
+}
+
+.col-11 {
+	width: 91.66666667%;
+}
+
+.col-12 {
+	width: 100%;
+}
+
+.col-1-3 {
+	width: 12.99995%!important;
+}
+
+.col-8-5 {
+	width: 75.99995%!important;
+}
+
+.col-7-5 {
+	width: 63.33333333%!important;
+}
+
+.col-4-5 {
+	width: 35.899999%!important;
+}
+
+.col-2-5 {
+	width: 23.899999%!important;
+}
+
+.col-2-4 {
+	width: 17.899999%!important;
+}
+
+.col-3-5 {
+	width: 32.899999%!important;
+}
+
+.col-5-5 {
+	width: 54.99995%!important;
+}
+
+.col-5-2 {
+	width: 42.99995%!important;
+}
+
+.col-6-1 {
+	width: 52.99995%!important;
+}
+
+
+/*边距4个方向都有20px*/
+
+.margin4_20px {
+	margin: 2rem;
+}
+
+.margin1_b_50px {
+	margin-bottom: 5rem;
+}
+
+
+/*边距4个方向都有5px*/
+
+.margin4_5px {
+	margin: 2rem 0.5rem;
+}
+
+
+/*左边l，右边r，下面b，边距3个方向都有20px*/
+
+.margin3_lrb_20px {
+	margin-left: 2rem;
+	margin-right: 2rem;
+	margin-bottom: 2rem;
+}
+
+
+/*左边l，右边r，下面b，边距3个方向都有20px*/
+
+.margin3_lrt_20px {
+	margin-left: 2rem;
+	margin-right: 2rem;
+	margin-top: 2rem;
+}
+
+
+/*块级标题居中*/
+
+.block_title_center {
+	font-size: 2rem;
+	font-weight: 700;
+}
+
+
+/*大标题for 内容*/
+
+.big_title_h4 {
+	font-size: 1.8rem;
+	font-weight: 700;
+}
+
+.big_title_h3 {
+	font-size: 2rem;
+	font-weight: normal;
+}
+
+.big_title_h3 span {
+	font-size: 1.2rem;
+	margin-left: 1.8rem;
+	color: #aaaaaa;
+}
+
+.big_title_h3 p + p {
+	font-size: 1.3rem;
+	color: #aaaaaa;
+	margin: 1.22rem auto;
+}
+
+.big_title_h3 .h3_title_line {
+	width: 75px;
+	height: 2px;
+	background: #f18500;
+	display: block;
+	text-align: center;
+	margin: 1.4rem auto;
+}
+
+
+/*50px*/
+
+.margin3_tbl_50px {
+	margin-top: 4.75rem;
+	margin-bottom: 4.75rem;
+	margin-left: 4rem;
+	margin-right: 4rem;
+}
+
+.margin2_tb_50px {
+	margin-top: 4.75rem;
+	margin-bottom: 4.75rem;
+}
+
+.margin2_tb_10px {
+	margin-top: 1rem;
+	margin-bottom: 1rem;
+}
+
+.margin2_tb_20px {
+	margin-top: 2rem;
+	margin-bottom: 2rem;
+}
+
+.margin2_tb_6px {
+	margin-top: 0.6rem;
+	margin-bottom: 0.6rem;
+}
+
+.margin_r_16px {
+	margin-right: 1.5rem;
+}
+
+
+/*距离左边上边大距离，用于控制内容大模型*/
+
+.mg_l_big130 {
+	margin-left: 130px;
+	margin-top: 160px;
+}
+
+
+/*大标题字风格*/
+
+.big_ec6c00 {
+	color: #ec6c00;
+	font-size: 2rem;
+	margin-top: 0.6rem;
+}
+
+.big_59c2e6 {
+	color: #59c2e6;
+	font-size: 2rem;
+	margin-top: 0.6rem;
+}
+
+.bd_none {
+	border: 0!important;
+}
+
+
+/*大块h3*/
+
+.block_h3_style {
+	border-top: 2px #59c2e6 solid;
+	font-size: 2rem;
+	font-weight: bold;
+	border-bottom: 1px #cccccc dashed;
+	padding: 0.8rem 0;
+	margin-bottom: 45px;
+}
+
+
+/*距上 36px 距离下边 27px*/
+
+.padding_tb_sm {
+	padding-top: 36px;
+	padding-bottom: 27px;
+}
+
+.margin2_lr_20px {
+	margin-left: 20px;
+	margin-right: 20px;
+}
+
+.margin2_lr_08 {
+	margin-left: 0.8rem;
+	margin-right: 0.8rem;
+}
+
+.margin_t_36px {
+	margin-top: 36px;
+}
+
+.margin_b_20px {
+	margin-bottom: 20px;
+}
+
+
+/*字母大写*/
+
+.font_Uppercase {
+	text-transform: uppercase;
+}
+
+
+/*行内元素*/
+
+.inline_block {
+	display: inline-block;
+}
+
+.height4 {
+	height: 500%;
+}
+
+.c_inherit {
+	color: inherit;
+}
+
+
+/*分割线风格体系*/
+
+.bj_big_f7 {
+	background: #F7F7F7;
+	height: 30px;
+}

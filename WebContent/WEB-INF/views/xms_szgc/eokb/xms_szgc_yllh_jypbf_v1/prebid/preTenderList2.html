@@ -1,0 +1,247 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>入围投标人抽取</title> <%includeJSP("/static/include/inc.jsp",{}){}%>
+<script type="text/javascript">
+	SZUtilsExtEasyUIListPage.datagrid.pagination();
+
+	Array.prototype.contains = function(obj) {
+		var i = this.length;
+		while (i--) {
+			if (this[i] === obj) {
+				return true;
+			}
+		}
+		return false;
+	};
+	/**
+	 * 本地查询
+	 */
+	 var _sid = '${param.sid}';
+	function doSearch() {
+		if (typeof (_sid) == "undefined" || null == _sid || "" == _sid) {
+			top.$.messager.alert('操作失败', "未获取到标段信息，请刷新页面！");
+			return;
+		}
+		// 使用Form2Json插件处理,同时过滤掉空数据
+		var searchParam = $('#searchForm').form2json({
+			allowEmptySingleVal : false
+		});
+		$('#formGrid').datagrid('reload', searchParam);
+	}
+
+	/**
+	 * 清空
+	 */
+	function doClear() {
+		$('#searchForm').form('reset');
+		doSearch();
+	}
+	/**
+	 * 加载完成事件
+	 */
+	function doLoadSuccess(data) {
+		//intoNum
+		//V_PRE_STATUS
+	}
+	$(function() {
+		// 发生Ajax请求
+		$
+				.ajax({
+					url : '${path}${adminPath}/xms_szgc_yllh_jypbf_v1/prebid/count/${param.sid}/1',
+					// 设置请求方法
+					type : 'GET',
+					cache: false,
+					//dataType : 'json',
+					// 成功回调
+					success : function(result) {
+						$("#intoNum").text(result);
+					},
+					// 失败回调
+					error : function(XMLHttpRequest, textStatus, errorThrown) {
+						parent.sy.progress.hide();
+						var result = jQuery
+								.parseJSON(XMLHttpRequest.responseText);
+						top.$.messager.alert('操作失败', "操作失败[" + result.errorDesc
+								+ "]");
+					}
+				});
+	})
+
+	var GridFormatter = {
+		"N_CREATE_TIME" : function(val, row, index) {
+			if (typeof (val) == "undefined") {
+				return "";
+			}
+			var date = new Date(val);
+			return date.format("yyyy-MM-dd hh:mm:ss");
+		},
+		"OPERATE" : function(val, row, index) {
+			var html = '';
+			/*var color = "black";
+			if (row.N_ENVELOPE_9 == '1') {
+				color = 'red';
+			}
+			 html += '&nbsp;&nbsp;<a id="y' + row.ID
+					+ '" style="font-size:15px;text-decoration:none;color:'
+					+ color
+					+ '" href="javascript:void(0)" onclick="doSelect(\''
+					+ row.ID + '\',\'1\')" >入围</a>'; */
+			/* html += '&nbsp;&nbsp&nbsp&nbsp&nbsp;<a id="n'
+			+ row.ID
+			+ '" style="font-size:15px;text-decoration:none;color:black;'
+			+ 'href="javascript:void(0)" onclick="doSelect(\'' + row.ID
+			+ '\',\'0\')">未入围</a>'; */
+			if (row.N_ENVELOPE_9 == '1') {
+				html += '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a id="y'
+						+ row.ID
+						+ '"  onclick="doSelect(\''
+						+ row.ID
+						+ '\',\'1\',\''
+						+ index
+						+ '\')"  style="color:#EE0000;text-decoration:none;font-weight: bold;font-size:20px;">√</a>';
+				html += '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a id="n'
+						+ row.ID
+						+ '" onclick="doSelect(\''
+						+ row.ID
+						+ '\',\'0\',\''
+						+ index
+						+ '\')"  style="color:#515151;text-decoration:none;font-weight: bold;font-size:20px;">×</a>';
+			} else {
+				html += '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a id="y'
+						+ row.ID
+						+ '" onclick="doSelect(\''
+						+ row.ID
+						+ '\',\'1\',\''
+						+ index
+						+ '\')"  style="color:#515151;text-decoration:none;font-weight: bold;font-size:20px;">√</a>';
+				html += '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a id="n'
+						+ row.ID
+						+ '" onclick="doSelect(\''
+						+ row.ID
+						+ '\',\'0\',\''
+						+ index
+						+ '\')" style="color:#515151;text-decoration:none;font-weight: bold;font-size:20px;">×</a>';
+			}
+			return html;
+		}
+	};
+
+	function doSelect(bidderID, status,index) {//选择
+		var row = $('#formGrid').datagrid('getData').rows[index];
+		if (status == row.N_ENVELOPE_9) {
+			return;
+		}
+		// 发生Ajax请求
+		sy.progress.show();
+		$
+				.ajax({
+					url : '${path}${adminPath}/xms_szgc_yllh_jypbf_v1/prebid/beSelected/'
+							+ bidderID + '/' + status,
+					cache : false,
+					// 设置请求方法
+					type : "POST",
+					//dataType : 'json',
+					//contentType : 'application/json;charset=UTF-8',
+					// 成功回调
+					success : function(result) {
+						sy.progress.hide();
+						parent.sy.messagerShow({
+							msg : "操作成功!",
+							title : '提示'
+						});
+						var total = parseInt($("#intoNum").text());
+						row.N_ENVELOPE_9 = status;
+						if (status == '1') {
+							$("#y" + bidderID).css('color', '#EE0000');
+							$("#n" + bidderID).css('color', '#515151');
+							/* $("#y" + bidderID).hide();
+							$("#n" + bidderID).show();*/
+							$("#intoNum").text(total + 1);
+
+						} else {
+							$("#y" + bidderID).css('color', '#515151');
+							$("#n" + bidderID).css('color', '#515151');
+							/* $("#y" + bidderID).show();
+							$("#n" + bidderID).hide(); */
+							$("#intoNum").text(total - 1);
+						}
+					},
+					// 失败回调
+					error : function(XMLHttpRequest, textStatus, errorThrown) {
+						sy.progress.hide();
+						var result = jQuery
+								.parseJSON(XMLHttpRequest.responseText);
+						top.$.messager.alert('操作失败', "操作失败[" + result.errorDesc
+								+ "]");
+					}
+				});
+	}
+
+	function doOk() {//确认投标人抽取结果
+		var total = $("#intoNum").text();
+		if (total != "${param.total}") {
+			parent.$.messager.alert('提示', "入围家数必须是${param.total}家！");
+			return;
+		}
+
+		// 发生Ajax请求
+		parent.sy.progress.show();
+		$
+				.ajax({
+					url : '${path}${adminPath}/xms_szgc_yllh_jypbf_v1/prebid/extract/${param.flowId}/${param.sid}/1',
+					cache : false,
+					// 设置请求方法
+					type : "POST",
+					//dataType : 'json',
+					//contentType : 'application/json;charset=UTF-8',
+					// 成功回调
+					success : function(result) {
+						//$("#total-id").hide();
+						//$(".OPERATE").hide();
+						parent.sy.progress.hide();
+						parent.location.reload();
+					},
+					// 失败回调
+					error : function(XMLHttpRequest, textStatus, errorThrown) {
+						parent.sy.progress.hide();
+						var result = jQuery
+								.parseJSON(XMLHttpRequest.responseText);
+						top.$.messager.alert('操作失败', "操作失败[" + result.errorDesc
+								+ "]");
+					}
+				});
+	}
+</script>
+</head>
+<body>
+    <!-- 表格 -->
+    <table id="formGrid" style="width: auto; height: auto" class="easyui-datagrid" title="" toolbar="#searchForm-toolbar" rownumbers="true" fitColumns="true" fit="true" pageList="[50,100,150,200]" pageSize="50" url="${path}${adminPath}/xms_szgc_yllh_jypbf_v1/prebid/getPreTenderList/${param.sid}/${param.type}" pagination="true" data-options="loadFilter:resultFilter,method:'get'">
+        <thead>
+            <tr>
+                <th field="V_BIDDER_NAME" align="left" width="230">投标人名称</th>
+                <th field="V_BIDDER_NO" align="left" width="230">投标人代表号</th>
+                <th field="N_PRICE" align="left" width="230">投标报价（元）</th>
+                <sz:if test="${param.status=='0'}">
+                    <th field="OPERATE" align="left" class="OPERATE" width="100" formatter="GridFormatter.OPERATE">选取入围投标人</th>
+                </sz:if>
+            </tr>
+        </thead>
+    </table>
+    <!-- 搜索工具栏 -->
+    <div id="searchForm-toolbar" style="padding: 5px; height: auto">
+        <div>
+            <form id="searchForm">
+                <label>投标人代表号：</label> <input type="text" id="V_BIDDER_NO" name="V_BIDDER_NO" /> <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-search'" onclick="doSearch()">搜索</a> <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-clear'" onclick="doClear()">清空搜索条件</a>
+            </form>
+        </div>
+        <sz:if test="${param.status=='0'}">
+        <div id="total-id">
+            <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-save'" onclick="doOk()">确认抽取结果</a> <span>被抽中的投标人家数:&nbsp;<font id="intoNum" color="green" style="font-weight: bold;">0</font>&nbsp;，请抽取${param.total}家
+            </span>
+        </div>
+        </sz:if>
+     <div>
+</body>
+</html>

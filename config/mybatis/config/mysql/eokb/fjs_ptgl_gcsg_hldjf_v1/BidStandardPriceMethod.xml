@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="fjs_ptgl_gcsg_hldjf_v1_BidStandardPriceMethod">
+
+    <!-- 查询有效标段的评标基准价信息 -->
+    <select id="getBidStandardPriceMethodInfos" resultType="string" parameterType="record">
+        <![CDATA[
+            SELECT TD.V_JSON_OBJ
+              FROM EKB_T_TPFN_DATA_INFO TD
+              JOIN EKB_T_SECTION_INFO S ON (TD.V_BUS_ID = S.V_BID_SECTION_ID AND
+                                           S.V_TPID = #{tpid} AND
+                                           S.V_BID_OPEN_STATUS NOT LIKE '10%' AND
+                                           S.V_BID_EVALUATION_STATUS != '10')
+             WHERE TD.V_BUS_FLAG_TYPE = 'BSPM-TYPE'
+             ORDER BY S.V_BID_SECTION_GROUP_CODE ASC,
+                      S.V_BID_SECTION_NAME ASC
+        ]]>
+    </select>
+    
+    <!-- 查询各标段标报价列表,包含超过最高限价 -->
+    <select id="getSectionEffectivePrice" resultType="double" parameterType="record">
+        <![CDATA[
+            SELECT IFNULL(B.N_PRICE, 0)
+              FROM EKB_T_TENDER_LIST B
+             WHERE B.N_ENVELOPE_1 = 1
+               AND B.V_BID_SECTION_ID = #{sid}
+               AND B.V_TPID = #{tpid}
+        ]]>
+    </select>
+
+</mapper>  

@@ -1,0 +1,61 @@
+<!doctype html>
+<html>
+
+<head>
+<meta charset="UTF-8">
+<%includeJSP( "/static/include/inc.jsp",{}){}%>
+</head>
+<body>
+    <!-- 表格 -->
+    <table id="formGrid" style="width: auto; height: auto" class="easyui-datagrid" title="" toolbar="#searchForm-toolbar" rownumbers="true" fitColumns="true" fit="true" url="${path}${adminPath}/bus/sa/gsr" pageList="[15,25,50,100,200]" pageSize="15" pagination="true" nowrap="false" data-options="method:'get'">
+        <thead>
+            <tr>
+                <th field="ID" align="center" hidden="true"></th>
+                <th field="V_BIDDER_NAME" align="center" halign="center" width="50" data-options="">投标人名称</th>
+                <th field="V_ROLL_NO" align="center" halign="center" width="20" data-options="">随机号</th>
+                <th field="N_ENVELOPE_0" align="center" halign="center" width="20" formatter="GridFormatter.STATUS">状态</th>
+            </tr>
+        </thead>
+    </table>
+    <div id="searchForm-toolbar" style="padding: 5px; height: 32px;">
+        <form id="searchForm">
+            <label>投标人名称：</label> <input type="text" id="V_BIDDER_NAME" name="V_BIDDER_NAME" /> <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-search'" onclick="doSearch()">搜索</a> <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-clear'" onclick="doClear()">清空搜索条件</a>
+        </form>
+    </div>
+    
+    <script type="text/javascript">
+    SZUtilsExtEasyUIListPage.datagrid.pagination();
+    /**
+     * 本地查询
+     */
+    function doSearch() {
+        // 使用Form2Json插件处理,同时过滤掉空数据
+        var searchParam = $('#searchForm').form2json({
+            allowEmptySingleVal : false
+        });
+        $('#formGrid').datagrid('reload', searchParam);
+    }
+
+    /**
+     * 清空
+     */
+    function doClear() {
+        $('#searchForm').form('reset');
+        doSearch();
+    }
+
+    var GridFormatter = {
+        "STATUS" : function(val, row, index) {
+            var _html = "";
+            if (val == 1) {
+                _html += '<span style="color:green;text-decoration:none;font-weight: bold;font-size:25px;">√</span>';
+            } else {
+                _html += '<span style="color:red;text-decoration:none;font-weight: bold;font-size:25px;">×</span>';
+
+            }
+            return _html;
+        }
+    };
+</script>
+</body>
+</html>

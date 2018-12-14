@@ -1,0 +1,107 @@
+<!doctype html>
+<html>
+<head>
+<title>抽取K值</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<%includeJSP("/static/include/inc.jsp",{}){}%>
+<link href="${path}/static/css/table.css" rel="stylesheet" />
+<style>
+td {
+	border: 1px solid #B5D6E6;
+	word-break: break-all;
+}
+
+th {
+	border: 1px solid #B5D6E6;
+	word-break: break-all;
+}
+</style>
+<script type="text/javascript">
+	$.extend($.fn.validatebox.defaults.rules, {
+		intOrFloat : {// 验证整数或小数
+			validator : function(value) {
+				return /^\d+(\.\d+)?$/i.test(value);
+			},
+			message : '请输入数字，并确保格式正确'
+		},
+		maxTo : {
+			validator : function(value, param) {
+				return parseFloat(value) <= parseFloat(param[0]);
+			},
+			message : '数值不能大于{0}'
+		}
+	});
+	function doSave(status) {//保存
+		var f = $("#inputForm");
+		if (f.form('validate')) {
+			//保存操作
+			var info = f.form2json({
+				multiValSelector : '[type=checkbox], select, input',
+				allowEmptyMultiVal : true,
+				allowEmptySingleVal : false
+			});
+
+			// 发生Ajax请求
+			$
+					.ajax({
+						url : '${path}${adminPath}/xms_fwjz_sg_jpsdzdtbjzbf_A_v1/prebid/benchmark/caculate',
+						// 设置请求方法
+						type : 'POST',
+						//dataType : 'json',
+						//contentType : 'application/json;charset=UTF-8',
+						data : {
+							"INFO" : JSON.stringify(info)
+						},
+						// 成功回调
+						success : function() {
+							parent.location.reload();
+						},
+						// 失败回调
+						error : function(XMLHttpRequest, textStatus,
+								errorThrown) {
+							sy.progress.hide();
+							var result = jQuery
+									.parseJSON(XMLHttpRequest.responseText);
+							top.$.messager.alert('操作失败', "操作失败["
+									+ result.errorDesc + "]");
+						}
+					});
+		}
+	}
+</script>
+</head>
+<body style="padding: 8px;">
+    <form id="inputForm">
+        <table class="sztable" width="100%" style="text-align: center;"
+            <thead>
+                <tr>
+                    <th>标段</th>
+                    <th>招标控制价B（元）</th>
+                    <th>暂列金额（元）</th>
+                    <th>专业工程暂估价（元）</th>
+                    <th>K（%）</th>
+                    <th>评标基准价计算取值范围（元）</th>
+                    <th>评标基准价（元）</th>
+                </tr>
+            </thead>
+            <tbody>
+                <input name="SID" value="${BKINFO.V_BID_SECTION_ID}" type="hidden">
+                <input name="CONTROL_PRICE" value="${BKINFO.N_CONTROL_PRICE}" type="hidden">
+                <input name="K_VALUE" value="${BKINFO.K_VALUE}" type="hidden">
+                <td>${BKINFO.V_BID_SECTION_NAME}</td>
+                <td>${fmt.format("#####0.00",BKINFO.N_CONTROL_PRICE)}</td>
+                <td>${BKINFO.EP1}</td>
+                <td>${BKINFO.EP2}</td>
+                <td>${BKINFO.K_VALUE}</td>
+                <td>${BKINFO.SCOPE}</td>
+                <td>${BKINFO.BENCHMARK}</td>
+            </tbody>
+        </table>
+    </form>
+    <div>评标基准价计算公式：(B-暂列金额-专业工程暂估价)×(1-K)+暂列金额+专业工程暂估价。其中：</div>
+    <div>B为招标控制价；暂列金额、专业工程暂估价以招标工程量清单中列出的金额为准。</div>
+    <div>1、评标基准价计算取值范围：根据上述公式和本表第1项K的取值区间上、下限计算确定评标基准价计算取值范围的上、下限。</div>
+    <div>2、评标基准价：根据上述公式和招标人公开抽取的K值计算确定。</div>
+    <div>3、评标基准价计算取值范围的上、下限和评标基准价均取整数（以“元”为单位，小数点后第一位“四舍五入”，第二位及以后不计）。</div>
+</body>
+</html>

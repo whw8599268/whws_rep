@@ -1,0 +1,74 @@
+<div>
+    <p style="font-size: 25px; text-align: center; font-weight: bold;">
+        <u style="font-size: 25px; text-align: center; font-weight: bold;">${PROJECT_NAME}</u>（项目名称）第一数字信封开标结果开标记录表
+    </p>
+    <p style="font-size: 18px; text-align: center;">
+        开标时间：<u style="font-size: 18px; text-align: center; font-weight: bold;"> ${TIME}</u>
+    </p>
+</div>
+<div class="main" style="height: 90%;">
+    <div class="box" style="height: 100%;">
+        <!-- 数据 -->
+        <div class="easyui-tabs" data-options="fit:true,plain:true">
+            <sz:forEach items="${SECTION_LIST}" var="section,stat">
+                <table class="sztable" width="100%" style="text-align: center;">
+                    <caption>标段：${section.BID_SECTION_NAME}</caption>
+                    <tr>
+                        <td width="5%" rowspan='2'>投标人编号</td>
+                        <td width="15%" rowspan='2'>投标人名称</td>
+                        <td width="10%" rowspan='2'>投标保证金递交情况</td>
+                        <td width="5%" rowspan='2'>监理服务期限</td>
+                        <td width="25%" colspan='5'>投标人信用等级及使用情况</td>
+                        <td width="30%" colspan='6'>项目总监信用等级</td>
+                    </tr>
+                    <tr>
+                        <td width="5%">等级</td>
+                        <td width="5%">A级、AA级信用分是否失效</td>
+                        <td width="5%">评标使用的等级</td>
+                        <td width="5%">可享受加分次数</td>
+                        <td width="5%">已享受加分次数</td>
+                        <td width="5%">姓名</td>
+                        <td width="5%">等级</td>
+                        <td width="5%">A级、AA级信用分是否失效</td>
+                        <td width="5%">评标使用的等级</td>
+                        <td width="5%">可享受加分次数</td>
+                        <td width="5%">已享受加分次数</td>
+
+                    </tr>
+                    <sz:forEach items="${section.TENDER_LIST}" var="vo,step">
+                        <tr>
+                            <td>${vo.V_BIDDER_NO}</td>
+                            <td>${vo.V_BIDDER_NAME}</td>
+                            <td>${vo.bzjdjqk!}</td>
+                            <td>${vo.gongqi!}</td>
+                            <td>${vo.tbTbrCR}</td>
+                            <sz:if test="${vo.cbIsAEffect=='1'}">
+                                <td>是</td>
+                            </sz:if>
+                            <sz:if test="${vo.cbIsAEffect!='1'}">
+                                <td>否</td>
+                            </sz:if>
+                            <td>${vo.tbRatingsInEvl}</td>
+                            <td>${vo.ceep}</td>
+                            <td>${vo.heep}</td>
+                            <td>${vo.tbPeName}</td>
+                            <td>${vo.tbPeCR}</td>
+                            <sz:if test="${vo.cbIsAEffect_Pe=='1'}">
+                                <td>是</td>
+                            </sz:if>
+                            <sz:if test="${vo.cbIsAEffect_Pe!='1'}">
+                                <td>否</td>
+                            </sz:if>
+                            <td>${vo.tbRatingsInEvl_Pe}</td>
+                            <td>${vo.ceep_Pe}</td>
+                            <td>${vo.heep_Pe}</td>
+                        </tr>
+                    </sz:forEach>
+                </table>
+            </sz:forEach>
+        </div>
+    </div>
+</div>
+<div style="font-size: 18px; text-align: center; font-weight: bold; height: 100px; line-height: 100px;">
+    监管：&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;招标人：&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;招标代理：</span>
+</div>

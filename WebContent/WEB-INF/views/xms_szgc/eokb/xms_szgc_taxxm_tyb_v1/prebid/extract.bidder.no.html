@@ -1,0 +1,141 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>球号录入</title> <%includeJSP("/static/include/inc.jsp",{}){}%>
+<style>
+td {
+	border: 1px solid #B5D6E6;
+	word-break: break-all;
+}
+</style>
+
+<script type="text/javascript">
+	var code = 'xms_szgc_taxxm_tyb_v1';
+	/**结束当前节点**/
+	function finishCurrentFlow() {
+		var bidders = $(".BIDDERS");
+		var constent = "";
+		for ( var i = 0; i < bidders.size(); i++) {
+			constent = $(bidders[i]).html();
+			if (typeof (constent) == "undefined" || constent == null
+					|| constent == "") {
+				parent.layer.alert("球号录入尚未完成！");
+			}
+		}
+		parent.finishCurrentFlowNodeNoInteractive(
+				'${TENDER_PROJECT_FLOW_NODE.ID}',
+				'${TENDER_PROJECT_FLOW_NODE.V_NODE_NAME}');
+	}
+
+	// 录入球号
+	function doExtract(id) {
+		parent.layer.prompt({
+			title : '请输入球号',
+			formType : 0
+		}, function(no, index) {
+			parent.layer.close(index);
+			var isNum = parent.isPositiveNum(no);
+			if (!isNum) {
+				parent.layer.alert("请输入数字", {
+					icon : 2
+				});
+				return;
+			}
+			$.ajax({
+				url : "${path}${adminPath}/xms_szgc_taxxm_tyb_v1/prebid/sbn/"
+						+ id + "/" + no,
+				// 设置请求方法
+				type : "GET",
+				cache : false,
+				// dataType : 'json',
+				// contentType : 'application/json;charset=UTF-8',
+				// 成功回调
+				success : function(result) {
+					var html = $("#" + id).html();
+					if (typeof (html) != "undefined" && html != ""
+							&& html != null) {
+						html += "，"
+					}
+					html += no;
+					$("#" + id).html(html);
+				},
+				// 失败回调
+				error : function(XMLHttpRequest, textStatus, errorThrown) {
+					var result = jQuery.parseJSON(XMLHttpRequest.responseText);
+					$.messager.alert('操作失败', "操作失败[" + result.errorDesc + "]");
+				}
+			});
+
+		});
+	}
+
+	// 清空球号
+	function doEmpty(id) {
+		parent.layer
+				.confirm(
+						"确定清空球号？",
+						function(index) {
+							parent.layer.close(index);
+							$
+									.ajax({
+										url : "${path}${adminPath}/xms_szgc_taxxm_tyb_v1/prebid/remove/"
+												+ id,
+										// 设置请求方法
+										type : "GET",
+										cache : false,
+										// dataType : 'json',
+										// contentType : 'application/json;charset=UTF-8',
+										// 成功回调
+										success : function(result) {
+											$("#" + id).empty();
+										},
+										// 失败回调
+										error : function(XMLHttpRequest,
+												textStatus, errorThrown) {
+											var result = jQuery
+													.parseJSON(XMLHttpRequest.responseText);
+											$.messager.alert('操作失败', "操作失败["
+													+ result.errorDesc + "]");
+										}
+									});
+
+						});
+	}
+</script>
+</head>
+<body>
+    <sz:if test="${TENDER_PROJECT_FLOW_NODE.N_STATUS!=3}">
+        <div style="text-align: right;">
+            <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-ok'" onclick="finishCurrentFlow();">进入下一环节</a>
+        </div>
+    </sz:if>
+    <div class="easyui-tabs" data-options="plain:true">
+        <div title="标段：${V_BID_SECTION_NAME}" style="padding: 10px;">
+            <table class="sztable" width="100%" style="text-align: center;">
+                <thead>
+                    <tr>
+                        <td width="10%">序号</td>
+                        <td width="40%">投标人名称</td>
+                        <td width="30%">已录入的球号</td>
+                        <sz:if test="${TENDER_PROJECT_FLOW_NODE.N_STATUS!=3}">
+                            <td width="20%">操作</td>
+                        </sz:if>
+                    </tr>
+                </thead>
+                <sz:forEach items="${BIDDERS}" var="vo,step">
+                    <tr>
+                        <td>${step.index+1}</td>
+                        <td>${vo.V_BIDDER_NAME}</td>
+                        <td class="BIDDERS" id="${vo.ID}">${vo.BIDDERS}</td>
+                        <sz:if test="${TENDER_PROJECT_FLOW_NODE.N_STATUS!=3}">
+                            <td><a href="javascript:void(0)" onclick="doExtract('${vo.ID}')">录入</a> <a href="javascript:void(0)" onclick="doEmpty('${vo.ID}')">清空</a></td>
+                        </sz:if>
+                    </tr>
+                </sz:forEach>
+            </table>
+        </div>
+    </div>
+</body>
+</html>

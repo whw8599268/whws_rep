@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<aeolus-config xmlns="http://www.fzsozone.com/aeolus/schema/core"
+	xmlns:xs="http://www.w3.org/2001/XMLSchema-instance"
+	xs:schemaLocation="http://www.fzsozone.com/aeolus/schema/core http://www.fzsozone.com/aeolus/schema/core/aeolus.core-1.6.13.xsd">
+
+	<!-- 异常码配置文件 -->
+	<error-codes>
+		<file resource="classpath:com/sozone/eokb/common/exception.properties" />
+	</error-codes>
+
+	<!-- 拦截链配置 -->
+	<interceptors>
+		<!-- REST Token 拦截器 -->
+		<interceptor index="2"
+			class="com.sozone.eokb.mobile.authz.interceptor.MobileRestAuthzInterceptor" />
+	</interceptors>
+
+	<!-- 服务列表定义,base-package默认可以不填写,默认扫描com.sozone开头的包下所有服务类,多个包用逗号隔开 -->
+	<services base-package="com.sozone">
+		<!-- 需要排除的包或者类,多个用逗号隔开 -->
+		<exclude pattern="com.sozone.aeolus.MachineFingerprint" />
+		<exclude pattern="com.sozone.common.*" />
+		<exclude pattern="com.sozone.aeolus.timer*" />
+		<exclude pattern="com.sozone.aeolus.upload*" />
+		<exclude pattern="com.sozone.aeolus.download*" />
+	</services>
+
+	<!-- 数据源配置 -->
+	<data-sources default="ekb">
+		<data-source dialect="mysql" type="druid" id="ekb"
+			scanPattern="%">
+			<user value="DB_EBID_EOKB" />
+			<password value="DB_EBID_EOKB" />
+			<url
+				value="jdbc:mysql://192.168.1.170:3306/DB_EBID_EOKB?characterEncoding=utf-8" />
+			<!-- 配置初始化大小、最小、最大 -->
+			<property name="initialSize" value="10" />
+			<property name="minIdle" value="10" />
+			<property name="maxActive" value="20" />
+			<!-- 配置获取连接等待超时的时间 -->
+			<property name="maxWait" value="60000" />
+			<!-- 配置间隔多久才进行一次检测，检测需要关闭的空闲连接，单位是毫秒 -->
+			<property name="timeBetweenEvictionRunsMillis" value="60000" />
+			<!-- 配置一个连接在池中最小生存的时间，单位是毫秒 -->
+			<property name="minEvictableIdleTimeMillis" value="300000" />
+			<!-- 打开PSCache，并且指定每个连接上PSCache的大小 -->
+			<property name="poolPreparedStatements" value="true" />
+			<property name="maxPoolPreparedStatementPerConnectionSize"
+				value="20" />
+			<!-- 配置监控统计拦截的filters -->
+			<property name="filters" value="stat" />
+		</data-source>
+
+		<data-source dialect="mysql" type="druid" id="ekb_log"
+			scanPattern="LOGGING_%">
+			<user value="DB_EBID_EOKB_LOG" />
+			<password value="DB_EBID_EOKB_LOG" />
+			<url
+				value="jdbc:mysql://192.168.1.170:3306/DB_EBID_EOKB_LOG?characterEncoding=utf-8" />
+			<!-- 配置初始化大小、最小、最大 -->
+			<property name="initialSize" value="10" />
+			<property name="minIdle" value="10" />
+			<property name="maxActive" value="20" />
+			<!-- 配置获取连接等待超时的时间 -->
+			<property name="maxWait" value="60000" />
+			<!-- 配置间隔多久才进行一次检测，检测需要关闭的空闲连接，单位是毫秒 -->
+			<property name="timeBetweenEvictionRunsMillis" value="60000" />
+			<!-- 配置一个连接在池中最小生存的时间，单位是毫秒 -->
+			<property name="minEvictableIdleTimeMillis" value="300000" />
+			<!-- 打开PSCache，并且指定每个连接上PSCache的大小 -->
+			<property name="poolPreparedStatements" value="true" />
+			<property name="maxPoolPreparedStatementPerConnectionSize"
+				value="20" />
+			<!-- 配置监控统计拦截的filters -->
+			<property name="filters" value="stat" />
+		</data-source>
+	</data-sources>
+
+	<mappers>
+		<mapper resource="mybatis/config/${ekb}/*" />
+	</mappers>
+
+	<!-- 扩展插件 -->
+	<plugins>
+		<!-- 系统运行参数插件 -->
+		<plugin id="aeolus-sys-param-plugin"
+			class="com.sozone.aeolus.authorize.plugins.SystemParamPlugIn" switch="on" />
+		<!-- 权限注解环境插件 -->
+		<plugin id="aeolus-authc-annotation-plugin"
+			class="com.sozone.aeolus.authorize.plugins.PermissionAnnontationPlugIn"
+			switch="on" />
+		<!-- 定时器插件 -->
+		<plugin id="aeolus-timer-plugin" class="com.sozone.aeolus.timer.AeolusTimerPlugIn"
+			switch="on" />
+	</plugins>
+
+</aeolus-config>
+
+
+
+

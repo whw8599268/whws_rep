@@ -1,0 +1,47 @@
+<div>
+    <p style="font-size: 25px; text-align: center; font-weight: bold;">
+        <u style="font-size: 25px; text-align: center; font-weight: bold;">${PROJECT_NAME}</u>（项目名称）<u style="font-size: 25px; text-align: center; font-weight: bold;">${SECTIONS} </u>标段监理开标记录表
+    </p>
+    <p style="font-size: 18px; text-align: center;">
+        开标时间：<u style="font-size: 18px; text-align: center; font-weight: bold;"> ${TIME}</u>
+    </p>
+</div>
+<div class="easyui-tabs" data-options="plain:true">
+    <sz:forEach items="${SECTION_LIST}" var="section,stat">
+        <table class="sztable" width="100%" style="text-align: center;">
+            <tr>
+                <td width="5%">序号</td>
+                <td width="15%">投标人名称</td>
+                <td width="10%">统一社会信用代码</td>
+                <td width="10%">项目负责人</td>
+                <td width="10%">项目负责人身份证号</td>
+                <td width="10%">投标报价</td>
+                <td width="10%">工期</td>
+                <td width="10%">质量标准</td>
+                <td width="10%">法定代表人或授权委托人</td>
+                <td width="5%">法定代表人或授权委托人联系方式</td>
+                <td width="5%">备注</td>
+            </tr>
+            <sz:forEach items="${section.TENDER_LIST}" var="vo,step">
+                <tr>
+                    <td>${step.index+1}</td>
+                    <td>${vo.tbrmc}</td>
+                    <td>${vo.bidder_unify_code}</td>
+                    <td>${vo.tbPeName}</td>
+                    <td>${vo.card_numer}</td>
+                    <td>${vo.tbbj}</td>
+                    <td>${vo.gongqi}</td>
+                    <td>${vo.zlmb}</td>
+                    <td>${vo.authorize_name}</td>
+                    <td>${vo.bidder_phone!}</td>
+                    <td>${vo.firstRemark!}</td>
+                </tr>
+            </sz:forEach>
+        </table>
+    </sz:forEach>
+</div>
+<div style="font-size: 18px; text-align: center; font-weight: bold; height: 100px; line-height: 100px;">
+    <p>
+        招标人电子盖章（或签字）：<span style="margin-left: 20em;">招标代理机构电子盖章（或签字）：</span><span style="margin-left: 20em;">公证处电子盖章（或签字）：</span>
+    </p>
+</div>

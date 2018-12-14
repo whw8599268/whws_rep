@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>操作确认</title> <%includeJSP("/static/include/inc.jsp",{}){}%>
+</head>
+<body>
+    <div id="join-confirm-dialog" class="easyui-dialog" title="操作确认对话框" style="width: 300px; height: 220px; padding: 0px" closable="false" data-options="iconCls: 'icon-tip',buttons: '#dialog-buttons'">
+        <div id="login-error-info" style="padding: 10px; font-size: 16px; line-height: 20px;">
+            <!-- 如果是当前证书 -->
+            <sz:if test="${SAME_CERT}">
+                <div class="demo-tip icon-error-small"></div>
+                <div id="error-info-data" style="color: red">当前证书已于[${PARTICIPANT.JOIN_TIME}]登录开标会议室，如果对方正在进行重要操作，此时强制进入可能引发不良后果!您确定要强制进入吗?</div>
+            </sz:if>
+            <!-- 如果不是当前证书 -->
+            <sz:if test="${!SAME_CERT}">
+                <div class="demo-tip icon-error-small"></div>
+                <div id="error-info-data" style="color: red">
+                    贵司的：${PARTICIPANT.KEY_NAME}(${PARTICIPANT.LOGIN_NAME})证书<br />在
+                    <sz:if test="${PARTICIPANT.IS_MOBILE}">
+            手机端
+        </sz:if>
+                    <sz:if test="${!PARTICIPANT.IS_MOBILE}">
+            PC端
+        </sz:if>
+                    于[${PARTICIPANT.JOIN_TIME}]登录开标会议室，如果对方正在进行重要操作，此时强制进入可能引发不良后果!您确定要强制进入吗?
+                </div>
+            </sz:if>
+
+        </div>
+    </div>
+    <div id="dialog-buttons">
+        <a href="javascript:void(0)" class="easyui-linkbutton" onclick="compelJoin()">强制进入</a> <a href="javascript:void(0)" class="easyui-linkbutton" onclick="giveUp()">取消进入</a>
+    </div>
+
+    <script type="text/javascript">
+					function compelJoin() {
+						var url = "${path}${adminPath}/room/kout/${TENDER_PROJECT_INFO.ID}/${PARTICIPANT.USER_ID}";
+						sy.progress.show();
+						// 发生Ajax请求
+						$
+								.ajax({
+									url : url,
+									// 设置请求方法
+									type : 'POST',
+									//dataType : 'json',
+									//contentType : 'application/json;charset=UTF-8',
+									//data : JSON.stringify(func),
+									// 成功回调
+									success : function(result) {
+										sy.progress.hide();
+										window.location.href = "${path}${adminPath}/room/join/${TENDER_PROJECT_INFO.ID}?_t="
+												+ new Date().getTime();
+									},
+									// 失败回调
+									error : function(XMLHttpRequest,
+											textStatus, errorThrown) {
+										sy.progress.hide();
+										var result = jQuery
+												.parseJSON(XMLHttpRequest.responseText);
+										$.messager.alert('操作失败', "操作失败["
+												+ result.errorDesc + "]");
+									}
+								});
+					}
+
+					function giveUp() {
+						window.location.href = "${path}${adminPath}/view/auth.sucess.forward.html?user_type=${user_type}";
+					}
+				</script>
+</body>
+</html>

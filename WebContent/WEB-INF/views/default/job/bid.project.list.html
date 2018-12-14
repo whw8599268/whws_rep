@@ -1,0 +1,227 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>招标项目信息管理</title> <%includeJSP("/static/include/inc.jsp",{}){}%>
+<script type="text/javascript">
+	SZUtilsExtEasyUIListPage.datagrid.pagination();
+	/**
+	 * 本地查询
+	 */
+	function doSearch() {
+		// 使用Form2Json插件处理,同时过滤掉空数据
+		var searchParam = $('#searchForm').form2json({
+			allowEmptySingleVal : false
+		});
+		$('#formGrid').datagrid('reload', searchParam);
+	}
+
+	/**
+	 * 清空
+	 */
+	function doClear() {
+		$('#searchForm').form('reset');
+		doSearch();
+	}
+
+	var GridFormatter = {
+		"V_JYCS" : function(val, row, index) {
+			if (val == "350200") {
+				return "厦门市交易中心";
+			}
+			if (val == "350205") {
+				return "海沧区交易中心";
+			}
+			if (val == "350211") {
+				return "集美区交易中心";
+			}
+			if (val == "350212") {
+				return "同安区交易中心";
+			}
+			if (val == "350213") {
+				return "翔安区交易中心";
+			}
+			if (val == "350000") {
+				return "省交易中心";
+			}
+			return val;
+		},
+		"V_TENDERPROJECT_APP_TYPE" : function(val, row, index) {
+			if (val == "10") {
+				return "高速公路";
+			}
+			if (val == "20") {
+				return "普通公路";
+			}
+			if (val == "30") {
+				return "港航水运";
+			}
+			if (val == "A01") {
+				return "厦门房屋建筑";
+			}
+			if (val == "A02") {
+				return "厦门市政工程";
+			}
+			return val;
+		},
+		"OPERATE" : function(val, row, index) {
+			return '<a href="javascript:void(0)" onclick="doRemove(\'' + row.ID
+					+ '\')">删除</a>';
+		}
+	};
+
+	//删除招标项目
+	function doRemove(tpid) {
+		var msg = "确认要删除选择的数据吗?";
+		var url = '${path}${adminPath}/syncotpd/rm/' + tpid;
+		parent.$.messager.confirm("提示!", msg, function(res) {
+			if (res) {
+				$.ajax({
+					url : url,
+					type : "DELETE",
+					// 成功回调
+					success : function(result) {
+						$('#formGrid').datagrid('reload');
+						parent.sy.messagerShow({
+							msg : "操作成功!",
+							title : '提示'
+						});
+					},
+					// 失败回调
+					error : function(XMLHttpRequest, textStatus, errorThrown) {
+						var result = jQuery
+								.parseJSON(XMLHttpRequest.responseText);
+						top.$.messager.alert('操作失败', "操作失败[" + result.errorDesc
+								+ "]");
+					}
+				});
+			}
+		});
+	}
+
+	//打开同步对话框
+	function openSyncOTPDataDialog() {
+		var title = "&nbsp;同步开标数据对话框";
+		var p = parent.sy
+				.dialog({
+					title : title,
+					iconCls : "application_osx_add",
+					href : '${path}${adminPath}/view/job/sync.otpd.html',
+					maximizable : true,
+					width : 1200,
+					height : 600,
+					buttons : [
+							{
+								text : '保存',
+								iconCls : "icon-save",
+								handler : function() {
+									var rows = p.find('#sync-otpd-datagrid')
+											.datagrid('getSelections');
+									if (rows.length == 0) {
+										parent.$.messager.alert("提示",
+												"请选择要同步的数据！");
+										return;
+									}
+									var ids = "";
+									for ( var i = 0; i < rows.length; i++) {
+										var id = rows[i].V_TENDER_PROJECT_ID;
+										ids += id;
+										if (i != rows.length - 1) {
+											ids += ",";
+										}
+									}
+									var f = p.find('#sync-otpd-form');
+									if (f.form('validate')) {
+										//保存操作
+										var param = f.form2json({
+											allowEmptySingleVal : false
+										});
+										param.V_TENDER_PROJECT_IDS = ids;
+										//alert(JSON.stringify(param));
+										parent.sy.progress.show();
+										// 发生Ajax请求
+										$
+												.ajax({
+													url : '${path}${adminPath}/syncotpd/sync',
+													// 设置请求方法
+													type : 'POST',
+													//dataType : 'json',
+													contentType : 'application/json;charset=UTF-8',
+													data : JSON
+															.stringify(param),
+													// 成功回调
+													success : function(result) {
+														parent.sy.progress
+																.hide();
+														$('#formGrid')
+																.datagrid(
+																		'reload');
+														parent.sy
+																.messagerShow({
+																	msg : "操作成功!",
+																	title : '提示'
+																});
+														p.dialog('close');
+													},
+													// 失败回调
+													error : function(
+															XMLHttpRequest,
+															textStatus,
+															errorThrown) {
+														parent.sy.progress
+																.hide();
+														var result = jQuery
+																.parseJSON(XMLHttpRequest.responseText);
+														top.$.messager
+																.alert(
+																		'操作失败',
+																		"操作失败["
+																				+ result.errorDesc
+																				+ "]");
+													}
+												});
+									}
+									p.dialog('close');
+								}
+							}, {
+								text : "关闭",
+								iconCls : "icon-remove",
+								handler : function() {
+									p.dialog('close');
+								}
+							} ]
+				});
+	}
+</script>
+</head>
+<body>
+    <!-- 表格 -->
+    <table id="formGrid" style="width: auto; height: auto" class="easyui-datagrid" title="" toolbar="#searchForm-toolbar" rownumbers="true" fitColumns="true" fit="true" pageList="[50,100,150,200]" pageSize="50" url="${path}${adminPath}/syncotpd/tps" pagination="true" data-options="loadFilter:resultFilter,method:'get'">
+        <thead>
+            <tr>
+                <th field="V_BIDOPEN_TIME" align="left" width="150">开标时间</th>
+                <th field="V_INVITENOTRUE" align="left" width="150">招标项目编号</th>
+                <th field="V_TENDER_PROJECT_NAME" align="left" width="250">招标项目名称</th>
+                <th field="V_TENDERER_CODE" align="left" width="100">招标人组织机构代码</th>
+                <th field="V_TENDERER_NAME" align="left" width="250">招标人名称</th>
+                <th field="V_TENDER_AGENCY_CODE" align="left" width="100">招标代理组织机构代码</th>
+                <th field="V_TENDER_AGENCY_NAME" align="left" width="250">招标代理名称</th>
+                <th field="V_TENDERPROJECT_APP_TYPE" align="left" width="100" formatter="GridFormatter.V_TENDERPROJECT_APP_TYPE">项目类型</th>
+                <th field="V_JYCS" align="left" width="100" formatter="GridFormatter.V_JYCS">交易场所</th>
+                <th field="OPERATE" align="left" class="OPERATE" width="100" formatter="GridFormatter.OPERATE">操作</th>
+            </tr>
+        </thead>
+    </table>
+    <!-- 搜索工具栏 -->
+    <div id="searchForm-toolbar" style="padding: 5px; height: auto">
+        <div>
+            <form id="searchForm">
+                <label>招标项目名称：</label> <input type="text" id="V_TENDER_PROJECT_NAME" name="V_TENDER_PROJECT_NAME" /> <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-search'" onclick="doSearch()">搜索</a> <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-clear'" onclick="doClear()">清空搜索条件</a>
+            </form>
+        </div>
+        <div>
+            <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-edit'" title="同步数据" onclick="openSyncOTPDataDialog()">同步数据</a>
+        </div>
+    </div>
+</body>
+</html>

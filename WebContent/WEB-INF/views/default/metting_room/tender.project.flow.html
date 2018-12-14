@@ -1,0 +1,84 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="UTF-8">
+<link href="${path}${adminPath}/view/metting_room/css/lcnew.css" rel="stylesheet" />
+<script type="text/javascript">
+    function openURL(nodeID, nodeTitle) {
+        var url = "${path}${adminPath}/tpflow/node/" + nodeID;
+        parent.openContentPage(url, nodeTitle);
+    }
+</script>
+</head>
+<body>
+
+    <div class="zw-mid">
+        <div class="bz-k">
+
+            <sz:forEach items="${NODE_TREE}" var="vo,stat">
+
+                <!-- 不是最后一个节点 -->
+                <sz:if test="${!stat.last}">
+                    <div class="flow-h">
+                        <div class="menu-bg">
+                            <div class="menu">
+                                <span class="menu-img"><img src="${path}${adminPath}/view/${vo.V_NODE_ICON}" width="26" height="21" /></span> <span class="menu-wz">${vo.V_NODE_NAME}</span>
+                            </div>
+                        </div>
+                        <div class="flow-list">
+                            <ul class="rg-h">
+                                <sz:forEach items="${vo.children}" var="child,step">
+                                    <!-- 未开始 -->
+                                    <sz:if test="${child.N_STATUS==1}">
+                                        <li class="sub-menu1">${child.V_NODE_NAME}<span class="zt1"><img src="${path}${adminPath}/view/metting_room/images/wwc.png" width="14" height="14" />未开始</span></li>
+                                    </sz:if>
+                                    <!-- 进行中 -->
+                                    <sz:if test="${child.N_STATUS==2}">
+                                        <li class="sub-menu" onclick="openURL('${child.ID}','${child.V_NODE_NAME}');">${child.V_NODE_NAME}<span class="zt"><img src="${path}${adminPath}/view/metting_room/images/jxz.png" width="14" height="14" />进行中</span></li>
+                                    </sz:if>
+                                    <!-- 已结束 -->
+                                    <sz:if test="${child.N_STATUS==3}">
+                                        <li class="sub-menu" onclick="openURL('${child.ID}','${child.V_NODE_NAME}');">${child.V_NODE_NAME}<span class="zt"><img src="${path}${adminPath}/view/metting_room/images/ywc.png" width="14" height="14" />已结束</span></li>
+                                    </sz:if>
+                                </sz:forEach>
+                            </ul>
+                        </div>
+                    </div>
+                </sz:if>
+
+                <!-- 最后一个节点 -->
+                <sz:if test="${stat.last}">
+                    <div class="flow-h-last">
+                        <div class="menu-bg">
+                            <div class="menu">
+                                <span class="menu-img"><img src="${path}${adminPath}/view/${vo.V_NODE_ICON}" width="26" height="21" /></span> <span class="menu-wz">${vo.V_NODE_NAME}</span>
+                            </div>
+                        </div>
+                        <div class="flow-list-last">
+                            <ul class="rg-h">
+                                <sz:forEach items="${vo.children}" var="child,step">
+                                    <!-- 未开始 -->
+                                    <sz:if test="${child.N_STATUS==1}">
+                                        <li class="sub-menu1">${child.V_NODE_NAME}<span class="zt1"><img src="${path}${adminPath}/view/metting_room/images/wwc.png" width="14" height="14" />未开始</span></li>
+                                    </sz:if>
+                                    <!-- 进行中 -->
+                                    <sz:if test="${child.N_STATUS==2}">
+                                        <li class="sub-menu" onclick="openURL('${child.ID}','${child.V_NODE_NAME}');">${child.V_NODE_NAME}<span class="zt"><img src="${path}${adminPath}/view/metting_room/images/jxz.png" width="14" height="14" />进行中</span></li>
+                                    </sz:if>
+                                    <!-- 已结束 -->
+                                    <sz:if test="${child.N_STATUS==3}">
+                                        <li class="sub-menu" onclick="openURL('${child.ID}','${child.V_NODE_NAME}');">${child.V_NODE_NAME}<span class="zt"><img src="${path}${adminPath}/view/metting_room/images/ywc.png" width="14" height="14" />已结束</span></li>
+                                    </sz:if>
+                                </sz:forEach>
+                            </ul>
+                        </div>
+                    </div>
+                </sz:if>
+
+            </sz:forEach>
+
+        </div>
+    </div>
+
+</body>
+</html>

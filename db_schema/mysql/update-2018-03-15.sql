@@ -1,0 +1,2 @@
+/** 投递表MAC字段增加 */
+INSERT INTO t_sys_param (PARAM_ID, PARAM_KEY, PARAM_VALUE, PARAM_RULE, PARAM_TIP, PARAM_DEMO) VALUES ('2f5c593df7ac4e8cadaa6b378db54ba4', 'com.sozone.epb.url', 'http://test-ebid-online-pb.okap.com', '.*', '海迈访问调用评标地址的基础路径', '海迈访问调用评标地址的基础路径');

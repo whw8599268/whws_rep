@@ -1,0 +1,63 @@
+<html>
+<head></head>
+<body>
+    <form id="inputForm" method="post" class="formstyle">
+        <input type="hidden" id="V_FLOW_ID" name="V_FLOW_ID" value="${param.flowid}" autocomplete="off"> <input type="hidden" id="V_PID" name="V_PID" value="${param.pid}" autocomplete="off">
+        <!-- START DYFORM LAYOUT -->
+        <table align="left" width="100%" class="sztable" border="0" cellspacing="0" cellpadding="0">
+            <tbody>
+                <tr class="form_tr">
+                    <td width="25%" class="sztabletext" title="节点名称">节点名称：</td>
+                    <td data-label="节点名称" width="75%"><input type="text" class="easyui-textbox" id="V_NODE_NAME" name="V_NODE_NAME" title="" data-options="required:true,validType:'length[1,300]'" style="width: 300px;" autocomplete="off"></td>
+                </tr>
+                <tr class="form_tr">
+                    <td width="25%" class="sztabletext" title="节点图标">节点图标：</td>
+                    <td data-label="节点图标" width="75%"><input type="text" class="easyui-textbox" id="V_NODE_ICON" name="V_NODE_ICON" title="" data-options="validType:'length[1,255]'" style="width: 300px;" autocomplete="off"></td>
+                </tr>
+                <tr class="form_tr">
+                    <td width="25%" class="sztabletext" title="招标人页面URL">招标人页面URL：</td>
+                    <td data-label="招标人页面URL" width="75%"><input type="text" class="easyui-textbox" id="V_TENDERER_PAGE_URL" name="V_TENDERER_PAGE_URL" title="" data-options="validType:'length[1,255]'" style="width: 300px;" autocomplete="off"></td>
+                </tr>
+                <tr class="form_tr">
+                    <td width="25%" class="sztabletext" title="手机版节点图标">手机版节点图标：</td>
+                    <td data-label="手机版节点图标" width="75%"><input type="text" class="easyui-textbox" id="V_MOBILE_NODE_ICON" name="V_MOBILE_NODE_ICON" title="" data-options="validType:'length[1,255]'" style="width: 300px;" autocomplete="off"></td>
+                </tr>
+                <tr class="form_tr">
+                    <td width="25%" class="sztabletext" title="手机版招标人页面URL">手机版招标人页面URL：</td>
+                    <td data-label="手机版招标人页面URL" width="75%"><input type="text" class="easyui-textbox" id="V_MOBILE_TENDERER_PAGE_URL" name="V_MOBILE_TENDERER_PAGE_URL" title="" data-options="validType:'length[1,255]'" style="width: 300px;" autocomplete="off"></td>
+                </tr>
+                <tr class="form_tr">
+                    <td width="25%" class="sztabletext" title="招标人是否显示节点">招标人是否显示节点：</td>
+                    <td data-label="招标人是否显示节点" width="75%"><select id="N_TENDERER_IS_SHOW" name="N_TENDERER_IS_SHOW" title="">
+                            <option value="1" selected="selected">显示</option>
+                            <option value="0">不显示</option>
+                    </select></td>
+                </tr>
+                <tr class="form_tr">
+                    <td width="25%" class="sztabletext" title="投标人页面URL">投标人页面URL：</td>
+                    <td data-label="投标人页面URL" width="75%"><input type="text" class="easyui-textbox" id="V_BIDDER_PAGE_URL" name="V_BIDDER_PAGE_URL" title="" data-options="validType:'length[1,255]'" style="width: 300px;" autocomplete="off"></td>
+                </tr>
+                <tr class="form_tr">
+                    <td width="25%" class="sztabletext" title="手机版投标人页面URL">手机版投标人页面URL：</td>
+                    <td data-label="手机版投标人页面URL" width="75%"><input type="text" class="easyui-textbox" id="V_MOBILE_BIDDER_PAGE_URL" name="V_MOBILE_BIDDER_PAGE_URL" title="" data-options="validType:'length[1,255]'" style="width: 300px;" autocomplete="off"></td>
+                </tr>
+                <tr class="form_tr">
+                    <td width="25%" class="sztabletext" title="投标人是否显示节点">投标人是否显示节点：</td>
+                    <td data-label="投标人是否显示节点" width="75%"><select id="N_BIDDER_IS_SHOW" name="N_BIDDER_IS_SHOW" title="">
+                            <option value="1" selected="selected">显示</option>
+                            <option value="0">不显示</option>
+                    </select></td>
+                </tr>
+                <tr class="form_tr">
+                    <td width="25%" class="sztabletext" title="是否为启动节点">是否为启动节点：</td>
+                    <td data-label="是否为启动节点" width="75%"><select id="N_IS_START_UP_NODE" name="N_IS_START_UP_NODE" title="">
+                            <option value="1">是</option>
+                            <option value="0" selected="selected">否</option>
+                    </select></td>
+                </tr>
+            </tbody>
+        </table>
+        <!-- END DYFORM LAYOUT -->
+    </form>
+</body>
+</html>
